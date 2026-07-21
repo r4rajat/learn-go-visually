@@ -7,21 +7,36 @@ Go code example.
 
 ## Current scope
 
-All five sections in the homepage roadmap are built end to end:
+All six sections in the homepage roadmap are built end to end:
 
 - **Basics** (`basics.html`) — Hello Go, variables & types, control flow, functions
 - **Core** (`core.html`) — structs & methods, slices & maps, interfaces, error handling
 - **Concurrency** (`concurrency.html`) — goroutines, unbuffered channels, buffered
   channels, closing channels, `select`
 - **Advanced** (`advanced.html`) — generics, context, testing
+- **Operators** (`operators.html`) — building a real Kubernetes operator in Go end to
+  end: CRD design, the reconcile loop, owner references, finalizers, testing with
+  envtest, and a genuine deployment to a real `kind` cluster
 
 Not every topic gets the same depth of custom interactive visualization — Concurrency
 and a few core-type gotchas (slices, structs, the nil-interface trap, context
-cancellation) have purpose-built animated diagrams because a visual genuinely clarifies
-those specific behaviors; more procedural topics (hello world, control flow, testing)
-lean on clean code-first treatment instead of a forced animation. Every topic, without
-exception, has real verified code, real captured output, and (except Testing — see
-below) a working Playground link.
+cancellation, the operator reconcile loop and owner-reference GC) have purpose-built
+animated diagrams because a visual genuinely clarifies those specific behaviors; more
+procedural topics (hello world, control flow, testing) lean on clean code-first
+treatment instead of a forced animation. Every topic, without exception, has real
+verified code, real captured output, and (except Testing — see below) a working
+Playground link.
+
+**Operators is verified differently from everything else on this site**, since a
+Kubernetes operator can't be proven with just `go run`. It was checked at three
+increasing levels of realism: the Go code compiles and passes `go vet` against the real
+current controller-runtime v0.24.1 API; the reconciler's actual logic was proven against
+a real embedded Kubernetes API server (`envtest` — genuine `kube-apiserver` and `etcd`
+processes, but no kubelet or controller-manager); and anything that specifically
+requires those missing pieces (real running Pods, real cascading garbage collection on
+delete) was verified separately against an actual `kind` cluster created for this page,
+with the exact `kubectl` output captured. The page states plainly which claims rest on
+which of the three.
 
 ## Accuracy methodology
 
@@ -92,10 +107,12 @@ basics.html             Hello Go, variables & types, control flow, functions
 core.html               Structs & methods, slices & maps, interfaces, error handling
 concurrency.html        Goroutines, channels, buffered channels, closing channels, select
 advanced.html           Generics, context, testing
+operators.html          Building a Kubernetes operator in Go, end to end
 assets/css/style.css    Design system (design tokens, light/dark mode, components)
 assets/js/theme.js      Light/dark mode toggle (persisted in localStorage)
 assets/js/basics.js     Basics page interactive visuals
 assets/js/core.js       Core page interactive visuals
 assets/js/visuals.js    Concurrency page interactive visuals
 assets/js/advanced.js   Advanced page interactive visuals
+assets/js/operators.js  Operators page interactive visuals
 ```
