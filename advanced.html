@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced: Generics, Context &amp; Testing &mdash; Learn Go, Visually</title>
+<meta name="description" content="Generic functions, context cancellation, and table-driven tests — explained with interactive visuals and real, verified Go code.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html" class="active">Advanced</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Advanced</span>
+    <h1>Generics, Context &amp; Testing</h1>
+    <p class="lede">
+      Three things you'll reach for constantly in real Go codebases, even though none of
+      them come up in a first "hello world." Every claim here was checked against a real
+      Go 1.26 toolchain and the official documentation before being written down.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#generics">Generics</a>
+      <a class="btn btn-sm" href="#context">Context</a>
+      <a class="btn btn-sm" href="#testing">Testing</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="generics">Generics</h2>
+    <p>
+      Since Go 1.18, a function or type can take <strong>type parameters</strong>, written
+      in square brackets, letting one definition work across multiple types safely (checked
+      at compile time) instead of writing near-duplicate functions per type or falling back
+      to <code>interface{}</code> and runtime type assertions.
+    </p>
+
+    <div class="viz" data-viz="generics-sub">
+      <div class="viz-stage">
+        <div class="gen-row">
+          <div class="gen-badge" data-role="type-badge">T = ?</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-fn" data-role="call">Max(a, b)</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="obj-box" data-role="result">?</div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-primary" data-role="use-int">Call with int</button>
+        <button class="btn btn-primary" data-role="use-float">Call with float64</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Pick a type to call Max with.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/U99jZK7BuYw" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> Max[T <span class="tok-type">int</span> | <span class="tok-type">float64</span>](a, b T) T {
+	<span class="tok-kw">if</span> a &gt; b {
+		<span class="tok-kw">return</span> a
+	}
+	<span class="tok-kw">return</span> b
+}
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(Max(3, 7))
+	fmt.Println(Max(2.5, 1.1))
+}</code></pre>
+      <div class="code-output show">7
+2.5</div>
+    </div>
+
+    <p>
+      <code>[T int | float64]</code> is a <strong>type constraint</strong>: <code>T</code>
+      can be instantiated as <code>int</code> or <code>float64</code>, and the compiler
+      checks every call. Two predeclared constraints come up constantly:
+      <code>any</code> (an alias for <code>interface{}</code> &mdash; any type at all) and
+      <code>comparable</code> (any type that supports <code>==</code> and <code>!=</code>,
+      which is exactly what's required for, say, a generic function that uses its
+      arguments as map keys).
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="context">Context</h2>
+    <p>
+      <code>context.Context</code> carries cancellation signals (and deadlines, and
+      request-scoped values) across API boundaries and between goroutines.
+      <code>WithCancel</code>, <code>WithTimeout</code>, and <code>WithDeadline</code> each
+      derive a new context from a parent &mdash; and cancelling a parent cancels
+      <strong>everything</strong> derived from it, all the way down.
+    </p>
+
+    <div class="viz" data-viz="ctx-tree">
+      <div class="viz-stage">
+        <div class="ctx-tree">
+          <div class="ctx-node" data-role="parent">ctx (parent, WithTimeout)</div>
+          <div class="ctx-line"></div>
+          <div class="ctx-children">
+            <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">derived ctx A</div></div>
+            <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">derived ctx B</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="cancel">Cancel parent</button></div>
+      <div class="viz-caption" data-role="caption">Click to cancel the parent and watch cancellation propagate down.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/H_UtnYrKc72" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	<span class="tok-kw">defer</span> cancel()
+
+	<span class="tok-kw">select</span> {
+	<span class="tok-kw">case</span> &lt;-time.After(300 * time.Millisecond):
+		fmt.Println(<span class="tok-str">"work finished"</span>)
+	<span class="tok-kw">case</span> &lt;-ctx.Done():
+		fmt.Println(<span class="tok-str">"cancelled:"</span>, ctx.Err())
+	}
+}</code></pre>
+      <div class="code-output show">cancelled: context deadline exceeded</div>
+    </div>
+
+    <p>
+      The simulated work takes 300ms, but the context's timeout fires at 100ms, so
+      <code>ctx.Done()</code> is the case that's ready first. <code>ctx.Err()</code> then
+      reports exactly why: the exported sentinel error <code>context.DeadlineExceeded</code>,
+      whose message is the <code>"context deadline exceeded"</code> text printed above. Always call the
+      <code>cancel</code> function returned alongside a context (typically via
+      <code>defer</code>) even when it isn't the reason you stopped &mdash; it releases
+      resources associated with the context immediately instead of waiting for the
+      deadline.
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="testing">Testing</h2>
+    <p>
+      Go's testing story is built into the toolchain: any file named <code>*_test.go</code>
+      is excluded from normal builds but picked up by <code>go test</code>. A test is just
+      a function named <code>TestXxx</code> taking a <code>*testing.T</code>. The most
+      common pattern for testing several inputs is a <strong>table-driven test</strong>:
+      a slice of cases looped over, each run as its own named subtest.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">math.go</span>
+      </div>
+      <pre><code><span class="tok-kw">package</span> mathutil
+
+<span class="tok-kw">func</span> Add(a, b <span class="tok-type">int</span>) <span class="tok-type">int</span> { <span class="tok-kw">return</span> a + b }</code></pre>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">math_test.go</span>
+      </div>
+      <pre><code><span class="tok-kw">package</span> mathutil
+
+<span class="tok-kw">import</span> <span class="tok-str">"testing"</span>
+
+<span class="tok-kw">func</span> TestAdd(t *testing.T) {
+	cases := []<span class="tok-kw">struct</span>{ a, b, want <span class="tok-type">int</span> }{
+		{2, 3, 5},
+		{-1, 1, 0},
+		{0, 0, 0},
+	}
+	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> cases {
+		got := Add(c.a, c.b)
+		<span class="tok-kw">if</span> got != c.want {
+			t.Errorf(<span class="tok-str">"Add(%d, %d) = %d, want %d"</span>, c.a, c.b, got, c.want)
+		}
+	}
+}</code></pre>
+      <div class="code-output show">$ go test -v ./mathutil/
+=== RUN   TestAdd
+--- PASS: TestAdd (0.00s)
+PASS
+ok  	example.com/goverify/mathutil	0.003s</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Why no Playground link here</div>
+      <p>
+        The Go Playground runs a single-file <code>package main</code> program (or,
+        without a <code>main</code>, a single file of tests) &mdash; it isn't a natural fit
+        for a two-file package like this one. The output above is real, captured by
+        actually running <code>go test -v</code> against these exact two files, not
+        simulated.
+      </p>
+    </div>
+
+    <p>
+      Each entry in <code>cases</code> is a complete, independent test case; adding another
+      input to check means adding another line to the slice, not another copy-pasted test
+      function. For tests large enough to want isolated pass/fail reporting per case,
+      wrap the loop body in <code>t.Run(name, func(t *testing.T) {...})</code> to get
+      named subtests.
+    </p>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="index.html">&larr; Back to the roadmap</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was run against a real Go 1.26 toolchain before publishing.
+  "Open in Go Playground" links go to the real, official go.dev Playground.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/advanced.js"></script>
+</body>
+</html>

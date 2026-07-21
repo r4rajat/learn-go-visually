@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core: Structs, Slices &amp; Maps, Interfaces, Errors &mdash; Learn Go, Visually</title>
+<meta name="description" content="Struct methods and receivers, slice internals, interface satisfaction, and idiomatic error handling — explained with interactive visuals and real, verified Go code.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html" class="active">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Core</span>
+    <h1>Structs, Slices &amp; Maps, Interfaces, Errors</h1>
+    <p class="lede">
+      The types and patterns that make up the bulk of everyday Go code &mdash; and a few
+      behaviors that catch almost everyone off guard the first time. Every claim here was
+      checked against a real Go 1.26 toolchain and the official language sources before
+      being written down.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#structs">Structs &amp; methods</a>
+      <a class="btn btn-sm" href="#slices">Slices &amp; maps</a>
+      <a class="btn btn-sm" href="#interfaces">Interfaces</a>
+      <a class="btn btn-sm" href="#errors">Error handling</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="structs">Structs &amp; methods</h2>
+    <p>
+      A <code>struct</code> groups fields together; a <strong>method</strong> is a function
+      with a receiver attached to a type. The receiver can be a <em>value</em> (the method
+      gets its own copy of the struct) or a <em>pointer</em> (the method operates on the
+      original) &mdash; and which one you choose changes whether mutations inside the
+      method are visible to the caller.
+    </p>
+
+    <div class="viz" data-viz="struct-receiver">
+      <div class="viz-stage">
+        <div class="obj-row">
+          <div class="obj-col">
+            <div class="obj-col-title">original</div>
+            <div class="obj-box" data-role="original">Counter{count: 0}</div>
+            <div class="obj-note">what IncByPointer() mutates</div>
+          </div>
+          <div class="obj-col">
+            <div class="obj-col-title">copy (inside IncByValue)</div>
+            <div class="obj-box ghost" data-role="ghost">Counter{count: 0}</div>
+            <div class="obj-note">discarded the moment the method returns</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-primary" data-role="call-value">Call IncByValue()</button>
+        <button class="btn btn-primary" data-role="call-pointer">Call IncByPointer()</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Try both buttons and watch which box actually changes.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/Bplt2OKeDud" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> Counter <span class="tok-kw">struct</span> {
+	count <span class="tok-type">int</span>
+}
+
+<span class="tok-kw">func</span> (c Counter) IncByValue() {
+	c.count++
+}
+
+<span class="tok-kw">func</span> (c *Counter) IncByPointer() {
+	c.count++
+}
+
+<span class="tok-kw">func</span> main() {
+	c := Counter{}
+	c.IncByValue()
+	fmt.Println(<span class="tok-str">"after value receiver:"</span>, c.count)
+	c.IncByPointer()
+	fmt.Println(<span class="tok-str">"after pointer receiver:"</span>, c.count)
+}</code></pre>
+      <div class="code-output show">after value receiver: 0
+after pointer receiver: 1</div>
+    </div>
+
+    <p>
+      <code>IncByValue</code> increments a copy that vanishes when the method returns, so
+      the count is still <code>0</code> afterward. <code>IncByPointer</code> increments the
+      real struct through its address, so the change sticks. As a rule of thumb: use a
+      pointer receiver whenever a method needs to mutate the receiver, or when the struct
+      is large enough that copying it on every call would be wasteful.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Go writes the &amp; for you, usually</div>
+      <p>
+        Calling <code>c.IncByPointer()</code> above works even though <code>c</code> is a
+        value, not a pointer &mdash; Go automatically rewrites it to
+        <code>(&amp;c).IncByPointer()</code> because <code>c</code> is <strong>addressable</strong>
+        (it's a local variable). That auto-rewrite doesn't happen for everything, though:
+        a map element, for instance, is not addressable, so calling a pointer-receiver
+        method directly on one fails to compile.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="slices">Slices &amp; maps</h2>
+    <p>
+      A slice is not the array itself &mdash; it's a small header holding a pointer to a
+      backing array, a length, and a capacity. Slicing an existing slice doesn't copy any
+      data; the new slice points into the <em>same</em> backing array. That's convenient
+      and fast, but it means two slices can silently affect each other.
+    </p>
+
+    <div class="viz" data-viz="slice-header">
+      <div class="viz-stage">
+        <div class="array-row">
+          <div class="array-cell">1</div>
+          <div class="array-cell">2</div>
+          <div class="array-cell">3</div>
+        </div>
+        <div class="array-brackets">
+          <div class="array-bracket-label show-a">a[0]</div>
+          <div class="array-bracket-label show-a">a[1]</div>
+          <div class="array-bracket-label show-a">a[2]</div>
+        </div>
+        <div class="array-brackets">
+          <div class="array-bracket-label show-b">b[0]</div>
+          <div class="array-bracket-label show-b">b[1]</div>
+          <div class="array-bracket-label"></div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="mutate">Run b[0] = 99</button></div>
+      <div class="viz-caption" data-role="caption">a := []int{1, 2, 3}, then b := a[:2]. Both point into the same backing array.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/2vyzgvTzo08" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	s := make([]<span class="tok-type">int</span>, 0, 2)
+	fmt.Println(<span class="tok-str">"len:"</span>, len(s), <span class="tok-str">"cap:"</span>, cap(s))
+	s = append(s, 1, 2)
+	fmt.Println(<span class="tok-str">"len:"</span>, len(s), <span class="tok-str">"cap:"</span>, cap(s))
+	s = append(s, 3)
+	fmt.Println(<span class="tok-str">"len:"</span>, len(s), <span class="tok-str">"cap:"</span>, cap(s))
+
+	a := []<span class="tok-type">int</span>{1, 2, 3}
+	b := a[:2]
+	b[0] = 99
+	fmt.Println(<span class="tok-str">"a:"</span>, a, <span class="tok-str">"b:"</span>, b)
+}</code></pre>
+      <div class="code-output show">len: 0 cap: 2
+len: 2 cap: 2
+len: 3 cap: 4
+a: [99 2 3] b: [99 2]</div>
+    </div>
+
+    <p>
+      The third <code>append</code> pushes past the capacity of 2, so Go allocates a new,
+      bigger backing array (capacity jumped to 4 here) and copies the existing elements
+      over &mdash; from that point on, the old and new arrays are independent.
+      <code>b[0] = 99</code> changing <code>a[0]</code> too shows the opposite case: since
+      <code>b := a[:2]</code> never exceeded the original array's capacity, no new array
+      was allocated, so <code>a</code> and <code>b</code> still share memory.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">The exact growth factor isn't a language guarantee</div>
+      <p>
+        Doubling from capacity 2 to 4 above is what this Go 1.26 build actually does, and
+        we ran it to confirm it &mdash; but the Go language <em>specification</em> doesn't
+        commit to any particular growth algorithm. Treat "capacity grows by some amount
+        when exceeded" as guaranteed; treat the exact factor as an implementation detail
+        that could change between Go versions.
+      </p>
+    </div>
+
+    <p>Maps behave more predictably around missing keys, but nil maps have a sharp edge:</p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/lrArgNPfj4i" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	m := map[<span class="tok-type">string</span>]<span class="tok-type">int</span>{<span class="tok-str">"a"</span>: 1, <span class="tok-str">"b"</span>: 2}
+	v, ok := m[<span class="tok-str">"c"</span>]
+	fmt.Println(v, ok)
+	m[<span class="tok-str">"c"</span>] = 3
+	delete(m, <span class="tok-str">"a"</span>)
+	fmt.Println(len(m))
+
+	<span class="tok-kw">var</span> nilMap map[<span class="tok-type">string</span>]<span class="tok-type">int</span>
+	v2, ok2 := nilMap[<span class="tok-str">"x"</span>]
+	fmt.Println(v2, ok2)
+}</code></pre>
+      <div class="code-output show">0 false
+2
+0 false</div>
+    </div>
+
+    <p>
+      One more thing worth knowing before it surprises you: iterating over a map with
+      <code>for k, v := range m</code> visits entries in an order that is deliberately
+      <strong>unspecified</strong> and not guaranteed to stay the same between runs. If
+      you need a predictable order, collect and sort the keys yourself.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Common mistake: writing to a nil map</div>
+      <p>
+        Reading from a <code>nil</code> map (one only declared, never <code>make</code>'d)
+        is completely safe, as shown above. <strong>Writing</strong> to one is not:
+      </p>
+      <div class="code-panel" style="margin-top:0.9rem;">
+        <div class="code-panel-head">
+          <span class="code-panel-title">main.go</span>
+          <a class="btn btn-sm" href="https://go.dev/play/p/sF_fq96m_8y" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+        </div>
+        <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">var</span> m map[<span class="tok-type">string</span>]<span class="tok-type">int</span>
+	m[<span class="tok-str">"x"</span>] = 1 <span class="tok-com">// panic: assignment to entry in nil map</span>
+}</code></pre>
+          <div class="code-output show is-error">panic: assignment to entry in nil map</div>
+      </div>
+      <p style="margin-top:0.8rem;">Initialize with <code>make(map[string]int)</code> (or a map literal) before writing.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interfaces">Interfaces</h2>
+    <p>
+      An interface lists methods; any type that has all of them satisfies it
+      <strong>automatically</strong> &mdash; there's no <code>implements</code> keyword to
+      write, and a type can satisfy an interface it was never written with in mind.
+    </p>
+
+    <div class="viz">
+      <div class="viz-stage">
+        <div class="sat-row">
+          <div class="sat-item"><span class="sat-check">&#10003;</span> Circle has Area() float64</div>
+          <div class="sat-item"><span class="sat-check">&#10003;</span> Square has Area() float64</div>
+        </div>
+      </div>
+      <div class="viz-caption">Both satisfy <code>Shape</code> just by having the right method &mdash; nothing was declared.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/k60qLXWLZIv" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> Shape <span class="tok-kw">interface</span> {
+	Area() <span class="tok-type">float64</span>
+}
+
+<span class="tok-kw">type</span> Circle <span class="tok-kw">struct</span>{ Radius <span class="tok-type">float64</span> }
+
+<span class="tok-kw">func</span> (c Circle) Area() <span class="tok-type">float64</span> { <span class="tok-kw">return</span> 3.14159 * c.Radius * c.Radius }
+
+<span class="tok-kw">type</span> Square <span class="tok-kw">struct</span>{ Side <span class="tok-type">float64</span> }
+
+<span class="tok-kw">func</span> (s Square) Area() <span class="tok-type">float64</span> { <span class="tok-kw">return</span> s.Side * s.Side }
+
+<span class="tok-kw">func</span> printArea(s Shape) {
+	fmt.Printf(<span class="tok-str">"%.2f\n"</span>, s.Area())
+}
+
+<span class="tok-kw">func</span> main() {
+	printArea(Circle{Radius: 2})
+	printArea(Square{Side: 3})
+}</code></pre>
+      <div class="code-output show">12.57
+9.00</div>
+    </div>
+
+    <p>
+      <code>printArea</code> only knows about <code>Shape</code> &mdash; it never mentions
+      <code>Circle</code> or <code>Square</code> by name, so it works with any current or
+      future type that has an <code>Area() float64</code> method.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">The classic gotcha: a non-nil interface holding a nil value</div>
+      <p>
+        This one surprises almost everyone the first time. An interface value is really
+        <strong>two</strong> parts: a concrete type and a value. It's only equal to
+        <code>nil</code> when <em>both</em> parts are unset. If you return a nil pointer
+        through an interface-typed return value, the type part gets set (to that pointer
+        type) even though the value part is nil &mdash; so the interface itself is not nil.
+      </p>
+    </div>
+
+    <div class="viz" data-viz="interface-nil">
+      <div class="viz-stage">
+        <div class="tv-pair">
+          <div class="tv-box">
+            <div class="tv-box-label">type</div>
+            <div class="tv-box-value" data-role="type-box">nil</div>
+          </div>
+          <div class="tv-box">
+            <div class="tv-box-label">value</div>
+            <div class="tv-box-value" data-role="value-box">nil</div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:0.9rem; font-family:var(--font-mono); font-size:0.85rem;" data-role="result">err == nil: (not run yet)</div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="run">Run check(false)</button></div>
+      <div class="viz-caption" data-role="caption">An interface is nil only when both its type and value are unset.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/Z-OA0MLsHNl" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> MyError <span class="tok-kw">struct</span>{}
+
+<span class="tok-kw">func</span> (e *MyError) Error() <span class="tok-type">string</span> { <span class="tok-kw">return</span> <span class="tok-str">"boom"</span> }
+
+<span class="tok-kw">func</span> mayFail(bad <span class="tok-type">bool</span>) *MyError {
+	<span class="tok-kw">if</span> bad {
+		<span class="tok-kw">return</span> &amp;MyError{}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">nil</span> <span class="tok-com">// a nil *MyError</span>
+}
+
+<span class="tok-kw">func</span> check(bad <span class="tok-type">bool</span>) error {
+	<span class="tok-kw">var</span> p *MyError = mayFail(bad)
+	<span class="tok-kw">return</span> p <span class="tok-com">// always returns a non-nil error interface!</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	err := check(false)
+	fmt.Println(err == <span class="tok-kw">nil</span>)
+}</code></pre>
+      <div class="code-output show">false</div>
+    </div>
+
+    <p>
+      Even though <code>mayFail(false)</code> returns a nil pointer, and nothing ever
+      failed, <code>err == nil</code> prints <code>false</code>. The fix: return the
+      untyped literal <code>nil</code> directly from <code>check</code> when there's no
+      error, instead of a nil-valued variable of a concrete pointer type.
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="errors">Error handling</h2>
+    <p>
+      Go treats errors as ordinary values, not exceptions. A function that can fail
+      returns an extra <code>error</code> result, and the caller checks it &mdash; the
+      ubiquitous <code>if err != nil</code>. Since Go 1.13, errors can also be
+      <strong>wrapped</strong>, preserving the original error while adding context.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/u-zM0o0ejjl" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"errors"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-kw">var</span> ErrNotFound = errors.New(<span class="tok-str">"not found"</span>)
+
+<span class="tok-kw">func</span> find(id <span class="tok-type">int</span>) error {
+	<span class="tok-kw">if</span> id != 1 {
+		<span class="tok-kw">return</span> fmt.Errorf(<span class="tok-str">"find id %d: %w"</span>, id, ErrNotFound)
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	err := find(2)
+	fmt.Println(err)
+	fmt.Println(errors.Is(err, ErrNotFound))
+}</code></pre>
+      <div class="code-output show">find id 2: not found
+true</div>
+    </div>
+
+    <p>
+      <code>%w</code> in <code>fmt.Errorf</code> wraps <code>ErrNotFound</code> inside a
+      new, more specific error &mdash; the printed message includes both. Wrapping doesn't
+      just concatenate strings, though: <code>errors.Is(err, ErrNotFound)</code> can still
+      see through the wrapping and correctly reports <code>true</code>, because it walks
+      the chain of wrapped errors looking for a match rather than comparing the top-level
+      error directly.
+    </p>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="advanced.html">Continue to Advanced &rarr;</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was run against a real Go 1.26 toolchain before publishing.
+  "Open in Go Playground" links go to the real, official go.dev Playground.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/core.js"></script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concurrency: Goroutines, Channels &amp; Buffers &mdash; Learn Go, Visually</title>
+<meta name="description" content="Goroutines, unbuffered and buffered channels, closed channels, and select — explained with interactive visuals and real, verified Go code.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html" class="active">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Concurrency</span>
+    <h1>Goroutines, Channels &amp; Buffers</h1>
+    <p class="lede">
+      This is the part of Go that trips up almost everyone coming from another language &mdash;
+      and the part where watching it happen matters more than reading about it. Every claim
+      on this page was checked against a real Go 1.26 toolchain and the official language
+      specification before being written down; nothing here is guessed.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#goroutines">Goroutines</a>
+      <a class="btn btn-sm" href="#unbuffered">Channels</a>
+      <a class="btn btn-sm" href="#buffered">Buffered channels</a>
+      <a class="btn btn-sm" href="#closed">Closing channels</a>
+      <a class="btn btn-sm" href="#select">Select</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="goroutines">Goroutines</h2>
+    <p>
+      A <strong>goroutine</strong> is a function that runs independently of the one that
+      started it &mdash; at the same time as everything else your program is doing. You don't
+      manage threads, thread pools, or callbacks yourself; you write ordinary sequential code
+      and put the word <code>go</code> in front of a function call. That's the entire syntax.
+      The Go runtime schedules potentially hundreds of thousands of these onto a handful of
+      real operating-system threads, because each goroutine starts with only a few kilobytes
+      of stack (which grows as needed) instead of the megabytes an OS thread reserves.
+    </p>
+
+    <div class="viz" data-viz="goroutines">
+      <div class="viz-stage">
+        <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+          <div style="flex:1; min-width:240px;">
+            <div style="font-size:.78rem; font-weight:700; color:var(--text-dim); margin-bottom:.6rem; text-transform:uppercase; letter-spacing:.04em;">Sequential</div>
+            <div data-panel="sequential">
+              <div class="lane-row"><span class="lane-label">task 1</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+              <div class="lane-row"><span class="lane-label">task 2</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+              <div class="lane-row"><span class="lane-label">task 3</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+            </div>
+          </div>
+          <div style="flex:1; min-width:240px;">
+            <div style="font-size:.78rem; font-weight:700; color:var(--text-dim); margin-bottom:.6rem; text-transform:uppercase; letter-spacing:.04em;">Concurrent (goroutines)</div>
+            <div data-panel="concurrent">
+              <div class="lane-row"><span class="lane-label">task 1</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+              <div class="lane-row"><span class="lane-label">task 2</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+              <div class="lane-row"><span class="lane-label">task 3</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="play">Run comparison</button></div>
+      <div class="viz-caption" data-role="caption">Click &ldquo;Run comparison&rdquo; to see the difference.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/ab2JLeWaDyY" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> worker(id <span class="tok-type">int</span>, wg *sync.WaitGroup) {
+	<span class="tok-kw">defer</span> wg.Done()
+	time.Sleep(time.Duration(4-id) * 50 * time.Millisecond)
+	fmt.Printf(<span class="tok-str">"worker %d done\n"</span>, id)
+}
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+	<span class="tok-kw">for</span> i := 1; i &lt;= 3; i++ {
+		wg.Add(1)
+		<span class="tok-kw">go</span> worker(i, &amp;wg)
+	}
+	wg.Wait()
+	fmt.Println(<span class="tok-str">"all workers done"</span>)
+}</code></pre>
+      <div class="code-output show">worker 3 done
+worker 2 done
+worker 1 done
+all workers done</div>
+    </div>
+
+    <p>
+      Notice the order: <strong>worker 3</strong> finishes first, then worker 2, then worker 1
+      &mdash; the reverse of the order they were started in, because each one sleeps for a
+      deliberately different amount of time and Go makes no promise about the order independent
+      goroutines finish in. <code>sync.WaitGroup</code> is the standard way to wait for a batch
+      of them: call <code>Add</code> before starting each one, <code>Done</code> (usually
+      deferred) when it finishes, and <code>Wait</code> blocks the caller until the count is
+      back to zero.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Common mistake</div>
+      <p>
+        Forgetting <code>wg.Wait()</code> (or not passing the WaitGroup by pointer) means
+        <code>main</code> can exit before the goroutines finish. Go does not wait for
+        stray goroutines when <code>main</code> returns &mdash; it just ends the program.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="unbuffered">Channels: a synchronous handoff</h2>
+    <p>
+      A goroutine that computes something needs a way to hand the result back. A
+      <strong>channel</strong> is a typed pipe: one goroutine sends a value in with
+      <code>ch &lt;- value</code>, another receives it with <code>&lt;-ch</code>. Create one
+      with <code>make(chan T)</code>. With no extra argument, the channel has zero capacity
+      &mdash; it's <strong>unbuffered</strong>.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">From the Go language specification</div>
+      <p>
+        &ldquo;If the capacity is zero or absent, the channel is unbuffered and communication
+        succeeds only when both a sender and receiver are ready.&rdquo; An unbuffered channel
+        holds nothing &mdash; it's a rendezvous point, not a mailbox. A send that has no
+        receiver waiting simply blocks until one shows up.
+      </p>
+    </div>
+
+    <div class="viz" data-viz="unbuffered">
+      <div class="viz-stage">
+        <div class="hs-track">
+          <div class="hs-node" data-node="sender">
+            <div class="hs-dot">S</div>
+            sender goroutine
+          </div>
+          <div class="hs-pipe">
+            <div class="hs-packet"></div>
+          </div>
+          <div class="hs-node" data-node="receiver">
+            <div class="hs-dot">R</div>
+            main goroutine
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="step">Next step</button></div>
+      <div class="viz-caption" data-role="caption"></div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/eyRczTT2zRS" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">string</span>) <span class="tok-com">// unbuffered</span>
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		fmt.Println(<span class="tok-str">"sender: waiting to send..."</span>)
+		ch &lt;- <span class="tok-str">"hello"</span>
+		fmt.Println(<span class="tok-str">"sender: sent, handoff complete"</span>)
+	}()
+
+	time.Sleep(200 * time.Millisecond)
+	fmt.Println(<span class="tok-str">"main: about to receive"</span>)
+	msg := &lt;-ch
+	fmt.Println(<span class="tok-str">"main: received:"</span>, msg)
+	time.Sleep(50 * time.Millisecond)
+}</code></pre>
+      <div class="code-output show">sender: waiting to send...
+main: about to receive
+main: received: hello
+sender: sent, handoff complete</div>
+    </div>
+
+    <p>
+      Read the output against the visual above: the sender goroutine prints
+      <code>"waiting to send..."</code> immediately, then <strong>goes silent for 200ms</strong>
+      &mdash; that's the send blocking, exactly as the spec describes, because no receiver is
+      ready yet. Only once <code>main</code> reaches <code>&lt;-ch</code> does the handoff
+      happen and both sides continue. This is why unbuffered channels are often used not just
+      to move data, but to <em>synchronize</em> two goroutines at a specific point.
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="buffered">Buffered channels: a queue with capacity</h2>
+    <p>
+      Add a number when creating the channel and you get a buffer: a fixed-size queue that can
+      hold values even before anyone receives them. <code>make(chan T, 3)</code> creates a
+      channel that can hold 3 values. A send only blocks once the buffer is full; a receive
+      only blocks once it's empty.
+    </p>
+
+    <div class="viz" data-viz="buffered">
+      <div class="viz-stage">
+        <div class="queue-row">
+          <div class="queue-sender">
+            <div class="hs-dot">S</div>
+            sender
+          </div>
+          <div class="queue-slots">
+            <div class="queue-slot"></div>
+            <div class="queue-slot"></div>
+            <div class="queue-slot"></div>
+          </div>
+          <div class="queue-meta" data-role="meta">len(ch) = 0&nbsp;&nbsp;&nbsp;cap(ch) = 3</div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-primary" data-role="send">Send</button>
+        <button class="btn" data-role="receive">Receive</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Try sending a few values, then try sending past capacity 3.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/jn6J3OYhvjO" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3)
+
+	ch &lt;- 1
+	fmt.Println(<span class="tok-str">"sent 1 -> len:"</span>, len(ch), <span class="tok-str">"cap:"</span>, cap(ch))
+	ch &lt;- 2
+	fmt.Println(<span class="tok-str">"sent 2 -> len:"</span>, len(ch), <span class="tok-str">"cap:"</span>, cap(ch))
+	ch &lt;- 3
+	fmt.Println(<span class="tok-str">"sent 3 -> len:"</span>, len(ch), <span class="tok-str">"cap:"</span>, cap(ch))
+
+	fmt.Println(<span class="tok-str">"received:"</span>, &lt;-ch, <span class="tok-str">"-> len:"</span>, len(ch))
+	fmt.Println(<span class="tok-str">"received:"</span>, &lt;-ch, <span class="tok-str">"-> len:"</span>, len(ch))
+	fmt.Println(<span class="tok-str">"received:"</span>, &lt;-ch, <span class="tok-str">"-> len:"</span>, len(ch))
+}</code></pre>
+      <div class="code-output show">sent 1 -> len: 1 cap: 3
+sent 2 -> len: 2 cap: 3
+sent 3 -> len: 3 cap: 3
+received: 1 -> len: 2
+received: 2 -> len: 1
+received: 3 -> len: 0</div>
+    </div>
+
+    <p>
+      <code>len(ch)</code> is how many values are sitting in the buffer right now;
+      <code>cap(ch)</code> is the fixed size you gave <code>make</code>. None of these three
+      sends blocked, because the buffer never filled up before the corresponding receive.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Common mistake: sending past capacity</div>
+      <p>
+        A send to a full buffered channel doesn't error &mdash; it <strong>blocks</strong>
+        until something is received. If nothing ever will be, that's a deadlock, and the Go
+        runtime actually detects this specific case and crashes loudly instead of hanging
+        forever silently:
+      </p>
+      <div class="code-panel" style="margin-top:0.9rem;">
+        <div class="code-panel-head">
+          <span class="code-panel-title">main.go</span>
+          <a class="btn btn-sm" href="https://go.dev/play/p/WNr7A7TtoPR" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+        </div>
+        <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3)
+	ch &lt;- 1
+	ch &lt;- 2
+	ch &lt;- 3
+	ch &lt;- 4 <span class="tok-com">// buffer full (len == cap == 3), no receiver anywhere -> deadlock</span>
+}</code></pre>
+        <div class="code-output show is-error">fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan send]:
+main.main()
+	/main.go:8 +0x67
+exit status 2</div>
+      </div>
+      <p style="margin-top:0.8rem;">
+        The exact memory address and line offset will vary by machine and Go version &mdash;
+        the message text itself, <code>fatal error: all goroutines are asleep - deadlock!</code>,
+        is the stable part, and comes verbatim from the Go runtime source.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="closed">Closing channels</h2>
+    <p>
+      A channel can be <strong>closed</strong> to signal &ldquo;nothing more is coming.&rdquo;
+      Closing is done by the sender with <code>close(ch)</code>, never the receiver, and only
+      ever once. Receiving from a closed channel never blocks: buffered values already
+      inside come out first, in order, and after that every receive returns the element
+      type's zero value immediately.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/ovKSjmmHVPo" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3)
+	ch &lt;- 1
+	ch &lt;- 2
+	close(ch)
+
+	v, ok := &lt;-ch
+	fmt.Println(v, ok)
+	v, ok = &lt;-ch
+	fmt.Println(v, ok)
+	v, ok = &lt;-ch
+	fmt.Println(v, ok)
+
+	<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> ch {
+		fmt.Println(<span class="tok-str">"range:"</span>, v)
+	}
+	fmt.Println(<span class="tok-str">"range over closed+drained channel exited cleanly"</span>)
+}</code></pre>
+      <div class="code-output show">1 true
+2 true
+0 false
+range over closed+drained channel exited cleanly</div>
+    </div>
+
+    <p>
+      The two-value receive form <code>v, ok := &lt;-ch</code> is how you tell a real value
+      from a zero-value-because-closed: <code>ok</code> is <code>true</code> for the first two
+      receives (real sent values), then <code>false</code> once the channel is drained and
+      closed &mdash; note the value is <code>0</code>, the zero value for <code>int</code>, not
+      some sentinel. <code>for range</code> over a channel receives until it's closed <em>and</em>
+      drained, then exits the loop on its own &mdash; which is why the final line prints with no
+      <code>"range: ..."</code> lines above it here: there was nothing left to range over.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Common mistake: sending on a closed channel</div>
+      <p>Unlike receiving, sending on a closed channel is not safe &mdash; it panics immediately:</p>
+      <div class="code-panel" style="margin-top:0.9rem;">
+        <div class="code-panel-head">
+          <span class="code-panel-title">main.go</span>
+          <a class="btn btn-sm" href="https://go.dev/play/p/HVJgSFLsO4J" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+        </div>
+        <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	close(ch)
+	ch &lt;- 1 <span class="tok-com">// should panic: send on closed channel</span>
+}</code></pre>
+        <div class="code-output show is-error">panic: send on closed channel
+
+goroutine 1 [running]:
+main.main()
+	/main.go:6 +0x37
+exit status 2</div>
+      </div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Closed is not the same as nil</div>
+      <p>
+        A channel variable that was only declared, never <code>make</code>'d, holds
+        <code>nil</code> &mdash; and a nil channel behaves completely differently from a closed
+        one. Sending or receiving on a nil channel never panics; it <strong>blocks forever</strong>.
+        This is a common source of a silent, permanent hang, usually from forgetting to
+        initialize a channel field on a struct.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="select">Select: waiting on multiple channels</h2>
+    <p>
+      What if a goroutine needs to wait on more than one channel at once, and react to
+      whichever one is ready first? That's what <code>select</code> is for &mdash; it looks
+      like a <code>switch</code>, but each case is a channel operation.
+    </p>
+
+    <div class="viz" data-viz="select">
+      <div class="viz-stage">
+        <div class="mux-wrap">
+          <div class="mux-ch" data-ch="1">
+            <div class="hs-dot">1</div>
+            ch1
+          </div>
+          <div class="mux-box">?</div>
+          <div class="mux-ch" data-ch="2">
+            <div class="hs-dot">2</div>
+            ch2
+          </div>
+        </div>
+        <div class="tally-row" style="margin-top:1.1rem; justify-content:center;">
+          <span>
+            <span data-role="tally-1">ch1: 0</span>
+            <span class="tally-bar-track"><span class="tally-bar-fill" data-role="bar-1"></span></span>
+          </span>
+          <span>
+            <span data-role="tally-2">ch2: 0</span>
+            <span class="tally-bar-track"><span class="tally-bar-fill" data-role="bar-2"></span></span>
+          </span>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="fire">Fire select (both ready)</button></div>
+      <div class="viz-caption" data-role="caption">Both channels below are ready at the same instant. Which one wins?</div>
+    </div>
+
+    <p>The most common use of <code>select</code> is a timeout, using <code>time.After</code> as one of the cases:</p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/X2oqILJtmgS" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">string</span>)
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		time.Sleep(300 * time.Millisecond)
+		ch &lt;- <span class="tok-str">"result"</span>
+	}()
+
+	<span class="tok-kw">select</span> {
+	<span class="tok-kw">case</span> res := &lt;-ch:
+		fmt.Println(<span class="tok-str">"got:"</span>, res)
+	<span class="tok-kw">case</span> &lt;-time.After(100 * time.Millisecond):
+		fmt.Println(<span class="tok-str">"timed out"</span>)
+	}
+}</code></pre>
+      <div class="code-output show">timed out</div>
+    </div>
+
+    <p>The goroutine needed 300ms; the timeout case fires at 100ms, so it wins. Now the interesting case &mdash; what happens when <strong>two</strong> cases are ready at the exact same moment:</p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/4xNiJEbLbYc" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	ch1 := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 1)
+	ch2 := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 1)
+	ch1 &lt;- 1
+	ch2 &lt;- 2
+
+	<span class="tok-kw">select</span> {
+	<span class="tok-kw">case</span> v := &lt;-ch1:
+		fmt.Println(<span class="tok-str">"got from ch1:"</span>, v)
+	<span class="tok-kw">case</span> v := &lt;-ch2:
+		fmt.Println(<span class="tok-str">"got from ch2:"</span>, v)
+	}
+}</code></pre>
+      <div class="code-output show">got from ch2: 2
+got from ch1: 1
+got from ch1: 1
+got from ch1: 1
+got from ch1: 1
+got from ch2: 2
+got from ch1: 1
+got from ch2: 2
+got from ch2: 2
+got from ch2: 2</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">From the Go language specification</div>
+      <p>
+        &ldquo;If one or more of the communications can proceed, a single one that can proceed
+        is chosen via a uniform pseudo-random selection.&rdquo; That output above is the
+        <em>actual</em> result of running that exact program 10 times in a row &mdash; not a
+        simulation. Count them: 5 and 5. <code>select</code> does not favor the first case
+        written, or either channel &mdash; which is exactly what the multiplexer visual above
+        demonstrates every time you click it.
+      </p>
+    </div>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="index.html">&larr; Back to the roadmap</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was run against a real Go 1.26 toolchain and checked against
+  the official language specification before publishing. &ldquo;Open in Go Playground&rdquo;
+  links go to the real, official go.dev Playground.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/visuals.js"></script>
+</body>
+</html>

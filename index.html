@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn Go, Visually</title>
+<meta name="description" content="An interactive, visual introduction to the Go programming language — from your first variable to goroutines, channels, and buffered channels.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page">
+    <span class="eyebrow">Go, from zero</span>
+    <h1>Understand Go by watching it happen.</h1>
+    <p class="lede">
+      Every concept here is taught three ways at once: a plain-English explanation,
+      an interactive visual you can click through at your own pace, and a real,
+      verified Go code example you can open and run for yourself. No prior
+      programming experience assumed.
+    </p>
+
+    <div class="roadmap">
+
+      <div class="roadmap-group">
+        <div class="roadmap-group-title">Basics</div>
+        <div class="roadmap-nodes">
+          <a class="roadmap-node" href="basics.html#hello"><span class="status-dot"></span> Hello, Go</a>
+          <a class="roadmap-node" href="basics.html#variables"><span class="status-dot"></span> Variables &amp; types</a>
+          <a class="roadmap-node" href="basics.html#control-flow"><span class="status-dot"></span> Control flow</a>
+          <a class="roadmap-node" href="basics.html#functions"><span class="status-dot"></span> Functions</a>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="roadmap-group-title">Core</div>
+        <div class="roadmap-nodes">
+          <a class="roadmap-node" href="core.html#structs"><span class="status-dot"></span> Structs &amp; methods</a>
+          <a class="roadmap-node" href="core.html#slices"><span class="status-dot"></span> Slices &amp; maps</a>
+          <a class="roadmap-node" href="core.html#interfaces"><span class="status-dot"></span> Interfaces</a>
+          <a class="roadmap-node" href="core.html#errors"><span class="status-dot"></span> Error handling</a>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="roadmap-group-title">Concurrency</div>
+        <div class="roadmap-nodes">
+          <a class="roadmap-node" href="concurrency.html#goroutines"><span class="status-dot"></span> Goroutines</a>
+          <a class="roadmap-node" href="concurrency.html#unbuffered"><span class="status-dot"></span> Channels</a>
+          <a class="roadmap-node" href="concurrency.html#buffered"><span class="status-dot"></span> Buffered channels</a>
+          <a class="roadmap-node" href="concurrency.html#closed"><span class="status-dot"></span> Closing channels</a>
+          <a class="roadmap-node" href="concurrency.html#select"><span class="status-dot"></span> Select</a>
+        </div>
+      </div>
+
+      <div class="roadmap-group">
+        <div class="roadmap-group-title">Advanced</div>
+        <div class="roadmap-nodes">
+          <a class="roadmap-node" href="advanced.html#generics"><span class="status-dot"></span> Generics</a>
+          <a class="roadmap-node" href="advanced.html#context"><span class="status-dot"></span> Context</a>
+          <a class="roadmap-node" href="advanced.html#testing"><span class="status-dot"></span> Testing</a>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="margin-top:2.5rem;">
+      <a class="btn btn-primary" href="basics.html">Start with the Basics &rarr;</a>
+    </p>
+
+    <div class="callout callout-tip" style="margin-top:3rem;">
+      <div class="callout-title">Already know some Go?</div>
+      <p>
+        Skip straight to <a href="concurrency.html">Concurrency</a> &mdash; goroutines and
+        channels are usually the part of Go that intimidates people coming from other
+        languages the most, and the part where a picture genuinely helps more than a
+        paragraph. Total beginners should start with the Basics instead; everything after
+        it assumes you can read the code from the section before.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this site is verified against a real Go toolchain before publishing,
+  and links out to the official Go Playground so you can run it yourself.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+</body>
+</html>

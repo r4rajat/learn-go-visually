@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basics: Hello Go, Variables, Control Flow &amp; Functions &mdash; Learn Go, Visually</title>
+<meta name="description" content="Your first Go program, variables and zero values, if/switch/for, and multiple return values — explained with interactive visuals and real, verified Go code.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html" class="active">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Basics</span>
+    <h1>Hello Go, Variables, Control Flow &amp; Functions</h1>
+    <p class="lede">
+      The foundation everything else is built on. If you've never written a line of Go
+      before, start here. Every claim on this page was checked against a real Go 1.26
+      toolchain before being written down.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#hello">Hello, Go</a>
+      <a class="btn btn-sm" href="#variables">Variables &amp; types</a>
+      <a class="btn btn-sm" href="#control-flow">Control flow</a>
+      <a class="btn btn-sm" href="#functions">Functions</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="hello">Hello, Go</h2>
+    <p>
+      Here's a complete, runnable Go program &mdash; every line matters. Click each
+      highlighted part to see what it does.
+    </p>
+
+    <div class="viz" data-viz="hello-anno">
+      <div class="viz-stage" style="align-items:flex-start;">
+        <pre style="margin:0; font-family:var(--font-mono); font-size:0.95rem; line-height:1.9;"><span class="anno" data-note="Every Go file belongs to a package. <code>main</code> is the special package name that marks this as a program you can run, rather than a library other code imports.">package main</span>
+
+<span class="anno" data-note="Pulls in the <code>fmt</code> package (short for &ldquo;format&rdquo;) from Go's standard library &mdash; it has the functions for printing text.">import "fmt"</span>
+
+<span class="anno" data-note="Go looks for exactly one function named <code>main</code> inside package <code>main</code> &mdash; that's where execution starts when you run the program.">func main()</span> {
+	<span class="anno" data-note="Calls <code>Println</code> from the <code>fmt</code> package: prints the text, then a newline. The capital <code>P</code> matters &mdash; in Go, a capitalized name is what makes it usable from outside its own package.">fmt.Println("Hello, Go!")</span>
+}</pre>
+      </div>
+      <div class="viz-caption" data-role="caption">Click any highlighted part above.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/-zLu-3wim_O" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(<span class="tok-str">"Hello, Go!"</span>)
+}</code></pre>
+      <div class="code-output show">Hello, Go!</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Running it yourself</div>
+      <p>
+        With Go installed, save this as <code>hello.go</code> and run <code>go run hello.go</code>.
+        No Go installed yet? Every "Open in Go Playground" link on this site runs the real
+        Go compiler in your browser, no install required.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="variables">Variables &amp; types</h2>
+    <p>
+      Go is statically typed: every variable has a type, and that type is fixed for its
+      lifetime. You can write the type explicitly with <code>var</code>, or let Go infer
+      it from the value using <code>:=</code> (only inside functions &mdash; package-level
+      variables always need <code>var</code>).
+    </p>
+
+    <div class="viz" data-viz="type-zero">
+      <div class="viz-stage">
+        <div class="type-grid">
+          <div class="type-box" data-example="30" data-zero="0">
+            <div class="type-box-name">int</div>
+            <div class="type-box-value">30</div>
+            <div class="type-box-label">whole numbers</div>
+          </div>
+          <div class="type-box" data-example="19.99" data-zero="0">
+            <div class="type-box-name">float64</div>
+            <div class="type-box-value">19.99</div>
+            <div class="type-box-label">decimal numbers</div>
+          </div>
+          <div class="type-box" data-example="&quot;Gopher&quot;" data-zero="&quot;&quot; (empty)">
+            <div class="type-box-name">string</div>
+            <div class="type-box-value">"Gopher"</div>
+            <div class="type-box-label">text</div>
+          </div>
+          <div class="type-box" data-example="true" data-zero="false">
+            <div class="type-box-name">bool</div>
+            <div class="type-box-value">true</div>
+            <div class="type-box-label">true / false</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="toggle">Show zero values</button></div>
+      <div class="viz-caption" data-role="caption">These are example values you might assign yourself.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/9vcSXnrskMF" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">var</span> age <span class="tok-type">int</span> = 30
+	<span class="tok-kw">var</span> price <span class="tok-type">float64</span> = 19.99
+	name := <span class="tok-str">"Gopher"</span>
+	<span class="tok-kw">var</span> isReady <span class="tok-type">bool</span>
+
+	fmt.Println(age, price, name, isReady)
+	fmt.Printf(<span class="tok-str">"%T %T %T %T\n"</span>, age, price, name, isReady)
+
+	<span class="tok-kw">var</span> count <span class="tok-type">int</span>
+	<span class="tok-kw">var</span> label <span class="tok-type">string</span>
+	<span class="tok-kw">var</span> total <span class="tok-type">float64</span>
+	<span class="tok-kw">var</span> active <span class="tok-type">bool</span>
+	fmt.Println(count, label, total, active)
+}</code></pre>
+      <div class="code-output show">30 19.99 Gopher false
+int float64 string bool
+0  0 false</div>
+    </div>
+
+    <p>
+      Look closely at that last line: <code>0  0 false</code> &mdash; there are two spaces
+      between the first two values. That's not a typo in this page, it's genuinely what
+      Go prints: <code>label</code>'s zero value is an empty string, and
+      <code>fmt.Println</code> puts one space between every argument, so an empty string
+      between two spaces just looks like a gap.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">The zero value</div>
+      <p>
+        <code>var isReady bool</code> declares <code>isReady</code> with no value given
+        &mdash; and Go does not leave it as undefined memory. Every type has a
+        <strong>zero value</strong> it's automatically set to: <code>0</code> for numbers,
+        <code>""</code> for strings, <code>false</code> for booleans. There's no
+        equivalent of reading an uninitialized variable and getting garbage.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="control-flow">Control flow</h2>
+    <p>
+      Go keeps this deliberately small: <code>if</code>/<code>else</code>,
+      <code>switch</code>, and exactly one looping keyword, <code>for</code>, which covers
+      what other languages split into <code>for</code>, <code>while</code>, and
+      infinite-loop forms. Conditions never need parentheses, and braces are mandatory
+      &mdash; there's no single-statement shortcut.
+    </p>
+
+    <div class="viz" data-viz="loop-step">
+      <div class="viz-stage">
+        <div class="loop-row">
+          <div class="loop-node"><div class="loop-dot">1</div><div class="loop-tag"></div></div>
+          <div class="loop-node"><div class="loop-dot">2</div><div class="loop-tag"></div></div>
+          <div class="loop-node"><div class="loop-dot">3</div><div class="loop-tag"></div></div>
+          <div class="loop-node"><div class="loop-dot">4</div><div class="loop-tag"></div></div>
+          <div class="loop-node"><div class="loop-dot">5</div><div class="loop-tag"></div></div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="step">Step</button></div>
+      <div class="viz-caption" data-role="caption">Click "Step" to run i := 1.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/TKexp0x18MH" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">for</span> i := 1; i &lt;= 5; i++ {
+		<span class="tok-kw">if</span> i%2 == 0 {
+			fmt.Println(i, <span class="tok-str">"even"</span>)
+		} <span class="tok-kw">else</span> {
+			fmt.Println(i, <span class="tok-str">"odd"</span>)
+		}
+	}
+
+	day := 3
+	<span class="tok-kw">switch</span> day {
+	<span class="tok-kw">case</span> 1, 7:
+		fmt.Println(<span class="tok-str">"weekend"</span>)
+	<span class="tok-kw">default</span>:
+		fmt.Println(<span class="tok-str">"weekday"</span>)
+	}
+
+	n := 0
+	<span class="tok-kw">for</span> n &lt; 3 {
+		fmt.Println(<span class="tok-str">"n is"</span>, n)
+		n++
+	}
+}</code></pre>
+      <div class="code-output show">1 odd
+2 even
+3 odd
+4 even
+5 odd
+weekday
+n is 0
+n is 1
+n is 2</div>
+    </div>
+
+    <p>
+      Three things worth noticing: <code>switch</code> in Go does <strong>not</strong>
+      fall through to the next case by default (unlike C or JavaScript) &mdash; each case
+      breaks automatically. A <code>for</code> with just a condition (<code>for n &lt; 3</code>)
+      is Go's version of a <code>while</code> loop. And <code>for</code> with nothing at
+      all (<code>for { ... }</code>) is Go's infinite loop, typically exited with
+      <code>break</code> or <code>return</code>.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Current as of Go 1.22: loop variables and goroutines</div>
+      <p>
+        If you read older Go tutorials or Stack Overflow answers, you'll likely see a
+        famous warning: launching a goroutine inside a <code>for</code> loop that
+        captures the loop variable (e.g. <code>go func() { use(i) }()</code>) used to be a
+        common bug, because every iteration shared the <em>same</em> <code>i</code>, so
+        the goroutines would typically all see its final value once the loop ended.
+        <strong>This was fixed in Go 1.22:</strong> each iteration now gets its own fresh
+        copy of the loop variable. We confirmed this ourselves &mdash; running a loop that
+        launches three goroutines each capturing <code>i</code> directly, with no
+        workaround, correctly and consistently prints <code>[0 10 20]</code> on this
+        site's Go 1.26 toolchain, never a jumbled or repeated result. One catch: this
+        depends on your module's declared Go version, not just your installed toolchain
+        &mdash; a <code>go.mod</code> that still declares <code>go 1.21</code> or earlier
+        keeps the old sharing behavior even when built with a Go 1.22+ toolchain. Check
+        (or bump) the <code>go</code> directive in <code>go.mod</code> if you're relying
+        on this.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="functions">Functions</h2>
+    <p>
+      Functions can take any number of typed parameters, and &mdash; distinctively for a
+      mainstream language &mdash; return more than one value natively, with no wrapper
+      object or out-parameter required.
+    </p>
+
+    <div class="viz" data-viz="fn-flow">
+      <div class="viz-stage">
+        <div class="flow-io">
+          <div class="flow-box" data-role="input">a = 17</div>
+          <div class="flow-box" data-role="input">b = 5</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-fn">divmod(a, b)</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-box" data-role="output">3</div>
+          <div class="flow-box" data-role="output">2</div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="call">Call divmod(17, 5)</button></div>
+      <div class="viz-caption" data-role="caption">Click to call the function below.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/bdKyLyVf8i-" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> divmod(a, b <span class="tok-type">int</span>) (<span class="tok-type">int</span>, <span class="tok-type">int</span>) {
+	<span class="tok-kw">return</span> a / b, a % b
+}
+
+<span class="tok-kw">func</span> sum(nums ...<span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	total := 0
+	<span class="tok-kw">for</span> _, n := <span class="tok-kw">range</span> nums {
+		total += n
+	}
+	<span class="tok-kw">return</span> total
+}
+
+<span class="tok-kw">func</span> namedReturn(a, b <span class="tok-type">int</span>) (sum <span class="tok-type">int</span>, diff <span class="tok-type">int</span>) {
+	sum = a + b
+	diff = a - b
+	<span class="tok-kw">return</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	q, r := divmod(17, 5)
+	fmt.Println(q, r)
+	fmt.Println(sum(1, 2, 3, 4))
+	s, d := namedReturn(10, 4)
+	fmt.Println(s, d)
+}</code></pre>
+      <div class="code-output show">3 2
+10
+14 6</div>
+    </div>
+
+    <p>
+      <code>sum(nums ...int)</code> is a <strong>variadic</strong> parameter &mdash; call
+      it with any number of <code>int</code> arguments (<code>sum(1, 2, 3, 4)</code>), and
+      inside the function <code>nums</code> is just a slice. <code>namedReturn</code>
+      shows named return values: declaring <code>sum</code> and <code>diff</code> in the
+      signature itself means a bare <code>return</code> with no arguments sends back
+      whatever they currently hold.
+    </p>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="core.html">Continue to Core &rarr;</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was run against a real Go 1.26 toolchain before publishing.
+  "Open in Go Playground" links go to the real, official go.dev Playground.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/basics.js"></script>
+</body>
+</html>
