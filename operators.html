@@ -1,139 +1,164 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes Operators in Go &mdash; Learn Go, Visually</title>
-<meta name="description" content="Build a real Kubernetes operator in Go end to end: CRD design, the reconcile loop, owner references, finalizers, envtest, and a live deployment to a real cluster.">
-<link rel="stylesheet" href="assets/css/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kubernetes Operators in Go &mdash; Learn Go, Visually</title>
+  <meta name="description" content="Build a real Kubernetes operator in Go end to end: CRD design, the reconcile loop, owner references, finalizers, envtest, and a live deployment to a real cluster.">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-<header class="site-header">
-  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
-  <nav class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="basics.html">Basics</a>
-    <a href="core.html">Core</a>
-    <a href="concurrency.html">Concurrency</a>
-    <a href="advanced.html">Advanced</a>
-    <a href="operators.html" class="active">Operators</a>
-    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
-  </nav>
-</header>
-
-<main>
-  <div class="page-wide">
-    <span class="eyebrow">Applied Go</span>
-    <h1>Kubernetes Operators in Go</h1>
-    <p class="lede">
-      An end-to-end walkthrough of building a real operator: a custom API, a controller
-      that reconciles it, and a genuine deployment to a real cluster &mdash; not a toy
-      snippet. This is the most involved page on this site, and it's held to a higher bar
-      of proof than "it compiles": almost everything below was actually run, either
-      against a real embedded Kubernetes API server or a real <code>kind</code> cluster.
-      Where something is a conceptual simplification rather than something we ran, it's
-      labeled as such.
-    </p>
-
-    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
-      <a class="btn btn-sm" href="#what-is-an-operator">What's an operator</a>
-      <a class="btn btn-sm" href="#crd">The CRD</a>
-      <a class="btn btn-sm" href="#reconcile">The reconcile loop</a>
-      <a class="btn btn-sm" href="#owner-refs">Owner references</a>
-      <a class="btn btn-sm" href="#finalizers">Finalizers</a>
-      <a class="btn btn-sm" href="#testing">Testing with envtest</a>
-      <a class="btn btn-sm" href="#deploying">Deploying for real</a>
-    </div>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">What was actually verified, and how</div>
-      <p>
-        Every version, API signature, and marker-comment shown below was checked against
-        live documentation, then cross-checked against the real, current tools (Go 1.26,
-        controller-runtime v0.24.1, Kubebuilder v4.15.0) by actually running them, not
-        just reading about them. The Go code was compiled and <code>go vet</code>-checked.
-        The reconciler's logic was proven against a real embedded Kubernetes API server
-        (<code>envtest</code>: a real <code>kube-apiserver</code> and <code>etcd</code>,
-        but no kubelet or controller-manager). Everything that specifically requires a
-        kubelet and a real garbage collector &mdash; actual running Pods, and actual
-        cascading deletion &mdash; was verified separately against a real
-        <code>kind</code> (Kubernetes-in-Docker) cluster, with the exact <code>kubectl</code>
-        output captured below.
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="basics.html">Basics</a>
+      <a href="core.html">Core</a>
+      <a href="concurrency.html">Concurrency</a>
+      <a href="advanced.html">Advanced</a>
+      <a href="operators.html" class="active">Operators</a>
+      <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+    </nav>
+  </header>
+  
+  <main>
+    <div class="page-wide">
+      <span class="eyebrow">Applied Go</span>
+      <h1>Kubernetes Operators in Go</h1>
+      <p class="lede">
+        An end-to-end walkthrough of building a real operator: a custom API, a controller
+        that reconciles it, and a genuine deployment to a real cluster &mdash; not a toy
+        snippet. This is the most involved page on this site, and it's held to a higher bar
+        of proof than "it compiles": almost everything below was actually run, either
+        against a real embedded Kubernetes API server or a real <code>kind</code> cluster.
+        Where something is a conceptual simplification rather than something we ran, it's
+        labeled as such.
       </p>
-    </div>
-
-    <!-- ============================================================ -->
-    <h2 id="what-is-an-operator">What's an operator?</h2>
-    <p>
-      Kubernetes itself is built from controllers: small loops that watch one kind of
-      object and work to make reality match it. The built-in Deployment controller
-      watches Deployments and makes sure the right number of Pods exist. An
-      <strong>operator</strong> is the same pattern applied to a resource type
-      <em>you</em> define: a <strong>Custom Resource Definition (CRD)</strong> teaches the
-      Kubernetes API about your new kind, and a Go program &mdash; the controller &mdash;
-      watches it and reconciles.
-    </p>
-    <p>
-      The single most important thing to understand about this loop, stated in the
-      controller-runtime documentation itself: reconciliation is
-      <strong>level-based</strong>, not edge-based.
-    </p>
-    <div class="callout callout-tip">
-      <div class="callout-title">From the controller-runtime documentation</div>
+      
+      <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+        <a class="btn btn-sm" href="#what-is-an-operator">What's an operator</a>
+        <a class="btn btn-sm" href="#setup">Project setup</a>
+        <a class="btn btn-sm" href="#crd">The CRD</a>
+        <a class="btn btn-sm" href="#reconcile">The reconcile loop</a>
+        <a class="btn btn-sm" href="#owner-refs">Owner references</a>
+        <a class="btn btn-sm" href="#finalizers">Finalizers</a>
+        <a class="btn btn-sm" href="#testing">Testing with envtest</a>
+        <a class="btn btn-sm" href="#deploying">Deploying for real</a>
+      </div>
+      
+      <div class="callout callout-tip">
+        <div class="callout-title">What was actually verified, and how</div>
+        <p>
+          Every version, API signature, and marker-comment shown below was checked against
+          live documentation, then cross-checked against the real, current tools (Go 1.26,
+          controller-runtime v0.24.1, Kubebuilder v4.15.0) by actually running them, not
+          just reading about them. The Go code was compiled and <code>go vet</code>-checked.
+          The reconciler's logic was proven against a real embedded Kubernetes API server
+          (<code>envtest</code>: a real <code>kube-apiserver</code> and <code>etcd</code>,
+          but no kubelet or controller-manager). Everything that specifically requires a
+          kubelet and a real garbage collector &mdash; actual running Pods, and actual
+          cascading deletion &mdash; was verified separately against a real
+          <code>kind</code> (Kubernetes-in-Docker) cluster, with the exact <code>kubectl</code>
+          output captured below.
+        </p>
+      </div>
+      
+      <!-- ============================================================ -->
+      <h2 id="what-is-an-operator">What's an operator?</h2>
       <p>
-        &ldquo;Reconciliation is level-based, meaning action isn't driven off changes in
-        individual Events, but instead is driven by actual cluster state read from the
-        apiserver or a local cache. For example if responding to a Pod Delete Event, the
-        Request won't contain that a Pod was deleted, instead the reconcile function
-        observes this when reading the cluster state and seeing the Pod as missing.&rdquo;
+        Kubernetes itself is built from controllers: small loops that watch one kind of
+        object and work to make reality match it. The built-in Deployment controller
+        watches Deployments and makes sure the right number of Pods exist. An
+        <strong>operator</strong> is the same pattern applied to a resource type
+        <em>you</em> define: a <strong>Custom Resource Definition (CRD)</strong> teaches the
+        Kubernetes API about your new kind, and a Go program &mdash; the controller &mdash;
+        watches it and reconciles.
       </p>
-    </div>
-    <p>
-      In practice: your <code>Reconcile</code> function is never told <em>what</em>
-      changed. It's just told <em>which object</em> might need attention, and its job is
-      to look at the current state of the world and correct any gap, every single time,
-      regardless of what caused the gap. The interactive visual further down makes this
-      concrete.
-    </p>
+      <p>
+        The single most important thing to understand about this loop, stated in the
+        controller-runtime documentation itself: reconciliation is
+        <strong>level-based</strong>, not edge-based.
+      </p>
+      
+      <div class="callout callout-tip">
+        <div class="callout-title">From the controller-runtime documentation</div>
+        <p>
+          &ldquo;Reconciliation is level-based, meaning action isn't driven off changes in
+          individual Events, but instead is driven by actual cluster state read from the
+          apiserver or a local cache. For example if responding to a Pod Delete Event, the
+          Request won't contain that a Pod was deleted, instead the reconcile function
+          observes this when reading the cluster state and seeing the Pod as missing.&rdquo;
+        </p>
+      </div>
+      <p>
+        In practice: your <code>Reconcile</code> function is never told <em>what</em>
+        changed. It's just told <em>which object</em> might need attention, and its job is
+        to look at the current state of the world and correct any gap, every single time,
+        regardless of what caused the gap. The interactive visual further down makes this
+        concrete.
+      </p>
+      
+      <!-- ============================================================ -->
+      <h2 id="setup">Project setup guide</h2>
+      <p>
+        Before writing the CRD or the reconcile loop, we need to initialize the project directory, set up the Go module, and generate the foundational scaffolding. We use <a href="https://book.kubebuilder.io/" target="_blank" rel="noopener">Kubebuilder</a> to handle this boilerplate.
+      </p>
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
+        <div class="code-output show">$ mkdir website-operator
+$ cd website-operator
+$ go mod init github.com/r4rajat/website-operator
 
-    <!-- ============================================================ -->
-    <h2 id="crd">Designing the API: a Website CRD</h2>
-    <p>
-      The example built for this page is a <code>Website</code> resource: you specify how
-      many replicas you want and a message to display, and the operator makes a real
-      website exist showing that message. Built with <a href="https://book.kubebuilder.io/" target="_blank" rel="noopener">Kubebuilder</a>
-      v4.15.0 (<code>kubebuilder init --domain example.com --repo github.com/r4rajat/website-operator</code>,
-      then <code>kubebuilder create api --group web --version v1 --kind Website</code>),
-      which scaffolds the project and, critically, generates the CRD's YAML schema
-      directly from Go struct tags and marker comments &mdash; you never hand-write the
-      CRD YAML.
-    </p>
+# Initialize the Kubebuilder project setup
+$ kubebuilder init --domain example.com --repo github.com/r4rajat/website-operator
 
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">api/v1/website_types.go</span></div>
-      <pre><code><span class="tok-kw">type</span> WebsiteSpec <span class="tok-kw">struct</span> {
-	<span class="tok-com">// replicas is the desired number of running copies of the website.</span>
-	<span class="tok-com">// +kubebuilder:validation:Minimum=1</span>
-	<span class="tok-com">// +kubebuilder:default=1</span>
-	Replicas <span class="tok-type">int32</span> `json:"replicas"`
+# Scaffold the Custom Resource Definition (CRD) and controller
+$ kubebuilder create api --group web --version v1 --kind Website
+Create Resource [y/n]
+y
+Create Controller [y/n]
+y</div>
+      </div>
+      <p>
+        This sequence establishes your root directory and sets up the required boilerplate. The <code>kubebuilder init</code> command configures the project layout, while <code>create api</code> stubs out the specific Go types and controller files that you will modify to create your custom resource.
+      </p>
 
-	<span class="tok-com">// message is the text served on the website's homepage.</span>
-	<span class="tok-com">// +kubebuilder:validation:MinLength=1</span>
-	Message <span class="tok-type">string</span> `json:"message"`
+      <!-- ============================================================ -->
+      <h2 id="crd">Designing the API: a Website CRD</h2>
+      <p>
+        The example built for this page is a <code>Website</code> resource: you specify how
+        many replicas you want and a message to display, and the operator makes a real
+        website exist showing that message. Built with <a href="https://book.kubebuilder.io/" target="_blank" rel="noopener">Kubebuilder</a>
+        v4.15.0, the commands from the setup guide generated the initial scaffolding. 
+        Critically, Kubebuilder generates the CRD's YAML schema
+        directly from Go struct tags and marker comments &mdash; you never hand-write the
+        CRD YAML.
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">api/v1/website_types.go</span></div>
+        <pre><code><span class="tok-kw">type</span> WebsiteSpec <span class="tok-kw">struct</span> {
+  <span class="tok-com">// replicas is the desired number of running copies of the website.</span>
+  <span class="tok-com">// +kubebuilder:validation:Minimum=1</span>
+  <span class="tok-com">// +kubebuilder:default=1</span>
+  Replicas <span class="tok-type">int32</span> `json:"replicas"`
+
+  <span class="tok-com">// message is the text served on the website's homepage.</span>
+  <span class="tok-com">// +kubebuilder:validation:MinLength=1</span>
+  Message <span class="tok-type">string</span> `json:"message"`
 }
 
 <span class="tok-kw">type</span> WebsiteStatus <span class="tok-kw">struct</span> {
-	<span class="tok-com">// readyReplicas is the number of replicas currently passing readiness</span>
-	<span class="tok-com">// checks, as last observed by the controller.</span>
-	<span class="tok-com">// +optional</span>
-	ReadyReplicas <span class="tok-type">int32</span> `json:"readyReplicas,omitempty"`
+  <span class="tok-com">// readyReplicas is the number of replicas currently passing readiness</span>
+  <span class="tok-com">// checks, as last observed by the controller.</span>
+  <span class="tok-com">// +optional</span>
+  ReadyReplicas <span class="tok-type">int32</span> `json:"readyReplicas,omitempty"`
 
-	<span class="tok-com">// conditions represent the current state of the Website resource.</span>
-	<span class="tok-com">// +listType=map</span>
-	<span class="tok-com">// +listMapKey=type</span>
-	<span class="tok-com">// +optional</span>
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+  <span class="tok-com">// conditions represent the current state of the Website resource.</span>
+  <span class="tok-com">// +listType=map</span>
+  <span class="tok-com">// +listMapKey=type</span>
+  <span class="tok-com">// +optional</span>
+  Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 <span class="tok-com">// +kubebuilder:object:root=true</span>
@@ -142,38 +167,38 @@
 <span class="tok-com">// +kubebuilder:printcolumn:name="Replicas",type=integer,JSONPath=`.spec.replicas`</span>
 <span class="tok-com">// +kubebuilder:printcolumn:name="Ready",type=integer,JSONPath=`.status.readyReplicas`</span>
 <span class="tok-com">// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`</span>
-
 <span class="tok-kw">type</span> Website <span class="tok-kw">struct</span> {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitzero"`
-	Spec   WebsiteSpec   `json:"spec"`
-	Status WebsiteStatus `json:"status,omitzero"`
+  metav1.TypeMeta `json:",inline"`
+  metav1.ObjectMeta `json:"metadata,omitzero"`
+
+  Spec   WebsiteSpec   `json:"spec"`
+  Status WebsiteStatus `json:"status,omitzero"`
 }</code></pre>
-    </div>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">A current-Kubebuilder detail worth knowing</div>
-      <p>
-        Notice <code>json:"metadata,omitzero"</code>, not the older <code>omitempty</code>.
-        This is what Kubebuilder v4.15.0 actually scaffolds today &mdash; older tutorials
-        and blog posts online still show <code>omitempty</code> here, which was the
-        convention before this changed. If you're following along from an older guide and
-        your generated code doesn't match it, this is why.
-      </p>
-    </div>
-
-    <p>
-      Running <code>make manifests</code> generates the real CRD from that Go file. Here's
-      the actually-generated result (the standard Kubernetes <code>Condition</code> schema
-      block, which is boilerplate identical across virtually every operator, is collapsed
-      for length):
-    </p>
-
-    <div class="code-panel">
-      <div class="code-panel-head">
-        <span class="code-panel-title">config/crd/bases/web.example.com_websites.yaml (generated, abridged)</span>
       </div>
-      <pre><code><span class="tok-type">apiVersion</span>: apiextensions.k8s.io/v1
+      
+      <div class="callout callout-tip">
+        <div class="callout-title">A current-Kubebuilder detail worth knowing</div>
+        <p>
+          Notice <code>json:"metadata,omitzero"</code>, not the older <code>omitempty</code>.
+          This is what Kubebuilder v4.15.0 actually scaffolds today &mdash; older tutorials
+          and blog posts online still show <code>omitempty</code> here, which was the
+          convention before this changed. If you're following along from an older guide and
+          your generated code doesn't match it, this is why.
+        </p>
+      </div>
+      
+      <p>
+        Running <code>make manifests</code> generates the real CRD from that Go file. Here's
+        the actually-generated result (the standard Kubernetes <code>Condition</code> schema
+        block, which is boilerplate identical across virtually every operator, is collapsed
+        for length):
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head">
+          <span class="code-panel-title">config/crd/bases/web.example.com_websites.yaml (generated, abridged)</span>
+        </div>
+        <pre><code><span class="tok-type">apiVersion</span>: apiextensions.k8s.io/v1
 <span class="tok-type">kind</span>: CustomResourceDefinition
 <span class="tok-type">metadata</span>:
   <span class="tok-type">name</span>: websites.web.example.com
@@ -218,199 +243,203 @@
               <span class="tok-type">readyReplicas</span>:
                 <span class="tok-type">format</span>: int32
                 <span class="tok-type">type</span>: integer
-              <span class="tok-type">conditions</span>: <span class="tok-com"># ... standard metav1.Condition array schema ...</span>
+              <span class="tok-type">conditions</span>:
+                <span class="tok-com"># ... standard metav1.Condition array schema ...</span>
             <span class="tok-type">type</span>: object
     <span class="tok-type">served</span>: true
     <span class="tok-type">storage</span>: true
     <span class="tok-type">subresources</span>:
       <span class="tok-type">status</span>: {}</code></pre>
-    </div>
-
-    <p>
-      <code>.spec</code> is the desired state a user writes; <code>.status</code> is the
-      observed state the controller reports back &mdash; this split, and the separate
-      <code>/status</code> subresource it enables, is a Kubernetes-wide convention, not
-      something specific to CRDs. The <code>minLength</code>/<code>minimum</code> rules are
-      enforced by the real API server itself, before a request ever reaches the
-      controller &mdash; confirmed directly further down.
-    </p>
-
-    <!-- ============================================================ -->
-    <h2 id="reconcile">The reconcile loop</h2>
-    <p>
-      Click through the visual below, then compare it against the real
-      <code>Reconcile</code> function underneath &mdash; the visual is a simplified
-      simulation of exactly what that code does.
-    </p>
-
-    <div class="viz" data-viz="recon-loop">
-      <div class="viz-stage">
-        <div class="recon-row">
-          <div class="recon-box">
-            <div class="recon-box-title">Desired (spec)</div>
-            <div class="recon-field"><span>replicas</span><span class="val">2</span></div>
-            <div class="recon-field"><span>message</span><span class="val">"Hello..."</span></div>
-          </div>
-          <div class="recon-loop-icon">&#8635;</div>
-          <div class="recon-box">
-            <div class="recon-box-title">Actual (cluster)</div>
-            <div class="recon-field"><span>replicas</span><span class="val match" data-role="actual-replicas">2</span></div>
+      </div>
+      
+      <p>
+        <code>.spec</code> is the desired state a user writes; <code>.status</code> is the
+        observed state the controller reports back &mdash; this split, and the separate
+        <code>/status</code> subresource it enables, is a Kubernetes-wide convention, not
+        something specific to CRDs. The <code>minLength</code>/<code>minimum</code> rules are
+        enforced by the real API server itself, before a request ever reaches the
+        controller &mdash; confirmed directly further down.
+      </p>
+      
+      <!-- ============================================================ -->
+      <h2 id="reconcile">The reconcile loop</h2>
+      <p>
+        Click through the visual below, then compare it against the real
+        <code>Reconcile</code> function underneath &mdash; the visual is a simplified
+        simulation of exactly what that code does.
+      </p>
+      
+      <div class="viz" data-viz="recon-loop">
+        <div class="viz-stage">
+          <div class="recon-row">
+            <div class="recon-box">
+              <div class="recon-box-title">Desired (spec)</div>
+              <div class="recon-field"><span>replicas</span><span class="val">2</span></div>
+              <div class="recon-field"><span>message</span><span class="val">"Hello..."</span></div>
+            </div>
+            <div class="recon-loop-icon">&#8635;</div>
+            <div class="recon-box">
+              <div class="recon-box-title">Actual (cluster)</div>
+              <div class="recon-field"><span>replicas</span><span class="val match" data-role="actual-replicas">2</span></div>
+            </div>
           </div>
         </div>
+        <div class="viz-controls">
+          <button class="btn" data-role="drift">Simulate manual change</button>
+          <button class="btn btn-primary" data-role="reconcile" disabled>Reconcile</button>
+        </div>
+        <div class="viz-caption" data-role="caption"></div>
       </div>
-      <div class="viz-controls">
-        <button class="btn" data-role="drift">Simulate manual change</button>
-        <button class="btn btn-primary" data-role="reconcile" disabled>Reconcile</button>
-      </div>
-      <div class="viz-caption" data-role="caption"></div>
-    </div>
-
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller.go</span></div>
-      <pre><code><span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites,verbs=get;list;watch;create;update;patch;delete</span>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller.go</span></div>
+        <pre><code><span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites,verbs=get;list;watch;create;update;patch;delete</span>
 <span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites/status,verbs=get;update;patch</span>
 <span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites/finalizers,verbs=update</span>
 <span class="tok-com">// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete</span>
 <span class="tok-com">// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete</span>
 
 <span class="tok-kw">func</span> (r *WebsiteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
+  log := logf.FromContext(ctx)
 
-	<span class="tok-kw">var</span> website webv1.Website
-	<span class="tok-kw">if</span> err := r.Get(ctx, req.NamespacedName, &amp;website); err != <span class="tok-kw">nil</span> {
-		<span class="tok-kw">return</span> ctrl.Result{}, client.IgnoreNotFound(err)
-	}
+  <span class="tok-kw">var</span> website webv1.Website
+  <span class="tok-kw">if</span> err := r.Get(ctx, req.NamespacedName, &amp;website); err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> ctrl.Result{}, client.IgnoreNotFound(err)
+  }
 
-	<span class="tok-kw">if</span> !website.DeletionTimestamp.IsZero() {
-		<span class="tok-com">// ... finalizer cleanup; see "Finalizers" below ...</span>
-		<span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span>
-	}
+  <span class="tok-kw">if</span> !website.DeletionTimestamp.IsZero() {
+    <span class="tok-com">// ... finalizer cleanup; see "Finalizers" below ...</span>
+    <span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span>
+  }
 
-	<span class="tok-kw">if</span> !controllerutil.ContainsFinalizer(&amp;website, websiteFinalizer) {
-		controllerutil.AddFinalizer(&amp;website, websiteFinalizer)
-		<span class="tok-kw">if</span> err := r.Update(ctx, &amp;website); err != <span class="tok-kw">nil</span> {
-			<span class="tok-kw">return</span> ctrl.Result{}, err
-		}
-		<span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span> <span class="tok-com">// this Update re-triggers Reconcile</span>
-	}
+  <span class="tok-kw">if</span> !controllerutil.ContainsFinalizer(&amp;website, websiteFinalizer) {
+    controllerutil.AddFinalizer(&amp;website, websiteFinalizer)
+    <span class="tok-kw">if</span> err := r.Update(ctx, &amp;website); err != <span class="tok-kw">nil</span> {
+      <span class="tok-kw">return</span> ctrl.Result{}, err
+    }
+    <span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span> <span class="tok-com">// this Update re-triggers Reconcile</span>
+  }
 
-	<span class="tok-kw">if</span> err := r.reconcileConfigMap(ctx, &amp;website); err != <span class="tok-kw">nil</span> {
-		<span class="tok-kw">return</span> ctrl.Result{}, err
-	}
+  <span class="tok-kw">if</span> err := r.reconcileConfigMap(ctx, &amp;website); err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> ctrl.Result{}, err
+  }
+  deployment, err := r.reconcileDeployment(ctx, &amp;website)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> ctrl.Result{}, err
+  }
 
-	deployment, err := r.reconcileDeployment(ctx, &amp;website)
-	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-		<span class="tok-kw">return</span> ctrl.Result{}, err
-	}
-
-	<span class="tok-kw">return</span> ctrl.Result{}, r.updateStatus(ctx, &amp;website, deployment)
+  <span class="tok-kw">return</span> ctrl.Result{}, r.updateStatus(ctx, &amp;website, deployment)
 }</code></pre>
-    </div>
-
-    <p>
-      <code>reconcileConfigMap</code> and <code>reconcileDeployment</code> both use
-      <code>controllerutil.CreateOrUpdate</code>: fetch-or-create, then mutate to the
-      desired shape, then save. Every owned object also gets
-      <code>controllerutil.SetControllerReference(website, obj, r.Scheme)</code> &mdash;
-      that one call is what makes the next two sections possible.
-    </p>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">A real error this exact code hit, and why that's fine</div>
+      </div>
+      
       <p>
-        While verifying this against a live cluster, the controller's log genuinely
-        showed: <code>Operation cannot be fulfilled on deployments.apps "website-sample":
-        the object has been modified; please apply your changes to the latest version and
-        try again</code>. That's a normal optimistic-concurrency conflict &mdash; something
-        else touched the object between this reconcile's read and write. controller-runtime
-        automatically requeues on any returned error, and because reconciliation is
-        level-based and idempotent, the very next attempt just succeeded cleanly. This
-        wasn't edited out: it's exactly why the level-based design matters in practice,
-        not just in theory.
+        <code>reconcileConfigMap</code> and <code>reconcileDeployment</code> both use
+        <code>controllerutil.CreateOrUpdate</code>: fetch-or-create, then mutate to the
+        desired shape, then save. Every owned object also gets
+        <code>controllerutil.SetControllerReference(website, obj, r.Scheme)</code> &mdash;
+        that one call is what makes the next two sections possible.
       </p>
-    </div>
-
-    <!-- ============================================================ -->
-    <h2 id="owner-refs">Owner references &amp; garbage collection</h2>
-    <p>
-      <code>SetControllerReference</code> stamps the child object's metadata with a
-      reference back to its owner. Kubernetes' garbage collector uses exactly this to
-      cascade-delete children when the owner goes away &mdash; by default, deleting a
-      Website should also delete its ConfigMap and Deployment, with no code in this
-      operator ever issuing a delete for either.
-    </p>
-
-    <div class="viz" data-viz="owner-tree">
-      <div class="viz-stage">
-        <div class="ctx-tree">
-          <div class="ctx-node" data-role="parent">Website (website-sample)</div>
-          <div class="ctx-line"></div>
-          <div class="ctx-children">
-            <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">ConfigMap</div></div>
-            <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">Deployment</div></div>
+      
+      <div class="callout callout-tip">
+        <div class="callout-title">A real error this exact code hit, and why that's fine</div>
+        <p>
+          While verifying this against a live cluster, the controller's log genuinely
+          showed: <code>Operation cannot be fulfilled on deployments.apps "website-sample":
+          the object has been modified; please apply your changes to the latest version and
+          try again</code>. That's a normal optimistic-concurrency conflict &mdash; something
+          else touched the object between this reconcile's read and write. controller-runtime
+          automatically requeues on any returned error, and because reconciliation is
+          level-based and idempotent, the very next attempt just succeeded cleanly. This
+          wasn't edited out: it's exactly why the level-based design matters in practice,
+          not just in theory.
+        </p>
+      </div>
+      
+      <!-- ============================================================ -->
+      <h2 id="owner-refs">Owner references &amp; garbage collection</h2>
+      <p>
+        <code>SetControllerReference</code> stamps the child object's metadata with a
+        reference back to its owner. Kubernetes' garbage collector uses exactly this to
+        cascade-delete children when the owner goes away &mdash; by default, deleting a
+        Website should also delete its ConfigMap and Deployment, with no code in this
+        operator ever issuing a delete for either.
+      </p>
+      
+      <div class="viz" data-viz="owner-tree">
+        <div class="viz-stage">
+          <div class="ctx-tree">
+            <div class="ctx-node" data-role="parent">Website (website-sample)</div>
+            <div class="ctx-line"></div>
+            <div class="ctx-children">
+              <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">ConfigMap</div></div>
+              <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">Deployment</div></div>
+            </div>
           </div>
         </div>
+        <div class="viz-controls"><button class="btn btn-primary" data-role="delete">kubectl delete website website-sample</button></div>
+        <div class="viz-caption" data-role="caption">Click to delete the parent and watch cascading deletion propagate.</div>
       </div>
-      <div class="viz-controls"><button class="btn btn-primary" data-role="delete">kubectl delete website website-sample</button></div>
-      <div class="viz-caption" data-role="caption">Click to delete the parent and watch cascading deletion propagate.</div>
-    </div>
-
-    <p>
-      This specific proof needs a real cluster &mdash; the garbage collector is part of
-      <code>kube-controller-manager</code>, which the faster, cluster-free
-      <code>envtest</code> setup used later on this page deliberately does not run. The
-      "Deploying for real" section below shows it actually happening, live, as the last
-      step of the same deployment walked through there.
-    </p>
-
-    <!-- ============================================================ -->
-    <h2 id="finalizers">Finalizers</h2>
-    <p>
-      Owner references clean up objects <em>inside</em> Kubernetes automatically. If an
-      operator manages something <em>outside</em> the cluster &mdash; a cloud load
-      balancer, a DNS record, a billing record &mdash; nothing does that cleanup for you.
-      A <strong>finalizer</strong> is a string on the object's metadata that blocks real
-      deletion until the controller explicitly removes it, giving it a guaranteed chance
-      to run that cleanup first.
-    </p>
-    <p>
-      Deleting an object with a finalizer doesn't remove it from etcd: the API server
-      sets <code>metadata.deletionTimestamp</code> and waits. The controller sees the
-      timestamp, does whatever cleanup it needs, then removes its finalizer string. Only
-      once the finalizers list is empty does the object actually disappear. This example
-      has nothing external to clean up, so the finalizer only demonstrates the hook firing
-      &mdash; and it really did, captured from the controller's own logs during the
-      deletion walked through in "Deploying for real" below:
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">controller-manager logs</span></div>
-      <div class="code-output show">INFO	running pre-delete cleanup	{"controller": "website", "website": "website-sample"}</div>
-    </div>
-
-    <!-- ============================================================ -->
-    <h2 id="testing">Testing without a cluster: envtest</h2>
-    <p>
-      You don't need Docker or a real cluster to genuinely test a controller.
-      <code>sigs.k8s.io/controller-runtime/pkg/envtest</code> downloads and runs the real
-      <code>kube-apiserver</code> and <code>etcd</code> binaries as local processes &mdash;
-      a real Kubernetes API, with real validation and real storage, just without a kubelet
-      or controller-manager. That boundary matters: it means Pods can exist as API objects
-      but never actually run, and nothing drives a Deployment's status forward on its own.
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">$ go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest &amp;&amp; setup-envtest use -p path</span></div>
-      <div class="code-output show">/home/rajat-gupta/.local/share/kubebuilder-envtest/k8s/1.36.2-linux-amd64</div>
-    </div>
-    <p>
-      That directory holds three real binaries (<code>etcd</code>, <code>kube-apiserver</code>,
-      <code>kubectl</code>), about 51MB compressed, no root required. Point
-      <code>KUBEBUILDER_ASSETS</code> at it and a normal Go test gets a real API server for
-      the life of the test run. Because there's no real Deployment controller, testing the
-      status-reporting path means simulating what one would eventually report:
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller_test.go (excerpt)</span></div>
-      <pre><code><span class="tok-com">// envtest runs no real Deployment controller, so nothing will ever</span>
+      
+      <p>
+        This specific proof needs a real cluster &mdash; the garbage collector is part of
+        <code>kube-controller-manager</code>, which the faster, cluster-free
+        <code>envtest</code> setup used later on this page deliberately does not run. The
+        "Deploying for real" section below shows it actually happening, live, as the last
+        step of the same deployment walked through there.
+      </p>
+      
+      <!-- ============================================================ -->
+      <h2 id="finalizers">Finalizers</h2>
+      <p>
+        Owner references clean up objects <em>inside</em> Kubernetes automatically. If an
+        operator manages something <em>outside</em> the cluster &mdash; a cloud load
+        balancer, a DNS record, a billing record &mdash; nothing does that cleanup for you.
+        A <strong>finalizer</strong> is a string on the object's metadata that blocks real
+        deletion until the controller explicitly removes it, giving it a guaranteed chance
+        to run that cleanup first.
+      </p>
+      <p>
+        Deleting an object with a finalizer doesn't remove it from etcd: the API server
+        sets <code>metadata.deletionTimestamp</code> and waits. The controller sees the
+        timestamp, does whatever cleanup it needs, then removes its finalizer string. Only
+        once the finalizers list is empty does the object actually disappear. This example
+        has nothing external to clean up, so the finalizer only demonstrates the hook firing
+        &mdash; and it really did, captured from the controller's own logs during the
+        deletion walked through in "Deploying for real" below:
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">controller-manager logs</span></div>
+        <div class="code-output show">INFO running pre-delete cleanup {"controller": "website", "website": "website-sample"}</div>
+      </div>
+      
+      <!-- ============================================================ -->
+      <h2 id="testing">Testing without a cluster: envtest</h2>
+      <p>
+        You don't need Docker or a real cluster to genuinely test a controller.
+        <code>sigs.k8s.io/controller-runtime/pkg/envtest</code> downloads and runs the real
+        <code>kube-apiserver</code> and <code>etcd</code> binaries as local processes &mdash;
+        a real Kubernetes API, with real validation and real storage, just without a kubelet
+        or controller-manager. That boundary matters: it means Pods can exist as API objects
+        but never actually run, and nothing drives a Deployment's status forward on its own.
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest &amp;&amp; setup-envtest use -p path</span></div>
+        <div class="code-output show">/home/rajat-gupta/.local/share/kubebuilder-envtest/k8s/1.36.2-linux-amd64</div>
+      </div>
+      
+      <p>
+        That directory holds three real binaries (<code>etcd</code>, <code>kube-apiserver</code>,
+        <code>kubectl</code>), about 51MB compressed, no root required. Point
+        <code>KUBEBUILDER_ASSETS</code> at it and a normal Go test gets a real API server for
+        the life of the test run. Because there's no real Deployment controller, testing the
+        status-reporting path means simulating what one would eventually report:
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller_test.go (excerpt)</span></div>
+        <pre><code><span class="tok-com">// envtest runs no real Deployment controller, so nothing will ever</span>
 <span class="tok-com">// make dep.Status.ReadyReplicas move on its own. Simulate what one</span>
 <span class="tok-com">// would eventually report, the same way a real cluster's Deployment</span>
 <span class="tok-com">// controller and kubelet would once the Pods actually came up.</span>
@@ -426,115 +455,128 @@ Expect(err).NotTo(HaveOccurred())
 website := &amp;webv1.Website{}
 Expect(k8sClient.Get(ctx, typeNamespacedName, website)).To(Succeed())
 Expect(website.Status.ReadyReplicas).To(Equal(int32(2)))</code></pre>
-    </div>
-    <p>
-      A separate test asserts the inverse of the CRD validation shown earlier &mdash; that
-      the real (embedded) API server genuinely rejects an invalid spec before the
-      controller ever sees it:
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller_test.go (excerpt)</span></div>
-      <pre><code>invalid := &amp;webv1.Website{
-	ObjectMeta: metav1.ObjectMeta{Name: <span class="tok-str">"invalid-resource"</span>, Namespace: resourceNamespace},
-	Spec:       webv1.WebsiteSpec{Replicas: 0, Message: <span class="tok-str">""</span>},
+      </div>
+      
+      <p>
+        A separate test asserts the inverse of the CRD validation shown earlier &mdash; that
+        the real (embedded) API server genuinely rejects an invalid spec before the
+        controller ever sees it:
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller_test.go (excerpt)</span></div>
+        <pre><code>invalid := &amp;webv1.Website{
+  ObjectMeta: metav1.ObjectMeta{Name: <span class="tok-str">"invalid-resource"</span>, Namespace: resourceNamespace},
+  Spec:       webv1.WebsiteSpec{Replicas: 0, Message: <span class="tok-str">""</span>},
 }
 err := k8sClient.Create(ctx, invalid)
 Expect(err).To(HaveOccurred())
 Expect(errors.IsInvalid(err)).To(BeTrue())</code></pre>
-    </div>
-    <p>Running the full suite, for real, against the real embedded API server:</p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">$ make test</span></div>
-      <div class="code-output show">Will run 4 of 4 specs
+      </div>
+      
+      <p>Running the full suite, for real, against the real embedded API server:</p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ make test</span></div>
+        <div class="code-output show">Will run 4 of 4 specs
 &bull;&bull;&bull;&bull;
-
 Ran 4 of 4 Specs in 5.756 seconds
 PASS
 ok  	github.com/r4rajat/website-operator/internal/controller	6.036s	coverage: 84.9% of statements</div>
-    </div>
-
-    <!-- ============================================================ -->
-    <h2 id="deploying">Deploying for real</h2>
-    <p>
-      Everything above ran on this machine with no Docker or cluster. This last part is
-      the genuine, complete path from source to a running website, verified against an
-      actual <code>kind</code> cluster created for this page:
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">the real end-to-end sequence</span></div>
-      <div class="code-output show">$ kind create cluster --name operator-demo
+      </div>
+      
+      <!-- ============================================================ -->
+      <h2 id="deploying">Deploying for real</h2>
+      <p>
+        Everything above ran on this machine with no Docker or cluster. This last part is
+        the genuine, complete path from source to a running website, verified against an
+        actual <code>kind</code> cluster created for this page:
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">the real end-to-end sequence</span></div>
+        <div class="code-output show">$ kind create cluster --name operator-demo
 $ make docker-build IMG=website-operator:demo
 $ kind load docker-image website-operator:demo --name operator-demo
 $ make install                          # applies the CRD
 $ make deploy IMG=website-operator:demo  # RBAC + the controller itself
 $ kubectl apply -f config/samples/web_v1_website.yaml</div>
-    </div>
-    <p>Roughly ten seconds later, both the custom printer columns and the real workload agree:</p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">$ kubectl get website website-sample && kubectl get pods -l website=website-sample</span></div>
-      <div class="code-output show">NAME             MESSAGE                                           REPLICAS   READY   AGE
+      </div>
+      
+      <p>Roughly ten seconds later, both the custom printer columns and the real workload agree:</p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ kubectl get website website-sample && kubectl get pods -l website=website-sample</span></div>
+        <div class="code-output show">NAME             MESSAGE                                           REPLICAS   READY   AGE
 website-sample   Hello from a real, running Kubernetes operator!   2          2       18s
 
 NAME                              READY   STATUS    RESTARTS   AGE
 website-sample-57749d96b4-5k5v8   1/1     Running   0          18s
 website-sample-57749d96b4-6qpb5   1/1     Running   0          18s</div>
-    </div>
-    <p>
-      And the payoff &mdash; actually exec into one of those real Pods and ask it for its
-      homepage, proving the ConfigMap the operator wrote is genuinely what nginx is serving:
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">$ kubectl exec website-sample-57749d96b4-5k5v8 -- wget -qO- http://localhost:80/</span></div>
-      <div class="code-output show">&lt;h1&gt;Hello from a real, running Kubernetes operator!&lt;/h1&gt;</div>
-    </div>
-
-    <p>
-      Last step: delete the Website and confirm the owner-reference cleanup and finalizer
-      behavior from earlier on this page actually happen, on the same cluster, with the
-      same Website still running from above:
-    </p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">$ kubectl delete website website-sample</span></div>
-      <div class="code-output show">website.web.example.com "website-sample" deleted from default namespace</div>
-    </div>
-    <p>A few seconds later, the finalizer's cleanup log line appears, then everything owned is gone:</p>
-    <div class="code-panel">
-      <div class="code-panel-head"><span class="code-panel-title">$ kubectl get website website-sample; kubectl get deployment,configmap,pods -l website=website-sample</span></div>
-      <div class="code-output show is-error">Error from server (NotFound): websites.web.example.com "website-sample" not found
+      </div>
+      
+      <p>
+        And the payoff &mdash; actually exec into one of those real Pods and ask it for its
+        homepage, proving the ConfigMap the operator wrote is genuinely what nginx is serving:
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ kubectl exec website-sample-57749d96b4-5k5v8 -- wget -qO- http://localhost:80/</span></div>
+        <div class="code-output show">&lt;h1&gt;Hello from a real, running Kubernetes operator!&lt;/h1&gt;</div>
+      </div>
+      
+      <p>
+        Last step: delete the Website and confirm the owner-reference cleanup and finalizer
+        behavior from earlier on this page actually happen, on the same cluster, with the
+        same Website still running from above:
+      </p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ kubectl delete website website-sample</span></div>
+        <div class="code-output show">website.web.example.com "website-sample" deleted from default namespace</div>
+      </div>
+      
+      <p>A few seconds later, the finalizer's cleanup log line appears, then everything owned is gone:</p>
+      
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ kubectl get website website-sample; kubectl get deployment,configmap,pods -l website=website-sample</span></div>
+        <div class="code-output show is-error">Error from server (NotFound): websites.web.example.com "website-sample" not found
 Error from server (NotFound): deployments.apps "website-sample" not found
 Error from server (NotFound): configmaps "website-sample" not found
 No resources found in default namespace.</div>
-    </div>
-    <p>
-      The Website, its ConfigMap, its Deployment, and both Pods are all gone &mdash; and
-      this operator's code never once called delete on the ConfigMap or the Deployment.
-    </p>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">What this page did not need to fake</div>
+      </div>
+      
       <p>
-        Every command output on this page is a real, unedited capture (aside from
-        trimming timestamps and the standard Kubernetes Condition schema block for
-        length). The reconciler compiles against the real controller-runtime v0.24.1 API,
-        passes a real test suite against a real embedded API server, and manages a real
-        Deployment, ConfigMap, and Pods on a real cluster &mdash; including genuinely
-        cascade-deleting them on parent deletion. Where a limitation exists (envtest's
-        lack of a kubelet or garbage collector), it's called out rather than papered over.
+        The Website, its ConfigMap, its Deployment, and both Pods are all gone &mdash; and
+        this operator's code never once called delete on the ConfigMap or the Deployment.
       </p>
+      
+      <div class="callout callout-tip">
+        <div class="callout-title">What this page did not need to fake</div>
+        <p>
+          Every command output on this page is a real, unedited capture (aside from
+          trimming timestamps and the standard Kubernetes Condition schema block for
+          length). The reconciler compiles against the real controller-runtime v0.24.1 API,
+          passes a real test suite against a real embedded API server, and manages a real
+          Deployment, ConfigMap, and Pods on a real cluster &mdash; including genuinely
+          cascade-deleting them on parent deletion. Where a limitation exists (envtest's
+          lack of a kubelet or garbage collector), it's called out rather than papered over.
+        </p>
+      </div>
+      
+      <p style="margin-top:3rem;">
+        <a class="btn" href="index.html">&larr; Back to the roadmap</a>
+      </p>
+      
     </div>
-
-    <p style="margin-top:3rem;">
-      <a class="btn" href="index.html">&larr; Back to the roadmap</a>
-    </p>
-  </div>
-</main>
-
-<footer class="site-footer">
-  Every code example on this page was run against real tooling before publishing &mdash;
-  see the callout at the top of the page for exactly what that means here.
-</footer>
-
-<script src="assets/js/theme.js"></script>
-<script src="assets/js/operators.js"></script>
+  </main>
+  
+  <footer class="site-footer">
+    Every code example on this page was run against real tooling before publishing &mdash;
+    see the callout at the top of the page for exactly what that means here.
+  </footer>
+  
+  <script src="assets/js/theme.js"></script>
+  <script src="assets/js/operators.js"></script>
 </body>
 </html>
