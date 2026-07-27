@@ -77,9 +77,80 @@
     <div class="callout callout-tip">
       <div class="callout-title">Running it yourself</div>
       <p>
-        With Go installed, save this as <code>hello.go</code> and run <code>go run hello.go</code>.
-        No Go installed yet? Every "Open in Go Playground" link on this site runs the real
-        Go compiler in your browser, no install required.
+        With Go installed, save this as <code>hello.go</code> inside any directory and run
+        <code>go run hello.go</code>. The first time you run a Go file outside an existing
+        module, you'll see a compile error ("could not determine module path"). Fix this by
+        creating a module first:
+      </p>
+      <div class="code-panel" style="margin-top:0.7rem;">
+        <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
+        <div class="code-output show" style="display:block;">$ go mod init hello
+go: creating new go.mod: module hello
+$ go run hello.go
+Hello, Go!</div>
+      </div>
+      <p style="margin-top:0.7rem;">
+        <code>go mod init hello</code> creates a <code>go.mod</code> file that marks this
+        directory as a Go module &mdash; a self-contained unit of code. Every Go project
+        starts with <code>go mod init</code>, even if you only have one file. No Go installed
+        yet? Every "Open in Go Playground" link on this site runs the real Go compiler in
+        your browser, no install required.
+      </p>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">Importing multiple packages</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"strings"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(strings.ToUpper(<span class="tok-str">"hello"</span>))
+	fmt.Println(time.Now().Weekday())
+}</code></pre>
+      <div class="code-output show">HELLO
+Monday</div>
+    </div>
+
+    <p>
+      The parenthesized <code>import</code> syntax is the standard way to import several
+      packages at once. By convention, standard-library packages are grouped together, then
+      a blank line separates them from third-party imports &mdash; <code>go fmt</code> (Go's
+      built-in code formatter) sorts and groups them automatically. The compiler rejects unused
+      imports, so you'll never end up with dead imports cluttering your code.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Exported vs unexported names</div>
+      <p>
+        In the code above, <code>strings.ToUpper</code> starts with a capital T &mdash;
+        and that's what makes it usable from outside the <code>strings</code> package. In Go,
+        a name is <strong>exported</strong> (public) if it starts with a capital letter and
+        <strong>unexported</strong> (private) if it starts with a lowercase letter. This is
+        the <em>only</em> visibility mechanism Go has &mdash; there are no
+        <code>public</code> or <code>private</code> keywords.
+      </p>
+      <div class="code-panel" style="margin-top:0.7rem;">
+        <div class="code-panel-head"><span class="code-panel-title">main.go &mdash; compile error</span></div>
+        <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	fmt.println(<span class="tok-str">"hello"</span>) <span class="tok-com">// lowercase p -> not exported!</span>
+}</code></pre>
+        <div class="code-output show is-error"># command-line-arguments
+./main.go:6:4: cannot refer to unexported name fmt.println</div>
+      </div>
+      <p style="margin-top:0.7rem;">
+        The compiler catches this at compile time &mdash; it's not a runtime error. Every
+        package's public API is defined purely by capitalization, which makes it visible
+        without needing to look up documentation: if it starts with a capital letter, it's
+        meant to be used from outside the package.
       </p>
     </div>
 
@@ -114,6 +185,16 @@
             <div class="type-box-name">bool</div>
             <div class="type-box-value">true</div>
             <div class="type-box-label">true / false</div>
+          </div>
+          <div class="type-box" data-example="65" data-zero="0" style="min-width:110px;">
+            <div class="type-box-name">byte (uint8)</div>
+            <div class="type-box-value">65</div>
+            <div class="type-box-label">ASCII / binary data</div>
+          </div>
+          <div class="type-box" data-example="&#39;A&#39;" data-zero="0" style="min-width:110px;">
+            <div class="type-box-name">rune (int32)</div>
+            <div class="type-box-value">'A'</div>
+            <div class="type-box-label">Unicode code point</div>
           </div>
         </div>
       </div>
@@ -166,6 +247,165 @@ int float64 string bool
         <strong>zero value</strong> it's automatically set to: <code>0</code> for numbers,
         <code>""</code> for strings, <code>false</code> for booleans. There's no
         equivalent of reading an uninitialized variable and getting garbage.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Constants</h3>
+    <p>
+      A <code>const</code> declares a value that cannot change during program execution &mdash;
+      the compiler enforces this. Unlike <code>var</code>, a <code>const</code> must be given
+      a value on the same line; its type is inferred from the expression. Constants in Go are
+      <strong>untyped</strong> until they're used in a typed context, which lets them work
+      across different numeric types without conversion.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/7YxnE3fVoGf" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">const</span> Greeting = <span class="tok-str">"Hello"</span>
+
+<span class="tok-kw">const</span> (
+	StatusOK  = 200
+	Status404 = 404
+)
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(Greeting, StatusOK)
+	<span class="tok-com">// Greeting = "Hi" // compile error: cannot assign to Greeting</span>
+}</code></pre>
+      <div class="code-output show">Hello 200</div>
+    </div>
+
+    <p>
+      Grouped <code>const ( ... )</code> blocks are the standard way to define related
+      constants. Because constants are untyped until used, <code>StatusOK</code> can be
+      assigned to any integer type without an explicit conversion &mdash; something that's
+      not true of a regular <code>var</code>.
+    </p>
+
+    <h3 style="margin-top:2em;">Type conversion</h3>
+    <p>
+      Go does <strong>not</strong> automatically convert between types, even if the
+      conversion is safe. If you have a <code>float64</code> and need an <code>int</code>,
+      you must write the conversion explicitly. This is intentional &mdash; implicit
+      conversions have been a source of bugs in C, Java, and JavaScript for decades.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/Stg8MTngQMC" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"math"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	x := 3.14                       <span class="tok-com">// float64 by default</span>
+	y := <span class="tok-type">int</span>(x)                      <span class="tok-com">// explicit float64 -> int (truncates)</span>
+	z := <span class="tok-type">int</span>(math.Round(x))          <span class="tok-com">// properly rounded</span>
+	n := <span class="tok-type">float64</span>(42)                 <span class="tok-com">// int -> float64</span>
+	s := <span class="tok-type">string</span>(<span class="tok-type">rune</span>(65))              <span class="tok-com">// rune -> string</span>
+	fmt.Println(x, y, z, n, s)
+}</code></pre>
+      <div class="code-output show">3.14 3 3 42 A</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Conversion is not casting</div>
+      <p>
+        In languages like C or Java, a "cast" can reinterpret the same bits as a different
+        type. Go's <code>T(x)</code> syntax always performs a <strong>real conversion</strong>,
+        either changing the bits or failing at compile time. There's no way to re-interpret
+        arbitrary memory as a different type &mdash; <code>unsafe.Pointer</code> exists but
+        is deliberately hard to use and almost never needed.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Multiple assignment</h3>
+    <p>
+      Go allows assigning to several variables at once, which pairs naturally with its
+      multiple-return-value functions (shown in the Functions section further down). It's
+      also a convenient way to swap values without a temporary variable.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/Wr9UttYUsX1" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	a, b, c := 1, <span class="tok-str">"hello"</span>, true
+	fmt.Println(a, b, c)
+
+	<span class="tok-com">// Swap without a temporary variable</span>
+	x, y := 10, 20
+	x, y = y, x
+	fmt.Println(<span class="tok-str">"after swap:"</span>, x, y)
+
+	<span class="tok-com">// Only use what you need</span>
+	_, second := 1, 2
+	fmt.Println(<span class="tok-str">"second:"</span>, second)
+}</code></pre>
+      <div class="code-output show">1 hello true
+after swap: 20 10
+second: 2</div>
+    </div>
+
+    <p>
+      The <strong>blank identifier</strong> <code>_</code> discards a value you don't need
+      &mdash; here we skip the first return value. This is used constantly in Go for ignoring
+      unused function results.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Common mistake: shadowing with :=</div>
+      <p>
+        The short declaration <code>:=</code> creates a <strong>new</strong> variable. If you
+        use it inside an inner scope (inside an <code>if</code> block, for example) with a
+        name that already exists in an outer scope, you get a second, separate variable that
+        <em>shadows</em> the outer one &mdash; the outer variable is never modified, even
+        though it looks like you're reassigning it.
+      </p>
+
+      <div class="viz" data-viz="scope-shadow">
+        <div class="viz-stage">
+          <div class="scope-row">
+            <div class="scope-block">
+              <div class="scope-block-title">outer scope</div>
+              <div class="scope-var-row" data-role="outer-x">x = 10</div>
+              <div class="scope-inner">
+                <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim);">inner scope</span>
+                <div class="scope-var-row" data-role="inner-x">x = 20</div>
+              </div>
+              <div class="scope-caption" data-role="outer-note">x = 10 (unchanged)</div>
+            </div>
+          </div>
+        </div>
+        <div class="viz-controls">
+          <button class="btn btn-primary" data-role="toggle">Show shadowing bug</button>
+        </div>
+        <div class="viz-caption" data-role="caption"></div>
+      </div>
+
+      <p>
+        The fix is straightforward: use <code>=</code> (not <code>:=</code>) when you intend
+        to reassign an existing variable. <code>:=</code> always declares something new;
+        <code>=</code> always assigns to something that already exists. Go even provides
+        <code>go vet</code> with a <code>-shadow</code> flag to detect accidental shadowing.
       </p>
     </div>
 
@@ -266,6 +506,203 @@ n is 2</div>
       </p>
     </div>
 
+    <h3 style="margin-top:2em;">For-range: iterating over collections</h3>
+    <p>
+      The <code>for range</code> form iterates over elements of a slice, map, string, or
+      channel. What it yields as the two iteration values changes depending on the type
+      you're ranging over &mdash; a common point of confusion for newcomers.
+    </p>
+
+    <div class="viz" data-viz="range-decomp">
+      <div class="viz-stage">
+        <div class="range-row">
+          <div class="range-code" data-role="mode">for i, v := range []int{10, 20}</div>
+          <div class="range-decomp-row">
+            <div class="range-decomp-item" data-role="item" style="display:none;">
+              <span data-part="key">0</span>
+              <span style="font-size:0.65rem; color:var(--text-dim); display:block;">index</span>
+            </div>
+            <div class="range-decomp-item" data-role="item" style="display:none;">
+              <span data-part="val">10</span>
+              <span style="font-size:0.65rem; color:var(--text-dim); display:block;">element</span>
+            </div>
+            <div class="range-decomp-item" data-role="item" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-primary" data-role="toggle">Show: map</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Type: <strong>slice</strong>. Each <code>range</code> yields two values &mdash; check what changes per type.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/n6VQAB5upNt" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	slice := []<span class="tok-type">string</span>{<span class="tok-str">"a"</span>, <span class="tok-str">"b"</span>, <span class="tok-str">"c"</span>}
+	<span class="tok-kw">for</span> i, v := <span class="tok-kw">range</span> slice {
+		fmt.Println(i, v)
+	}
+
+	letters := map[<span class="tok-type">string</span>]<span class="tok-type">int</span>{<span class="tok-str">"x"</span>: 1, <span class="tok-str">"y"</span>: 2}
+	<span class="tok-kw">for</span> k, v := <span class="tok-kw">range</span> letters {
+		fmt.Println(k, v) <span class="tok-com">// order is NOT guaranteed!</span>
+	}
+
+	text := <span class="tok-str">"Hi"</span>
+	<span class="tok-kw">for</span> pos, runeVal := <span class="tok-kw">range</span> text {
+		fmt.Printf(<span class="tok-str">"byte %d: %c\n"</span>, pos, runeVal)
+	}
+}</code></pre>
+      <div class="code-output show">0 a
+1 b
+2 c
+x 1
+y 2
+byte 0: H
+byte 1: i</div>
+    </div>
+
+    <p>
+      Notice the pattern changes per type: slices and arrays give you <strong>index, element</strong>,
+      maps give you <strong>key, value</strong>, and strings give you <strong>byte offset, rune</strong>
+      (Unicode code point). If you only need the element or key and can skip the index, use
+      <code>for _, v := range ...</code> with the blank identifier.
+    </p>
+
+    <h3 style="margin-top:2em;">If with initialization</h3>
+    <p>
+      Go allows a short statement before the condition in an <code>if</code>. This is most
+      commonly used for the "check, then handle" pattern that is everywhere in Go code:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/HH9WjCSG0f9" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"strconv"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	input := <span class="tok-str">"42"</span>
+	<span class="tok-kw">if</span> n, err := strconv.Atoi(input); err != <span class="tok-kw">nil</span> {
+		fmt.Println(<span class="tok-str">"not a number:"</span>, err)
+	} <span class="tok-kw">else</span> {
+		fmt.Println(<span class="tok-str">"parsed:"</span>, n)
+	}
+}</code></pre>
+      <div class="code-output show">parsed: 42</div>
+    </div>
+
+    <p>
+      <code>n</code> and <code>err</code> are scoped to the <code>if/else</code> block &mdash;
+      they don't leak into the surrounding function. This is the most idiomatic Go error-handling
+      pattern, and you'll see it in virtually every function that can fail.
+    </p>
+
+    <h3 style="margin-top:2em;">Tagless switch</h3>
+    <p>
+      A <code>switch</code> with no value after the keyword evaluates each case's boolean
+      expression and picks the first true one. This is Go's idiomatic replacement for long
+      <code>if/else if</code> chains:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/ytIadO9RGaw" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> classify(x <span class="tok-type">int</span>) <span class="tok-type">string</span> {
+	<span class="tok-kw">switch</span> {
+	<span class="tok-kw">case</span> x &lt; 0:
+		<span class="tok-kw">return</span> <span class="tok-str">"negative"</span>
+	<span class="tok-kw">case</span> x == 0:
+		<span class="tok-kw">return</span> <span class="tok-str">"zero"</span>
+	<span class="tok-kw">case</span> x &lt; 10:
+		<span class="tok-kw">return</span> <span class="tok-str">"small"</span>
+	<span class="tok-kw">default</span>:
+		<span class="tok-kw">return</span> <span class="tok-str">"large"</span>
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	for _, v := <span class="tok-kw">range</span> []<span class="tok-type">int</span>{-5, 0, 3, 42} {
+		fmt.Println(v, classify(v))
+	}
+}</code></pre>
+      <div class="code-output show">-5 negative
+0 zero
+3 small
+42 large</div>
+    </div>
+
+    <p>
+      Each case is checked top-to-bottom, and the first match wins &mdash; no <code>break</code>
+      needed. The <code>default</code> case matches if nothing else does, like a final <code>else</code>.
+    </p>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Labeled break for nested loops</div>
+      <p>
+        A plain <code>break</code> inside a nested loop only exits the innermost loop. To
+        break out of an outer loop, label it:
+      </p>
+      <div class="code-panel" style="margin-top:0.7rem;">
+        <div class="code-panel-head"><span class="code-panel-title">main.go</span></div>
+        <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+outer:
+	<span class="tok-kw">for</span> i := 0; i &lt; 3; i++ {
+		<span class="tok-kw">for</span> j := 0; j &lt; 3; j++ {
+			<span class="tok-kw">if</span> i == 1 &amp;&amp; j == 1 {
+				<span class="tok-kw">break</span> outer <span class="tok-com">// exits BOTH loops</span>
+			}
+			fmt.Println(i, j)
+		}
+	}
+	fmt.Println(<span class="tok-str">"done"</span>)
+}</code></pre>
+        <div class="code-output show">0 0
+0 1
+0 2
+1 0
+done</div>
+      </div>
+      <p style="margin-top:0.7rem;">
+        Without the <code>outer</code> label, <code>break</code> would only exit the inner
+        <code>j</code> loop and continue the <code>i</code> loop. Labels work with
+        <code>continue</code> too for skipping to the next iteration of a named loop.
+      </p>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Break and continue in a for loop</div>
+      <p>
+        <code>break</code> exits the loop immediately; <code>continue</code> skips the rest
+        of the current iteration and moves to the next one. Try them in the loop visual above
+        and watch how the remaining iterations change.
+      </p>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="functions">Functions</h2>
     <p>
@@ -337,6 +774,219 @@ n is 2</div>
       signature itself means a bare <code>return</code> with no arguments sends back
       whatever they currently hold.
     </p>
+
+    <h3 style="margin-top:2em;">The (result, error) pattern</h3>
+    <p>
+      In Go, errors are returned values &mdash; not exceptions. The convention is to return an
+      extra <code>error</code> as the last return value, and have the caller check it
+      immediately. This is the single most common pattern in all of Go code:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/3u2aM2V8WcR" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"strconv"</span>
+)
+
+<span class="tok-kw">func</span> parseAndAdd(a, b <span class="tok-type">string</span>) (<span class="tok-type">int</span>, <span class="tok-type">error</span>) {
+	x, err := strconv.Atoi(a)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		<span class="tok-kw">return</span> 0, fmt.Errorf(<span class="tok-str">"parse a: %w"</span>, err)
+	}
+	y, err := strconv.Atoi(b)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		<span class="tok-kw">return</span> 0, fmt.Errorf(<span class="tok-str">"parse b: %w"</span>, err)
+	}
+	<span class="tok-kw">return</span> x + y, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	sum, err := parseAndAdd(<span class="tok-str">"10"</span>, <span class="tok-str">"32"</span>)
+	fmt.Println(sum, err)
+	sum, err = parseAndAdd(<span class="tok-str">"10"</span>, <span class="tok-str">"abc"</span>)
+	fmt.Println(sum, err)
+}</code></pre>
+      <div class="code-output show">42 <nil>
+0 parse b: strconv.Atoi: parsing "abc": invalid syntax</div>
+    </div>
+
+    <p>
+      The idiomatic Go pattern is <code>result, err := doSomething()</code>, then
+      <code>if err != nil { return ... }</code> on the next line. When there's no error,
+      you return the zero value for the other results (here, <code>0</code>), but you could
+      also return partial results with a wrapped error. Core.html has more on error wrapping
+      and <code>errors.Is</code>.
+    </p>
+
+    <h3 style="margin-top:2em;">Functions as values</h3>
+    <p>
+      In Go, functions are first-class values &mdash; you can store them in variables, pass
+      them as arguments, and return them from other functions. This is the foundation of
+      Go's approach to callbacks, middleware, and event handling:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/Gq0L2e9Yx3G" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> apply(f <span class="tok-kw">func</span>(<span class="tok-type">int</span>) <span class="tok-type">int</span>, n <span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	<span class="tok-kw">return</span> f(n)
+}
+
+<span class="tok-kw">func</span> main() {
+	double := <span class="tok-kw">func</span>(x <span class="tok-type">int</span>) <span class="tok-type">int</span> { <span class="tok-kw">return</span> x * 2 }
+	square := <span class="tok-kw">func</span>(x <span class="tok-type">int</span>) <span class="tok-type">int</span> { <span class="tok-kw">return</span> x * x }
+
+	fmt.Println(apply(double, 5))
+	fmt.Println(apply(square, 5))
+}</code></pre>
+      <div class="code-output show">10
+25</div>
+    </div>
+
+    <p>
+      A <code>func(x int) int</code> is a <strong>function literal</strong> &mdash; an
+      anonymous function value that you can assign to a variable. This is used constantly
+      in HTTP handlers, goroutines, and as callbacks to library functions like
+      <code>sort.Slice</code>.
+    </p>
+
+    <h3 style="margin-top:2em;">Closures: functions that capture their environment</h3>
+    <p>
+      When a function literal references a variable defined outside its body, the function
+      doesn't get a <em>copy</em> &mdash; it holds a <strong>reference</strong> to the
+      original variable. This means the function can still read and modify that variable even
+      after the surrounding function has returned. This is called a <strong>closure</strong>.
+    </p>
+
+    <div class="viz" data-viz="closure-cap">
+      <div class="viz-stage">
+        <div class="closure-row">
+          <div class="closure-env">
+            <div class="closure-env-title">outer function (returned)</div>
+            <div class="closure-var" data-role="env-var">multiplier = 3</div>
+          </div>
+          <div class="closure-arrow">&rarr;</div>
+          <div class="closure-env">
+            <div class="closure-env-title">closure</div>
+            <div class="closure-var" data-role="closure-var">func(x int) int { ... }</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="call">Call makeTripler()</button></div>
+      <div class="viz-caption" data-role="caption">Click to see what the closure captures.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/eG1tM09dX5r" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> makeTripler() <span class="tok-kw">func</span>(<span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	multiplier := 3
+	<span class="tok-kw">return</span> <span class="tok-kw">func</span>(x <span class="tok-type">int</span>) <span class="tok-type">int</span> {
+		<span class="tok-kw">return</span> multiplier * x
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	triple := makeTripler()
+	fmt.Println(triple(7))
+	fmt.Println(triple(3))
+}</code></pre>
+      <div class="code-output show">21
+9</div>
+    </div>
+
+    <p>
+      <code>makeTripler()</code> runs, creates <code>multiplier</code> with value 3, then
+      returns a function that closes over it. The returned function "remembers"
+      <code>multiplier</code> is 3 long after <code>makeTripler()</code> has returned and
+      the variable would normally be out of scope. This is the foundation of Go's
+      middleware pattern and goroutine-friendly callbacks.
+    </p>
+
+    <h3 style="margin-top:2em;"><code>defer</code>: guaranteed cleanup</h3>
+    <p>
+      A <code>defer</code> statement schedules a function call to run <em>after</em> the
+      current function returns. Multiple <code>defer</code> calls run in
+      <strong>reverse order</strong> (last-in, first-out) &mdash; like a stack. This is the
+      standard way to ensure resources (files, locks, network connections) are always cleaned
+      up, even if the function panics.
+    </p>
+
+    <div class="viz" data-viz="defer-stack">
+      <div class="viz-stage">
+        <div class="defer-stage">
+          <div style="font-size:0.78rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em;">defer stack</div>
+          <div class="defer-stack">
+            <div class="defer-frame" style="border-left:3px solid var(--danger);">close(file) ← push 1</div>
+            <div class="defer-frame" style="border-left:3px solid var(--warn);">release(lock) ← push 2</div>
+            <div class="defer-frame" style="border-left:3px solid var(--accent);">disconnect(ctx) ← push 3</div>
+          </div>
+          <div class="defer-label" data-role="label">pushing (0/3 pushed)</div>
+        </div>
+      </div>
+      <div class="viz-controls"><button class="btn btn-primary" data-role="step">Step</button></div>
+      <div class="viz-caption" data-role="caption">Click "Step" to push the first <code>defer</code> onto the stack.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/7Lx7b7F2o9d" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">defer</span> fmt.Println(<span class="tok-str">"cleanup file"</span>)
+	<span class="tok-kw">defer</span> fmt.Println(<span class="tok-str">"release lock"</span>)
+	<span class="tok-kw">defer</span> fmt.Println(<span class="tok-str">"close connection"</span>)
+
+	fmt.Println(<span class="tok-str">"main work"</span>)
+}</code></pre>
+      <div class="code-output show">main work
+close connection
+release lock
+cleanup file</div>
+    </div>
+
+    <p>
+      Notice the output order: <code>"main work"</code> prints first, then the defers run in
+      reverse order &mdash; <code>"close connection"</code> (the last defer pushed) runs first,
+      then <code>"release lock"</code>, then <code>"cleanup file"</code>. The practical rule:
+      <strong>defer cleanup in the order you'd naturally clean up</strong> (outermost last),
+      because LIFO will execute it in reverse &mdash; first-in, last-out &mdash; which is
+      typically the correct cleanup order for nested resources.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Deferred function arguments are evaluated immediately</div>
+      <p>
+        The function call is deferred, but its arguments are evaluated right away. In the
+        code above, <code>fmt.Println("close connection")</code> captures the string
+        <em>now</em> &mdash; the defer only affects when the function <em>runs</em>, not when
+        its inputs are evaluated. This matters when you defer a loop body: the arguments
+        are evaluated once per iteration, which is almost always the correct behavior.
+      </p>
+    </div>
 
     <p style="margin-top:3rem;">
       <a class="btn" href="core.html">Continue to Core &rarr;</a>

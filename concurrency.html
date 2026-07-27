@@ -131,6 +131,59 @@ all workers done</div>
       </p>
     </div>
 
+    <h3 style="margin-top:2em;">Goroutine leaks: forgotten work that never finishes</h3>
+    <p>
+      A goroutine that blocks forever is a <strong>leak</strong> &mdash; it never exits,
+      never gets garbage collected, and holds onto whatever memory and channels it
+      references. The most common cause: sending to a channel that nobody will ever
+      receive from, or receiving from a channel that nobody will ever send to. You can
+      detect leaks with <code>runtime.NumGoroutine()</code>:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/pbXnQ4BW7du" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"runtime"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> leak() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		ch &lt;- 1 <span class="tok-com">// blocks forever: no receiver</span>
+	}()
+}
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(<span class="tok-str">"goroutines before:"</span>, runtime.NumGoroutine())
+	leak()
+	time.Sleep(50 * time.Millisecond)
+	fmt.Println(<span class="tok-str">"goroutines after:"</span>, runtime.NumGoroutine())
+}</code></pre>
+      <div class="code-output show">goroutines before: 1
+goroutines after: 2</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">GOMAXPROCS: goroutines and OS threads</div>
+      <p>
+        By default, <code>GOMAXPROCS</code> equals the number of CPU cores available,
+        which means Go can run that many goroutines <em>truly simultaneously</em> on
+        separate OS threads. You rarely need to change this &mdash; the Go scheduler
+        handles multiplexing goroutines onto threads automatically. But knowing it exists
+        helps when reasoning about performance: on a 4-core machine, up to 4 goroutines
+        execute at the exact same instant, while the rest wait their turn. Setting
+        <code>runtime.GOMAXPROCS(1)</code> forces all goroutines onto a single thread,
+        which is sometimes useful for deterministic testing but not for production.
+      </p>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="unbuffered">Channels: a synchronous handoff</h2>
     <p>
@@ -212,6 +265,62 @@ sender: sent, handoff complete</div>
       happen and both sides continue. This is why unbuffered channels are often used not just
       to move data, but to <em>synchronize</em> two goroutines at a specific point.
     </p>
+
+    <h3 style="margin-top:2em;">Channel directions: restricting send and receive</h3>
+    <p>
+      When you pass a channel to a function, you can restrict what that function is
+      allowed to do with it. A <strong>send-only</strong> channel (<code>chan&lt;- T</code>)
+      can only be sent to; a <strong>receive-only</strong> channel (<code>&lt;-chan T</code>)
+      can only be received from. This is a compile-time guarantee &mdash; the compiler
+      catches accidental misuse:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/uJCj17ELW72" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// sendOnly can only send to the channel</span>
+<span class="tok-kw">func</span> producer(out <span class="tok-kw">chan</span>&lt;- <span class="tok-type">int</span>) {
+	<span class="tok-kw">for</span> i := 0; i &lt; 3; i++ {
+		out &lt;- i * 10
+	}
+	close(out)
+}
+
+<span class="tok-com">// receiveOnly can only receive from the channel</span>
+<span class="tok-kw">func</span> consumer(in &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) {
+	<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> in {
+		fmt.Println(<span class="tok-str">"received:"</span>, v)
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3)
+	<span class="tok-kw">go</span> producer(ch)
+	consumer(ch)
+}</code></pre>
+      <div class="code-output show">received: 0
+received: 10
+received: 20</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Direction restrictions encode intent</div>
+      <p>
+        A function that accepts <code>&lt;-chan int</code> tells callers "I only read from
+        this channel" &mdash; it can't accidentally close it or send to it. Similarly,
+        <code>chan&lt;- int</code> says "I only write here." This is the same principle as
+        unexported fields restricting access: use the type system to prevent bugs at
+        compile time rather than at runtime. The <code>range</code> loop in
+        <code>consumer</code> also automatically exits when the channel is closed, which
+        is why the producer calls <code>close(out)</code>.
+      </p>
+    </div>
 
     <!-- ============================================================ -->
     <h2 id="buffered">Buffered channels: a queue with capacity</h2>
@@ -405,6 +514,52 @@ exit status 2</div>
       </p>
     </div>
 
+    <h3 style="margin-top:2em;"><code>for range</code> over a channel: clean iteration</h3>
+    <p>
+      The <code>for range</code> loop you know from slices and maps also works on
+      channels &mdash; it receives each value until the channel is closed <em>and</em>
+      drained, then exits the loop automatically. This is the idiomatic way to consume
+      all values from a producer:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/gOFsx6LNrVw" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">string</span>, 3)
+	ch &lt;- <span class="tok-str">"alpha"</span>
+	ch &lt;- <span class="tok-str">"beta"</span>
+	ch &lt;- <span class="tok-str">"gamma"</span>
+	close(ch)
+
+	<span class="tok-kw">for</span> msg := <span class="tok-kw">range</span> ch {
+		fmt.Println(msg)
+	}
+	fmt.Println(<span class="tok-str">"channel closed and drained"</span>)
+}</code></pre>
+      <div class="code-output show">alpha
+beta
+gamma
+channel closed and drained</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title"><code>range</code> needs a closed channel</div>
+      <p>
+        If you forget to call <code>close(ch)</code>, the <code>for range</code> loop will
+        block forever after draining the buffer &mdash; it doesn't know no more values are
+        coming. The sender must close the channel to signal completion. This is different
+        from the two-value receive form (<code>v, ok := &lt;-ch</code>), which lets the
+        <em>receiver</em> detect a closed channel without the sender needing to cooperate.
+      </p>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="select">Select: waiting on multiple channels</h2>
     <p>
@@ -518,6 +673,108 @@ got from ch2: 2</div>
         simulation. Count them: 5 and 5. <code>select</code> does not favor the first case
         written, or either channel &mdash; which is exactly what the multiplexer visual above
         demonstrates every time you click it.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;"><code>default</code>: non-blocking channel operations</h3>
+    <p>
+      A <code>select</code> with a <code>default</code> case never blocks &mdash; if none
+      of the channel cases are ready, the <code>default</code> runs immediately. This is
+      useful for "try without waiting" patterns like polling or background checks:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/RWxNYnd3NGv" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	ch := make(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+
+	<span class="tok-kw">select</span> {
+	<span class="tok-kw">case</span> ch &lt;- 1:
+		fmt.Println(<span class="tok-str">"sent"</span>)
+	<span class="tok-kw">default</span>:
+		fmt.Println(<span class="tok-str">"channel not ready, skipping send"</span>)
+	}
+
+	fmt.Println(<span class="tok-str">"continues immediately without blocking"</span>)
+}</code></pre>
+      <div class="code-output show">channel not ready, skipping send
+continues immediately without blocking</div>
+    </div>
+
+    <p>
+      The send to <code>ch</code> would block forever (no receiver), but the
+      <code>default</code> case catches it and the program continues. This pattern is
+      common in background goroutines that check for work without blocking on it.
+    </p>
+
+    <h3 style="margin-top:2em;">The done channel pattern: broadcasting shutdown</h3>
+    <p>
+      A common need is to tell multiple goroutines to stop at once. Closing a channel
+      broadcasts to <em>every goroutine</em> waiting on it &mdash; all of them receive the
+      zero value simultaneously. A <code>chan struct{}</code> (zero-size, no data carried)
+      is the idiomatic choice for a pure signal channel:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/lmaLvzEP7iM" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> worker(id <span class="tok-type">int</span>, done &lt;-<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}, wg *sync.WaitGroup) {
+	<span class="tok-kw">defer</span> wg.Done()
+	<span class="tok-kw">for</span> {
+		<span class="tok-kw">select</span> {
+		<span class="tok-kw">case</span> &lt;-done:
+			fmt.Println(<span class="tok-str">"worker"</span>, id, <span class="tok-str">"stopped"</span>)
+			<span class="tok-kw">return</span>
+		<span class="tok-kw">default</span>:
+			<span class="tok-com">// simulate work</span>
+		}
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	done := make(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+
+	<span class="tok-kw">for</span> i := 1; i &lt;= 3; i++ {
+		wg.Add(1)
+		<span class="tok-kw">go</span> worker(i, done, &amp;wg)
+	}
+
+	<span class="tok-com">// Broadcast stop signal to all workers</span>
+	close(done)
+	wg.Wait()
+	fmt.Println(<span class="tok-str">"all workers stopped"</span>)
+}</code></pre>
+      <div class="code-output show">worker 3 stopped
+worker 1 stopped
+worker 2 stopped
+all workers stopped</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Why <code>chan struct{}</code> and not <code>chan bool</code>?</div>
+      <p>
+        A <code>struct{}</code> takes <strong>zero bytes</strong> of memory &mdash; it's the
+        smallest possible type in Go. When you only need a signal (open/closed) and not a
+        value, <code>chan struct{}</code> communicates intent clearly: "this channel carries
+        no data, only a lifecycle signal." It also avoids any ambiguity about what
+        <code>true</code> vs <code>false</code> might mean in the signal context.
       </p>
     </div>
 

@@ -124,6 +124,108 @@ after pointer receiver: 1</div>
       </p>
     </div>
 
+    <h3 style="margin-top:2em;">Struct embedding: composition over inheritance</h3>
+    <p>
+      Go does not have inheritance &mdash; it uses <strong>struct embedding</strong> instead.
+      When one struct contains another, the outer type automatically gets all of the inner
+      type's methods as its own. This is Go's composition mechanism, and it's used
+      everywhere in the standard library (e.g. <code>http.Server</code> embeds
+      <code>net.Conn</code>):
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/rFfR8uYyJ0v" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> Name <span class="tok-kw">struct</span> {
+	First <span class="tok-type">string</span>
+	Last  <span class="tok-type">string</span>
+}
+
+<span class="tok-kw">func</span> (n Name) Greet() <span class="tok-type">string</span> {
+	<span class="tok-kw">return</span> <span class="tok-str">"Hello, "</span> + n.First + <span class="tok-str">"!"</span>
+}
+
+<span class="tok-kw">type</span> Employee <span class="tok-kw">struct</span> {
+	Name            <span class="tok-com">// embedded &mdash; promotes all Name methods</span>
+	Department <span class="tok-type">string</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	e := Employee{Name: Name{First: <span class="tok-str">"Alice"</span>}, Department: <span class="tok-str">"Sales"</span>}
+	fmt.Println(e.Greet())       <span class="tok-com">// promoted from Name</span>
+	fmt.Println(e.First)         <span class="tok-com">// promoted field access</span>
+	fmt.Println(e.Department)    <span class="tok-com">// Employee's own field</span>
+}</code></pre>
+      <div class="code-output show">Hello, Alice!
+Alice
+Sales</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Embedding is not inheritance</div>
+      <p>
+        <code>Employee</code> is not a "subclass" of <code>Name</code> &mdash; it's a separate
+        type that <em>contains</em> a <code>Name</code> value. The methods are
+        <strong>promoted</strong>, not inherited. <code>e.Greet()</code> is shorthand for
+        <code>e.Name.Greet()</code>. If the outer type defines a method with the same name,
+        it shadows the inner type's method &mdash; no method is removed, just hidden.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Struct tags</h3>
+    <p>
+      Struct fields can carry metadata in backtick-quoted strings, which libraries like
+      <code>encoding/json</code>, <code>database/sql</code>, and configuration frameworks
+      read via reflection. Tags are not part of the Go language &mdash; they're a convention
+      honored by specific libraries:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/SKv8nJzI7Ox" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"encoding/json"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-kw">type</span> User <span class="tok-kw">struct</span> {
+	Name  <span class="tok-type">string</span> <span class="tok-com">`json:"name"`</span>
+	Email <span class="tok-type">string</span> <span class="tok-com">`json:"email"`</span>
+	Age   <span class="tok-type">int</span>    <span class="tok-com">`json:"age,omitempty"`</span>
+	SSN   <span class="tok-type">string</span> <span class="tok-com">`json:"-"`</span>          <span class="tok-com">// excluded from output</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	u := User{Name: <span class="tok-str">"Alice"</span>, Email: <span class="tok-str">"a@b.com"</span>}
+	b, _ := json.Marshal(u)
+	fmt.Println(<span class="tok-type">string</span>(b))
+}</code></pre>
+      <div class="code-output show">{"name":"Alice","email":"a@b.com","age":0}</div>
+    </div>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Tag syntax is easy to misread</div>
+      <p>
+        Tags use <strong>space-separated key:"value"</strong> pairs, all inside backticks.
+        <code>omitempty</code> omits the field from JSON output when it has its zero value.
+        <code>json:"-"</code> means "always skip this field." The tag values are parsed by
+        each library independently &mdash; <code>json</code> tags only affect JSON encoding,
+        <code>db</code> tags only affect database mapping, etc. If you misquote or mistype
+        the key name, the library silently ignores the tag and uses defaults &mdash; a bug
+        that's very hard to spot.
+      </p>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="slices">Slices &amp; maps</h2>
     <p>
@@ -260,6 +362,96 @@ a: [99 2 3] b: [99 2]</div>
       <p style="margin-top:0.8rem;">Initialize with <code>make(map[string]int)</code> (or a map literal) before writing.</p>
     </div>
 
+    <h3 style="margin-top:2em;"><code>copy()</code>: safe slice duplication</h3>
+    <p>
+      When you need an <em>independent</em> copy of a slice's data, use the built-in
+      <code>copy()</code>. It copies elements from one slice to another, up to the length
+      of the shorter one &mdash; no risk of overshooting:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/I7NU2s2gJ4c" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	a := []<span class="tok-type">int</span>{1, 2, 3}
+	b := make([]<span class="tok-type">int</span>, len(a))
+	n := copy(b, a)          <span class="tok-com">// copies elements from a into b</span>
+	fmt.Println(<span class="tok-str">"copied"</span>, n, <span class="tok-str">"elements"</span>)
+	b[0] = 99
+	fmt.Println(<span class="tok-str">"a:"</span>, a)      <span class="tok-com">// unchanged</span>
+	fmt.Println(<span class="tok-str">"b:"</span>, b)      <span class="tok-com">// independent copy</span>
+}</code></pre>
+      <div class="code-output show">copied 3 elements
+a: [1 2 3]
+b: [99 2 3]</div>
+    </div>
+
+    <p>
+      Unlike <code>b := a[:2]</code> in the shared-backing-array example above,
+      <code>copy(b, a)</code> creates a new array that <code>b</code> owns exclusively.
+      Mutating <code>b</code> cannot affect <code>a</code>. This is the intentional,
+      idiomatic way to get an independent slice.
+    </p>
+
+    <h3 style="margin-top:2em;">Common slice operations</h3>
+    <p>
+      Slices are Go's most versatile collection type. A handful of patterns come up in
+      almost every Go codebase:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/1XKMG1bOG5C" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	s := []<span class="tok-type">int</span>{1, 2, 3, 4, 5}
+
+	<span class="tok-com">// Filter (keep odd numbers)</span>
+	odds := s[:0]
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> s {
+		<span class="tok-kw">if</span> v%2 != 0 {
+			odds = append(odds, v)
+		}
+	}
+	fmt.Println(<span class="tok-str">"filtered (odds):"</span>, odds) <span class="tok-com">// reuses s's backing array!</span>
+
+	<span class="tok-com">// Reverse in-place</span>
+	<span class="tok-kw">for</span> i, j := 0, len(s)-1; i &lt; j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	fmt.Println(<span class="tok-str">"reversed:"</span>, s)
+
+	<span class="tok-com">// Clear (zero elements, keep capacity)</span>
+	clear := s[:0]
+	fmt.Println(<span class="tok-str">"cleared len:"</span>, len(clear), <span class="tok-str">"cap:"</span>, cap(clear))
+}</code></pre>
+      <div class="code-output show">filtered (odds): [1 3 5]
+reversed: [5 4 3 2 1]
+cleared len: 0 cap: 5</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Filtering with s[:0] reuses memory</div>
+      <p>
+        The filter trick <code>odds := s[:0]</code> creates a zero-length slice that still
+        points into <code>s</code>'s backing array. Each <code>append</code> writes into
+        that existing memory rather than allocating a new one &mdash; as long as the
+        filtered result doesn't exceed <code>s</code>'s capacity, it's an in-place filter
+        with zero extra allocations. This is a common performance pattern.
+      </p>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="interfaces">Interfaces</h2>
     <p>
@@ -385,6 +577,109 @@ a: [99 2 3] b: [99 2]</div>
       error, instead of a nil-valued variable of a concrete pointer type.
     </p>
 
+    <h3 style="margin-top:2em;">Type assertions: extracting a concrete value</h3>
+    <p>
+      Once you have an interface value, you may need to get the concrete type back out. A
+      <strong>type assertion</strong> takes an interface value and attempts to extract a
+      specific concrete type from it:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/6uJfDQ8LxeR" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">var</span> x <span class="tok-type">interface{}</span> = 42
+
+<span class="tok-kw">func</span> main() {
+	v, ok := x.(<span class="tok-type">int</span>)                 <span class="tok-com">// safe assertion: ok = false if wrong type</span>
+	fmt.Println(v, ok)
+
+	w, ok := x.(<span class="tok-type">string</span>)              <span class="tok-com">// fails: x holds int, not string</span>
+	fmt.Println(w, ok)
+
+	z := x.(<span class="tok-type">string</span>)                  <span class="tok-com">// unsafe assertion: panics on mismatch!</span>
+	_ = z
+}</code></pre>
+      <div class="code-output show is-error">42 true
+0 false
+panic: interface conversion: interface {} is int, not string</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Always use the two-value form</div>
+      <p>
+        The single-value form <code>x.(Type)</code> panics if the assertion fails. The
+        two-value form <code>v, ok := x.(Type)</code> returns <code>false</code> for
+        <code>ok</code> and a zero <code>v</code> &mdash; no panic, and you handle the
+        failure gracefully with an <code>if</code> check. This is the same pattern as the
+        two-value channel receive: always prefer the <code>ok</code> variant unless you are
+        absolutely certain about the type.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Type switches: branching on dynamic types</h3>
+    <p>
+      When you need to handle multiple possible concrete types from a single interface
+      value, use a <strong>type switch</strong> &mdash; a <code>switch</code> that matches
+      on the type rather than the value:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/sNWRJXxU7f5" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"strconv"</span>
+)
+
+<span class="tok-kw">func</span> describe(v <span class="tok-type">interface{}</span>) {
+	<span class="tok-kw">switch</span> x := v.(<span class="tok-type">type</span>) {
+	<span class="tok-kw">case</span> <span class="tok-type">int</span>:
+		fmt.Println(<span class="tok-str">"int:"</span>, x)
+	<span class="tok-kw">case</span> <span class="tok-type">string</span>:
+		fmt.Println(<span class="tok-str">"string (len"</span>, len(x), <span class="tok-str">"):"</span>, x)
+	<span class="tok-kw">case</span> <span class="tok-type">bool</span>:
+		fmt.Println(<span class="tok-str">"bool:"</span>, x)
+	<span class="tok-kw">case</span> <span class="tok-kw">nil</span>:
+		fmt.Println(<span class="tok-str">"nil!"</span>)
+	<span class="tok-kw">default</span>:
+		fmt.Println(<span class="tok-str">"unknown type"</span>)
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	describe(42)
+	describe(<span class="tok-str">"hello"</span>)
+	describe(true)
+	describe(<span class="tok-kw">nil</span>)
+	describe(complex(1, 2)) <span class="tok-com">// falls to default</span>
+}</code></pre>
+      <div class="code-output show">int: 42
+string (len 5): hello
+bool: true
+nil!
+unknown type</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">The variable in a type switch changes type per case</div>
+      <p>
+        Inside each <code>case</code> block, the variable <code>x</code> has the concrete
+        type of that branch &mdash; not <code>interface{}</code>. So in
+        <code>case int:</code>, <code>x</code> is usable as an <code>int</code> with no
+        extra assertion needed. This is handled by the compiler, not by runtime magic.
+      </p>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="errors">Error handling</h2>
     <p>
@@ -432,6 +727,202 @@ true</div>
       the chain of wrapped errors looking for a match rather than comparing the top-level
       error directly.
     </p>
+
+    <h3 style="margin-top:2em;">Custom error types: carrying structured data</h3>
+    <p>
+      The sentinel pattern (<code>errors.New</code>) works when an error needs nothing more
+      than a message. But often an error should carry context &mdash; a status code, a
+      field name, a timestamp. Any struct with an <code>Error() string</code> method
+      satisfies the <code>error</code> interface:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/9DpLwjWJSQf" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"errors"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-kw">type</span> ValidationError <span class="tok-kw">struct</span> {
+	Field   <span class="tok-type">string</span>
+	Message <span class="tok-type">string</span>
+}
+
+<span class="tok-kw">func</span> (e *ValidationError) Error() <span class="tok-type">string</span> {
+	<span class="tok-kw">return</span> fmt.Sprintf(<span class="tok-str">"validation: field %q — %s"</span>, e.Field, e.Message)
+}
+
+<span class="tok-kw">func</span> validate(name <span class="tok-type">string</span>) error {
+	<span class="tok-kw">if</span> name == <span class="tok-str">""</span> {
+		<span class="tok-kw">return</span> &amp;ValidationError{Field: <span class="tok-str">"name"</span>, Message: <span class="tok-str">"required"</span>}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	err := validate(<span class="tok-str">""</span>)
+	fmt.Println(err)
+
+	<span class="tok-com">// Extract structured data from the error</span>
+	<span class="tok-kw">var</span> ve *ValidationError
+	<span class="tok-kw">if</span> errors.As(err, &amp;ve) {
+		fmt.Println(<span class="tok-str">"bad field:"</span>, ve.Field)
+		fmt.Println(<span class="tok-str">"reason:"</span>, ve.Message)
+	}
+}</code></pre>
+      <div class="code-output show">validation: field "name" — required
+bad field: name
+reason: required</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Pointer receiver on Error()</div>
+      <p>
+        Use a <strong>pointer receiver</strong> (<code>*ValidationError</code>) on the
+        <code>Error()</code> method. If you use a value receiver, the type doesn't
+        implement <code>error</code> when stored as a pointer &mdash; which is how most
+        errors flow through Go code. This is the same value-vs-pointer distinction from
+        the structs section above, and it trips people up constantly.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;"><code>errors.As</code>: extracting typed errors from a chain</h3>
+    <p>
+      <code>errors.Is</code> checks whether an error <em>is</em> a specific value.
+      <code>errors.As</code> does something different: it walks the wrap chain and
+      extracts the <em>first</em> error that matches a given type, giving you access to its
+      fields. This is how you recover the structured data a custom error carries:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/PVvq0aJiHnM" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"errors"</span>
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"io"</span>
+)
+
+<span class="tok-kw">type</span> HTTPError <span class="tok-kw">struct</span> {
+	StatusCode <span class="tok-type">int</span>
+	Err        error
+}
+
+<span class="tok-kw">func</span> (e *HTTPError) Error() <span class="tok-type">string</span> {
+	<span class="tok-kw">return</span> fmt.Sprintf(<span class="tok-str">"http %d: %s"</span>, e.StatusCode, e.Err)
+}
+
+<span class="tok-kw">func</span> (e *HTTPError) Unwrap() error { <span class="tok-kw">return</span> e.Err }
+
+<span class="tok-kw">func</span> fetch(url <span class="tok-type">string</span>) error {
+	<span class="tok-kw">return</span> &amp;HTTPError{
+		StatusCode: 404,
+		Err:        io.EOF,
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	err := fetch(<span class="tok-str">"/missing"</span>)
+	fmt.Println(err)
+
+	<span class="tok-com">// Check for the sentinel deep in the chain</span>
+	fmt.Println(<span class="tok-str">"is EOF?"</span>, errors.Is(err, io.EOF))
+
+	<span class="tok-com">// Extract the typed error to access its fields</span>
+	<span class="tok-kw">var</span> he *HTTPError
+	<span class="tok-kw">if</span> errors.As(err, &amp;he) {
+		fmt.Println(<span class="tok-str">"status:"</span>, he.StatusCode)
+	}
+}</code></pre>
+      <div class="code-output show">http 404: EOF
+is EOF? true
+status: 404</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title"><code>errors.Is</code> vs <code>errors.As</code></div>
+      <p>
+        <code>errors.Is(err, target)</code> checks <strong>equality</strong> &mdash; it
+        walks the wrap chain looking for an error equal to <code>target</code>. Use it for
+        sentinel values like <code>io.EOF</code> or <code>sql.ErrNoRows</code>.<br><br>
+        <code>errors.As(err, &amp;target)</code> checks <strong>type</strong> &mdash; it
+        walks the chain looking for an error assignable to <code>*target</code>, then copies
+        it. Use it when you need to recover fields from a custom error type. The target
+        must be a pointer to a value of the error type you're looking for.
+      </p>
+    </div>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">The <code>Unwrap()</code> requirement</div>
+      <p>
+        Both <code>errors.Is</code> and <code>errors.As</code> only walk chains connected
+        by <code>Unwrap()</code>. The standard <code>fmt.Errorf("%w", err)</code> calls
+        create an <code>Unwrap()</code> automatically. But if you build your own error type
+        that wraps another error, you must implement <code>Unwrap() error</code> yourself
+        &mdash; otherwise the chain is invisible to <code>Is</code>/<code>As</code>. If
+        your custom error wraps multiple errors (e.g., a multi-error), implement
+        <code>Unwrap() []error</code> instead (Go 1.20+).
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;"><code>panic</code> and <code>recover</code>: Go's exception-like mechanism</h3>
+    <p>
+      Go has a built-in <code>panic</code> function that stops normal execution and
+      unwinds the stack, running any <code>defer</code>red functions along the way. If a
+      deferred function calls <code>recover()</code>, it captures the panic value and
+      normal execution resumes. But this is <strong>not</strong> Go's error-handling
+      mechanism &mdash; it's reserved for truly unrecoverable situations.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/V1Y4_5Unj_N" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> safeDiv(a, b <span class="tok-type">int</span>) (result <span class="tok-type">int</span>, err error) {
+	<span class="tok-kw">defer</span> <span class="tok-kw">func</span>() {
+		<span class="tok-kw">if</span> r := recover(); r != <span class="tok-kw">nil</span> {
+			err = fmt.Errorf(<span class="tok-str">"recovered: %v"</span>, r)
+		}
+	}()
+	<span class="tok-kw">return</span> a / b, <span class="tok-kw">nil</span> <span class="tok-com">// panics when b == 0</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	r, err := safeDiv(10, 0)
+	fmt.Println(r, err)
+}</code></pre>
+      <div class="code-output show">0 recovered: runtime error: integer divide by zero</div>
+    </div>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Don't use panic for normal error handling</div>
+      <p>
+        <code>panic</code> is for situations where a program cannot possibly continue:
+        corrupted invariants, programmer errors (index out of range with impossible
+        bounds), or initialization failures. It is <strong>not</strong> for "this API call
+        failed" or "this user input was invalid" &mdash; those are normal errors returned
+        via the <code>error</code> interface.<br><br>
+        The <code>recover</code> pattern above exists mainly at the <strong>boundaries of
+        goroutines</strong> (a panic that escapes a goroutine crashes the whole program) and
+        in HTTP servers (where each request runs in its own goroutine and a panic in one
+        request must not kill the server). Outside those contexts, prefer returning errors
+        explicitly.
+      </p>
+    </div>
 
     <p style="margin-top:3rem;">
       <a class="btn" href="advanced.html">Continue to Advanced &rarr;</a>

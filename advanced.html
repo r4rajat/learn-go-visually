@@ -98,6 +98,154 @@
       arguments as map keys).
     </p>
 
+    <h3 style="margin-top:2em;">Generic types: beyond functions</h3>
+    <p>
+      Type parameters work on <strong>types</strong> too, not just functions. This lets you
+      write data structures once and use them with any element type &mdash; no
+      <code>interface{}</code>, no type assertions, full compile-time safety:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/-rSCjvLhZd6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> Stack[T <span class="tok-type">any</span>] <span class="tok-kw">struct</span> {
+	items []T
+}
+
+<span class="tok-kw">func</span> (s *Stack[T]) Push(v T) {
+	s.items = append(s.items, v)
+}
+
+<span class="tok-kw">func</span> (s *Stack[T]) Pop() (T, <span class="tok-type">bool</span>) {
+	<span class="tok-kw">if</span> len(s.items) == 0 {
+		<span class="tok-kw">var</span> zero T
+		<span class="tok-kw">return</span> zero, <span class="tok-kw">false</span>
+	}
+	v := s.items[len(s.items)-1]
+	s.items = s.items[:len(s.items)-1]
+	<span class="tok-kw">return</span> v, <span class="tok-kw">true</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">var</span> ints Stack[<span class="tok-type">int</span>]
+	ints.Push(10)
+	ints.Push(20)
+	v, ok := ints.Pop()
+	fmt.Println(v, ok)
+
+	<span class="tok-kw">var</span> strs Stack[<span class="tok-type">string</span>]
+	strs.Push(<span class="tok-str">"hello"</span>)
+	strs.Push(<span class="tok-str">"world"</span>)
+	s, ok := strs.Pop()
+	fmt.Println(s, ok)
+}</code></pre>
+      <div class="code-output show">20 true
+world true</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">The zero-value return pattern</div>
+      <p>
+        When <code>Pop</code> finds an empty stack, it needs to return <em>something</em>
+        for the <code>T</code> return value. The idiom <code>var zero T</code> returns the
+        <strong>zero value</strong> of whatever type <code>T</code> is &mdash; <code>0</code>
+        for <code>int</code>, <code>""</code> for <code>string</code>, <code>nil</code> for
+        pointers, etc. The caller checks the <code>bool</code> to know if the value is
+        meaningful.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Custom constraints with <code>~</code></h3>
+    <p>
+      You can define your own constraints as interfaces. The <code>~</code> operator means
+      "any type whose <strong>underlying type</strong> is this" &mdash; so
+      <code>~int</code> matches <code>int</code> <em>and</em> any custom type defined as
+      <code>type MyInt int</code>:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/azPIg1t8rV_K" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> Signed <span class="tok-kw">interface</span> {
+	~<span class="tok-type">int</span> | ~<span class="tok-type">int8</span> | ~<span class="tok-type">int16</span> | ~<span class="tok-type">int32</span> | ~<span class="tok-type">int64</span>
+}
+
+<span class="tok-kw">type</span> MyInt <span class="tok-type">int</span>
+
+<span class="tok-kw">func</span> Abs[T Signed](n T) T {
+	<span class="tok-kw">if</span> n &lt; 0 {
+		<span class="tok-kw">return</span> -n
+	}
+	<span class="tok-kw">return</span> n
+}
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(Abs(-7))
+	fmt.Println(Abs(MyInt(-42)))
+}</code></pre>
+      <div class="code-output show">7
+42</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title"><code>~int</code> vs <code>int</code> in constraints</div>
+      <p>
+        Without <code>~</code>, a constraint <code>int | string</code> only matches the
+        <em>exact</em> types <code>int</code> and <code>string</code>. With
+        <code>~int</code>, it also matches <code>type Miles int</code> or
+        <code>type UserID int</code> &mdash; any type whose underlying representation is
+        <code>int</code>. Use <code>~</code> when you want to accept custom types that
+        are <em>based on</em> a primitive, which is most of the time in real code.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;"><code>comparable</code> in practice</h3>
+    <p>
+      The built-in <code>comparable</code> constraint accepts any type that supports
+      <code>==</code> and <code>!=</code> &mdash; which includes all basic types, structs
+      (if all fields are comparable), and pointers, but <em>not</em> slices, maps, or
+      functions. This is exactly what you need for a generic <code>Contains</code>
+      function:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/puVnQPC-J2J" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> Contains[T <span class="tok-type">comparable</span>](s []T, target T) <span class="tok-type">bool</span> {
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> s {
+		<span class="tok-kw">if</span> v == target {
+			<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+		}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(Contains([]<span class="tok-type">int</span>{1, 2, 3}, 2))
+	fmt.Println(Contains([]<span class="tok-type">string</span>{<span class="tok-str">"a"</span>, <span class="tok-str">"b"</span>}, <span class="tok-str">"c"</span>))
+}</code></pre>
+      <div class="code-output show">true
+false</div>
+    </div>
+
     <!-- ============================================================ -->
     <h2 id="context">Context</h2>
     <p>
@@ -160,6 +308,120 @@
       resources associated with the context immediately instead of waiting for the
       deadline.
     </p>
+
+    <h3 style="margin-top:2em;"><code>WithCancel</code>: explicit manual cancellation</h3>
+    <p>
+      <code>WithTimeout</code> and <code>WithDeadline</code> cancel automatically after a
+      duration. <code>WithCancel</code> gives you a cancel function you call
+      <strong>yourself</strong> &mdash; useful when cancellation depends on program logic
+      rather than a timer:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/rN7IGULwLvp" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> worker(ctx context.Context, wg *sync.WaitGroup) {
+	<span class="tok-kw">defer</span> wg.Done()
+	&lt;-ctx.Done()
+	fmt.Println(<span class="tok-str">"worker stopped:"</span>, ctx.Err())
+}
+
+<span class="tok-kw">func</span> main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+
+	wg.Add(1)
+	<span class="tok-kw">go</span> worker(ctx, &amp;wg)
+
+	cancel() <span class="tok-com">// signal the worker to stop</span>
+	wg.Wait()
+}</code></pre>
+      <div class="code-output show">worker stopped: context canceled</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title"><code>context.Canceled</code> vs <code>context.DeadlineExceeded</code></div>
+      <p>
+        <code>ctx.Err()</code> returns one of two sentinel errors: <code>context.Canceled</code>
+        when you call <code>cancel()</code> manually, or <code>context.DeadlineExceeded</code>
+        when the deadline/timeout fires. Both close the <code>Done()</code> channel, but
+        callers often need to distinguish <em>why</em> work stopped. Use
+        <code>errors.Is(ctx.Err(), context.Canceled)</code> to check.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;"><code>WithValue</code>: request-scoped data</h3>
+    <p>
+      <code>WithValue</code> attaches a key-value pair to a context, retrievable with
+      <code>ctx.Value(key)</code>. This is Go's sanctioned way to pass request-scoped data
+      (request IDs, authentication info, tracing spans) across API boundaries without
+      threading extra parameters through every function call:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">main.go</span>
+        <a class="btn btn-sm" href="https://go.dev/play/p/TyOqHJ4o61j" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      </div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-com">// Unexported key type prevents collisions with other packages</span>
+<span class="tok-kw">type</span> ctxKey <span class="tok-kw">struct</span>{}
+
+<span class="tok-kw">func</span> WithRequestID(ctx context.Context, id <span class="tok-type">string</span>) context.Context {
+	<span class="tok-kw">return</span> context.WithValue(ctx, ctxKey{}, id)
+}
+
+<span class="tok-kw">func</span> GetRequestID(ctx context.Context) <span class="tok-type">string</span> {
+	v, _ := ctx.Value(ctxKey{}).(<span class="tok-type">string</span>)
+	<span class="tok-kw">return</span> v
+}
+
+<span class="tok-kw">func</span> main() {
+	ctx := WithRequestID(context.Background(), <span class="tok-str">"abc-123"</span>)
+	fmt.Println(<span class="tok-str">"request ID:"</span>, GetRequestID(ctx))
+}</code></pre>
+      <div class="code-output show">request ID: abc-123</div>
+    </div>
+
+    <div class="callout callout-mistake">
+      <div class="callout-title">Context values are not for optional parameters</div>
+      <p>
+        A common misuse is stuffing function arguments into context to avoid changing a
+        function signature. Context values are for <strong>cross-cutting concerns</strong>
+        that flow through many layers automatically &mdash; request IDs, auth tokens,
+        tracing spans. If a function <em>logically needs</em> a parameter to do its job,
+        pass it as a normal argument, not through context.
+      </p>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title"><code>Background()</code> vs <code>TODO()</code></div>
+      <p>
+        Both return an empty, cancelable context with no values and no deadline. The
+        difference is <strong>semantic</strong>, not functional: <code>context.Background()</code>
+        is for the top-level entry point of your program (main, init, tests), while
+        <code>context.TODO()</code> is a placeholder meaning "I haven't decided which
+        context to use here yet." Use <code>TODO()</code> when you're refactoring and
+        haven't wired up the context chain yet &mdash; it makes the incomplete work
+        greppable.
+      </p>
+    </div>
 
     <!-- ============================================================ -->
     <h2 id="testing">Testing</h2>
@@ -226,6 +488,173 @@ ok  	example.com/goverify/mathutil	0.003s</div>
       wrap the loop body in <code>t.Run(name, func(t *testing.T) {...})</code> to get
       named subtests.
     </p>
+
+    <h3 style="margin-top:2em;">Subtests with <code>t.Run</code></h3>
+    <p>
+      The table-driven test above reports a single pass/fail for <code>TestAdd</code>. If
+      one case fails, you have to read the error message to figure out which one. Wrapping
+      each case in <code>t.Run</code> gives <strong>named subtests</strong> with isolated
+      pass/fail reporting, and lets you run individual cases with
+      <code>-run TestAdd/positive</code>:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">math_test.go</span>
+      </div>
+      <pre><code><span class="tok-kw">package</span> mathutil
+
+<span class="tok-kw">import</span> <span class="tok-str">"testing"</span>
+
+<span class="tok-kw">func</span> TestAdd(t *testing.T) {
+	cases := []<span class="tok-kw">struct</span>{
+		name      <span class="tok-type">string</span>
+		a, b, want <span class="tok-type">int</span>
+	}{
+		{<span class="tok-str">"positive"</span>, 2, 3, 5},
+		{<span class="tok-str">"negative"</span>, -1, 1, 0},
+		{<span class="tok-str">"zeros"</span>, 0, 0, 0},
+	}
+	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> cases {
+		t.Run(c.name, <span class="tok-kw">func</span>(t *testing.T) {
+			got := Add(c.a, c.b)
+			<span class="tok-kw">if</span> got != c.want {
+				t.Errorf(<span class="tok-str">"Add(%d, %d) = %d, want %d"</span>, c.a, c.b, got, c.want)
+			}
+		})
+	}
+}</code></pre>
+      <div class="code-output show">$ go test -v ./mathutil/
+=== RUN   TestAdd
+=== RUN   TestAdd/positive
+=== RUN   TestAdd/negative
+=== RUN   TestAdd/zeros
+--- PASS: TestAdd (0.00s)
+    --- PASS: TestAdd/positive (0.00s)
+    --- PASS: TestAdd/negative (0.00s)
+    --- PASS: TestAdd/zeros (0.00s)
+PASS
+ok  	example.com/goverify/mathutil	0.003s</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title"><code>t.Helper()</code>: correct line numbers in failures</div>
+      <p>
+        When a test calls a helper function and the helper calls <code>t.Errorf</code>,
+        the error line points to the <em>helper</em>, not the actual test. Calling
+        <code>t.Helper()</code> at the start of the helper function tells Go to skip it
+        in the error report and point to the caller instead. Always add it to functions
+        that are called from tests but aren't tests themselves.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Benchmarks: measuring performance</h3>
+    <p>
+      A function named <code>BenchmarkXxx</code> taking a <code>*testing.B</code> lets Go
+      measure how fast your code runs. The testing framework calls your function repeatedly,
+      adjusting <code>b.N</code> until the results are stable:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">bench_test.go</span>
+      </div>
+      <pre><code><span class="tok-kw">package</span> mathutil
+
+<span class="tok-kw">import</span> <span class="tok-str">"testing"</span>
+
+<span class="tok-kw">func</span> BenchmarkAdd(b *testing.B) {
+	<span class="tok-kw">for</span> i := 0; i &lt; b.N; i++ {
+		Add(2, 3)
+	}
+}</code></pre>
+      <div class="code-output show">$ go test -bench=. -benchmem ./mathutil/
+goos: linux
+goarch: amd64
+pkg: example.com/goverify/mathutil
+cpu: 12th Gen Intel(R) Core(TM) i7-1255U
+BenchmarkAdd-12    	1000000000	         0.1416 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	example.com/goverify/mathutil	0.159s</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Reading benchmark output</div>
+      <p>
+        <code>-12</code> after the benchmark name is <code>GOMAXPROCS</code>. The three key
+        metrics: <code>ns/op</code> (nanoseconds per operation &mdash; lower is faster),
+        <code>B/op</code> (bytes allocated per operation), and <code>allocs/op</code>
+        (number of allocations per operation). For this trivial function, there are zero
+        allocations &mdash; the compiler inlines it entirely.
+      </p>
+    </div>
+
+    <h3 style="margin-top:2em;">Fuzzing: finding edge cases automatically</h3>
+    <p>
+      Go's built-in fuzzing (Go 1.18+) generates random inputs and feeds them to your
+      test, looking for inputs that cause failures. A fuzz function takes a
+      <code>*testing.F</code> and calls <code>f.Fuzz</code> with a function that receives
+      random values of the specified types:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head">
+        <span class="code-panel-title">fuzz_test.go</span>
+      </div>
+      <pre><code><span class="tok-kw">package</span> mathutil
+
+<span class="tok-kw">import</span> <span class="tok-str">"testing"</span>
+
+<span class="tok-kw">func</span> IsPalindrome(s <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
+	<span class="tok-kw">for</span> i := 0; i &lt; len(s)/2; i++ {
+		<span class="tok-kw">if</span> s[i] != s[len(s)-1-i] {
+			<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+		}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+}
+
+<span class="tok-kw">func</span> ReverseBytes(s <span class="tok-type">string</span>) <span class="tok-type">string</span> {
+	b := []<span class="tok-type">byte</span>(s)
+	<span class="tok-kw">for</span> i, j := 0, len(b)-1; i &lt; j; i, j = i+1, j-1 {
+		b[i], b[j] = b[j], b[i]
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">string</span>(b)
+}
+
+<span class="tok-kw">func</span> FuzzIsPalindrome(f *testing.F) {
+	f.Add(<span class="tok-str">"racecar"</span>)
+	f.Add(<span class="tok-str">"hello"</span>)
+	f.Add(<span class="tok-str">""</span>)
+	f.Fuzz(<span class="tok-kw">func</span>(t *testing.T, s <span class="tok-type">string</span>) {
+		result := IsPalindrome(s)
+		reversed := IsPalindrome(ReverseBytes(s))
+		<span class="tok-kw">if</span> result != reversed {
+			t.Errorf(<span class="tok-str">"mismatch: IsPalindrome(%q)=%v, IsPalindrome(reverse)=%v"</span>,
+				s, result, reversed)
+		}
+	})
+}</code></pre>
+      <div class="code-output show">$ go test -fuzz=FuzzIsPalindrome -fuzztime=2s ./mathutil/
+fuzz: elapsed: 0s, gathering baseline coverage: 3/3 completed
+fuzz: elapsed: 0s, now fuzzing with 12 workers
+fuzz: elapsed: 2s, execs: 1062182 (505047/sec), new interesting: 7 (total: 11)
+PASS
+ok  	example.com/goverify/mathutil	2.106s</div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">How fuzzing works</div>
+      <p>
+        <code>f.Add("racecar")</code> provides <strong>seed inputs</strong> &mdash; the
+        fuzzer starts from these and mutates them (flipping bits, adding/removing bytes,
+        crossing inputs) to maximize code coverage. When a failure is found, the fuzzer
+        <strong>minimizes</strong> it to the shortest input that still fails and writes it
+        to <code>testdata/fuzz/FuzzXxx/</code> &mdash; that file becomes a permanent
+        regression test that runs with every <code>go test</code> even without
+        <code>-fuzz</code>.
+      </p>
+    </div>
 
     <p style="margin-top:3rem;">
       <a class="btn" href="index.html">&larr; Back to the roadmap</a>
