@@ -392,6 +392,7 @@ second: 2</div>
                 <div class="scope-var-row" data-role="inner-x">x = 20</div>
               </div>
               <div class="scope-caption" data-role="outer-note">x = 10 (unchanged)</div>
+              <div class="scope-caption" data-role="inner-note">x = 20</div>
             </div>
           </div>
         </div>
@@ -526,7 +527,10 @@ n is 2</div>
               <span data-part="val">10</span>
               <span style="font-size:0.65rem; color:var(--text-dim); display:block;">element</span>
             </div>
-            <div class="range-decomp-item" data-role="item" style="display:none;"></div>
+            <div class="range-decomp-item" data-role="item" style="display:none;">
+              <span data-part="key"></span>
+              <span data-part="val"></span>
+            </div>
           </div>
         </div>
       </div>
