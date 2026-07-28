@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REST APIs: Gin &amp; MongoDB &mdash; Learn Go, Visually</title>
+<meta name="description" content="Build production-ready REST APIs in Go using Gin and MongoDB — HTTP methods, routing, middleware, validation, error handling, and real database operations.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <a href="operators.html">Operators</a>
+    <a href="rest-api.html" class="active">REST APIs</a>
+    <a href="grpc-api.html">gRPC</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Applied Go</span>
+    <h1>Building REST APIs with Gin &amp; MongoDB</h1>
+    <p class="lede">
+      Learn how to build production-ready REST APIs in Go using the Gin web framework
+      and MongoDB for data persistence. This section covers HTTP methods, routing,
+      middleware, validation, error handling, and real database operations with a complete
+      example application.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#what-is-rest">What is REST</a>
+      <a class="btn btn-sm" href="#http-methods">HTTP Methods</a>
+      <a class="btn btn-sm" href="#setup">Project Setup</a>
+      <a class="btn btn-sm" href="#models">Data Models</a>
+      <a class="btn btn-sm" href="#routing">Routing &amp; Handlers</a>
+      <a class="btn btn-sm" href="#middleware">Middleware</a>
+      <a class="btn btn-sm" href="#validation">Validation</a>
+      <a class="btn btn-sm" href="#errors">Error Handling</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="what-is-rest">What is REST?</h2>
+    <p>
+      REST stands for <strong>Representational State Transfer</strong>. It's an architectural style
+      for building distributed systems, particularly web APIs. REST APIs use HTTP requests
+      to perform CRUD (Create, Read, Update, Delete) operations on resources.
+    </p>
+
+    <div class="viz" data-viz="http-methods">
+      <div class="viz-stage">
+        <div style="display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap; margin-bottom:1rem;">
+          <button class="btn btn-sm" data-method="GET">GET</button>
+          <button class="btn btn-sm" data-method="POST">POST</button>
+          <button class="btn btn-sm" data-method="PUT">PUT</button>
+          <button class="btn btn-sm" data-method="PATCH">PATCH</button>
+          <button class="btn btn-sm" data-method="DELETE">DELETE</button>
+        </div>
+        <div style="display:flex; gap:1.5rem; justify-content:center; align-items:center; flex-wrap:wrap;">
+          <div class="recon-box" style="min-width:140px;">
+            <div class="recon-box-title">Client</div>
+            <div class="recon-field" style="font-family:var(--font-mono); font-size:0.82rem;">HTTP Request</div>
+          </div>
+          <div style="font-size:1.5rem; color:var(--text-dim);">&#8644;</div>
+          <div class="recon-box" data-role="server-box" style="min-width:140px; opacity:0.3; transition: opacity 0.4s ease, border-color 0.3s ease;">
+            <div class="recon-box-title">Server</div>
+            <div class="recon-field" style="font-family:var(--font-mono); font-size:0.82rem;">HTTP Response</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-sm" data-role="send">Send Request</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Click a method to see how it maps to CRUD operations.</div>
+    </div>
+
+    <p>
+      REST APIs are <strong>stateless</strong> — each request contains all the information needed
+      to process it. They're <strong>resource-based</strong> — you interact with resources (like
+      <code>/todos</code> or <code>/users/123</code>) using standard HTTP methods.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">REST Principles</div>
+      <p>
+        <strong>1. Resource-based:</strong> Everything is a resource identified by a URI (e.g., <code>/todos</code>, <code>/todos/123</code>).<br><br>
+        <strong>2. HTTP methods:</strong> Use GET, POST, PUT, PATCH, DELETE for CRUD operations.<br><br>
+        <strong>3. Statelessness:</strong> Each request is independent; the server doesn't store client state.<br><br>
+        <strong>4. Uniform interface:</strong> Consistent patterns for requests and responses.<br><br>
+        <strong>5. Self-descriptive messages:</strong> Requests include metadata (headers) and data (body).
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="http-methods">HTTP Methods Explained</h2>
+    <p>
+      REST APIs use standard HTTP methods to perform operations. Each method has a specific
+      purpose and semantic meaning.
+    </p>
+
+    <div class="viz" data-viz="method-table">
+      <div class="viz-stage">
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:0.8rem; width:100%; max-width:700px; margin:0 auto;">
+          <div class="recon-box" data-method-row="GET" style="cursor:pointer; transition:border-color 0.2s ease;">
+            <div class="recon-box-title">GET</div>
+            <div class="recon-field"><span>Safe</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+            <div class="recon-field"><span>Idempotent</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+            <div class="recon-field"><span>Body allowed</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+          </div>
+          <div class="recon-box" data-method-row="POST" style="cursor:pointer; transition:border-color 0.2s ease;">
+            <div class="recon-box-title">POST</div>
+            <div class="recon-field"><span>Safe</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+            <div class="recon-field"><span>Idempotent</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+            <div class="recon-field"><span>Body required</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+          </div>
+          <div class="recon-box" data-method-row="PUT" style="cursor:pointer; transition:border-color 0.2s ease;">
+            <div class="recon-box-title">PUT</div>
+            <div class="recon-field"><span>Safe</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+            <div class="recon-field"><span>Idempotent</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+            <div class="recon-field"><span>Body required</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+          </div>
+          <div class="recon-box" data-method-row="PATCH" style="cursor:pointer; transition:border-color 0.2s ease;">
+            <div class="recon-box-title">PATCH</div>
+            <div class="recon-field"><span>Safe</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+            <div class="recon-field"><span>Idempotent</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+            <div class="recon-field"><span>Body required</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+          </div>
+          <div class="recon-box" data-method-row="DELETE" style="cursor:pointer; transition:border-color 0.2s ease;">
+            <div class="recon-box-title">DELETE</div>
+            <div class="recon-field"><span>Safe</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+            <div class="recon-field"><span>Idempotent</span><span class="val" style="color:var(--ok);">&#10003;</span></div>
+            <div class="recon-field"><span>Body allowed</span><span class="val" style="color:var(--warn);">&#10007;</span></div>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem; padding:1rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg);">
+          <div style="font-weight:700; margin-bottom:0.5rem;">Method Semantics</div>
+          <div id="method-description" style="font-size:0.9rem; color:var(--text-dim);">Click a method to learn about its semantics, safety, and idempotency.</div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Understanding these differences is crucial for building correct REST APIs:
+    </p>
+
+    <ul>
+      <li><strong>GET</strong> retrieves data. Safe (no side effects) and idempotent (multiple calls return the same result).</li>
+      <li><strong>POST</strong> creates a new resource. Not safe (creates data) and not idempotent (multiple calls create multiple resources).</li>
+      <li><strong>PUT</strong> replaces a resource entirely. Not safe but idempotent (replacing the same data multiple times has the same effect).</li>
+      <li><strong>PATCH</strong> updates part of a resource. Not safe and not idempotent (unless designed to be).</li>
+      <li><strong>DELETE</strong> removes a resource. Not safe but idempotent (deleting an already-deleted resource returns 404, which is idempotent).</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2 id="setup">Project Setup</h2>
+    <p>
+      Start by initializing a new Go module and installing the required dependencies.
+      Gin is a lightweight web framework, and the MongoDB driver provides native Go support
+      for database operations.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
+      <div class="code-output show">$ mkdir todo-api &amp;&amp; cd todo-api
+$ go mod init github.com/example/todo-api
+$ go get github.com/gin-gonic/gin
+$ go get go.mongodb.org/mongo-driver/mongo
+$ go get github.com/go-playground/validator/v10</div>
+    </div>
+
+    <p>
+      These three packages form the foundation: Gin for HTTP routing and middleware,
+      MongoDB driver for database access, and validator for input validation.
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="models">Data Models</h2>
+    <p>
+      Define your data structures using Go structs with struct tags for JSON serialization
+      and validation. The tags tell Gin how to map JSON fields and validate incoming data.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">models.go</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"time"</span>
+	<span class="tok-str">"go.mongodb.org/mongo-driver/bson/primitive"</span>
+)
+
+<span class="tok-kw">type</span> Todo <span class="tok-kw">struct</span> {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Title     <span class="tok-type">string</span>             `bson:"title" json:"title" binding:"required,min=1,max=200"`
+	Completed <span class="tok-type">bool</span>               `bson:"completed" json:"completed"`
+	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
+}
+
+<span class="tok-kw">type</span> CreateTodoRequest <span class="tok-kw">struct</span> {
+	Title <span class="tok-type">string</span> `json:"title" binding:"required,min=1,max=200"`
+}
+
+<span class="tok-kw">type</span> UpdateTodoRequest <span class="tok-kw">struct</span> {
+	Title     <span class="tok-type">string</span> `json:"title" binding:"omitempty,min=1,max=200"`
+	Completed <span class="tok-type">bool</span>   `json:"completed"`
+}</code></pre>
+    </div>
+
+    <p>
+      The <code>binding</code> tags define validation rules: <code>required</code> means the field
+      must be present, <code>min=1</code> and <code>max=200</code> enforce string length constraints.
+      The <code>bson</code> tags map to MongoDB field names.
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="routing">Routing &amp; Handlers</h2>
+    <p>
+      Gin uses a simple router that maps HTTP methods and paths to handler functions.
+      Each handler receives a context object that provides access to the request, response,
+      and database connection.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">handlers.go</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"net/http"</span>
+	<span class="tok-str">"github.com/gin-gonic/gin"</span>
+	<span class="tok-str">"go.mongodb.org/mongo-driver/bson"</span>
+	<span class="tok-str">"go.mongodb.org/mongo-driver/bson/primitive"</span>
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> CreateTodo(c *gin.Context) {
+	<span class="tok-kw">var</span> req CreateTodoRequest
+	<span class="tok-kw">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		<span class="tok-kw">return</span>
+	}
+
+	todo := Todo{
+		Title:     req.Title,
+		Completed: <span class="tok-kw">false</span>,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	<span class="tok-kw">defer</span> cancel()
+
+	result, err := todosCollection.InsertOne(ctx, todo)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create todo"})
+		<span class="tok-kw">return</span>
+	}
+
+	todo.ID = result.InsertedID.(primitive.ObjectID)
+	c.JSON(http.StatusCreated, todo)
+}
+
+<span class="tok-kw">func</span> GetTodos(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	<span class="tok-kw">defer</span> cancel()
+
+	cursor, err := todosCollection.Find(ctx, bson.M{})
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
+		<span class="tok-kw">return</span>
+	}
+	<span class="tok-kw">defer</span> cursor.Close(ctx)
+
+	<span class="tok-kw">var</span> todos []Todo
+	<span class="tok-kw">if</span> err = cursor.All(ctx, &amp;todos); err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse todos"})
+		<span class="tok-kw">return</span>
+	}
+
+	c.JSON(http.StatusOK, todos)
+}
+
+<span class="tok-kw">func</span> GetTodoByID(c *gin.Context) {
+	id := c.Param(<span class="tok-str">"id"</span>)
+	objID, err := primitive.ObjectIDFromHex(id)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid todo ID"})
+		<span class="tok-kw">return</span>
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	<span class="tok-kw">defer</span> cancel()
+
+	todo := Todo{}
+	err = todosCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&amp;todo)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		<span class="tok-kw">return</span>
+	}
+
+	c.JSON(http.StatusOK, todo)
+}
+
+<span class="tok-kw">func</span> UpdateTodo(c *gin.Context) {
+	id := c.Param(<span class="tok-str">"id"</span>)
+	objID, err := primitive.ObjectIDFromHex(id)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid todo ID"})
+		<span class="tok-kw">return</span>
+	}
+
+	<span class="tok-kw">var</span> req UpdateTodoRequest
+	<span class="tok-kw">if</span> err := c.ShouldBindJSON(&amp;req); err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		<span class="tok-kw">return</span>
+	}
+
+	update := bson.M{
+		<span class="tok-str">"$set"</span>: bson.M{
+			<span class="tok-str">"updated_at"</span>: time.Now(),
+		},
+	}
+	<span class="tok-kw">if</span> req.Title != <span class="tok-str">""</span> {
+		update[<span class="tok-str">"$set"</span>].(bson.M)[<span class="tok-str">"title"</span>] = req.Title
+	}
+	update[<span class="tok-str">"$set"</span>].(bson.M)[<span class="tok-str">"completed"</span>] = req.Completed
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	<span class="tok-kw">defer</span> cancel()
+
+	result, err := todosCollection.UpdateOne(ctx, bson.M{"_id": objID}, update)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> || result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		<span class="tok-kw">return</span>
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Todo updated"})
+}
+
+<span class="tok-kw">func</span> DeleteTodo(c *gin.Context) {
+	id := c.Param(<span class="tok-str">"id"</span>)
+	objID, err := primitive.ObjectIDFromHex(id)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid todo ID"})
+		<span class="tok-kw">return</span>
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	<span class="tok-kw">defer</span> cancel()
+
+	result, err := todosCollection.DeleteOne(ctx, bson.M{"_id": objID})
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> || result.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		<span class="tok-kw">return</span>
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Todo deleted"})
+}</code></pre>
+    </div>
+
+    <p>
+      Each handler follows the same pattern: validate input with <code>ShouldBindJSON</code>,
+      perform the database operation with a timeout context, and return appropriate HTTP status codes.
+      The <code>defer cancel()</code> ensures the context is always cleaned up.
+    </p>
+
+    <div class="viz" data-viz="request-response">
+      <div class="viz-stage">
+        <div style="display:flex; gap:1.5rem; justify-content:center; align-items:center; flex-wrap:wrap;">
+          <div class="recon-box" data-role="request" style="min-width:160px; transition: border-color 0.3s ease;">
+            <div class="recon-box-title">POST /todos</div>
+            <div class="recon-field"><span>title</span><span class="val">&quot;Buy milk&quot;</span></div>
+          </div>
+          <div style="font-size:1.5rem; color:var(--text-dim);">&#8594;</div>
+          <div class="recon-box" data-role="response" style="min-width:160px; opacity:0.3; transition: opacity 0.4s ease, border-color 0.3s ease;">
+            <div class="recon-box-title">201 Created</div>
+            <div class="recon-field"><span>id</span><span class="val match">ObjectID</span></div>
+            <div class="recon-field"><span>title</span><span class="val match">&quot;Buy milk&quot;</span></div>
+            <div class="recon-field"><span>completed</span><span class="val">false</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-sm" data-role="send">Send Request</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Click to simulate a POST /todos request through Gin to MongoDB.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="middleware">Middleware</h2>
+    <p>
+      Middleware functions run before or after handlers. Common uses include logging,
+      authentication, CORS headers, and error recovery.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">middleware.go</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"github.com/gin-gonic/gin"</span>
+	<span class="tok-str">"log"</span>
+	<span class="tok-str">"time"</span>
+)
+
+<span class="tok-kw">func</span> LoggingMiddleware() gin.HandlerFunc {
+	<span class="tok-kw">return</span> <span class="tok-kw">func</span>(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+		duration := time.Since(start)
+		log.Printf(<span class="tok-str">"%s %s %d %v"</span>, c.Request.Method, c.Request.URL.Path, c.Writer.Status(), duration)
+	}
+}
+
+<span class="tok-kw">func</span> CORSMiddleware() gin.HandlerFunc {
+	<span class="tok-kw">return</span> <span class="tok-kw">func</span>(c *gin.Context) {
+		c.Writer.Header().Set(<span class="tok-str">"Access-Control-Allow-Origin"</span>, <span class="tok-str">"*"</span>)
+		c.Writer.Header().Set(<span class="tok-str">"Access-Control-Allow-Methods"</span>, <span class="tok-str">"GET, POST, PUT, DELETE, PATCH"</span>)
+		c.Writer.Header().Set(<span class="tok-str">"Access-Control-Allow-Headers"</span>, <span class="tok-str">"Content-Type"</span>)
+		<span class="tok-kw">if</span> c.Request.Method == <span class="tok-str">"OPTIONS"</span> {
+			c.AbortWithStatus(204)
+			<span class="tok-kw">return</span>
+		}
+		c.Next()
+	}
+}</code></pre>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="validation">Validation</h2>
+    <p>
+      Gin integrates with the validator package to automatically validate struct fields
+      based on tags. Custom validators can be registered for domain-specific rules.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">main.go (setup)</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"github.com/gin-gonic/gin"</span>
+	<span class="tok-str">"go.mongodb.org/mongo-driver/mongo"</span>
+	<span class="tok-str">"go.mongodb.org/mongo-driver/mongo/options"</span>
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"log"</span>
+)
+
+<span class="tok-kw">var</span> todosCollection *mongo.Collection
+
+<span class="tok-kw">func</span> init() {
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(<span class="tok-str">"mongodb://localhost:27017"</span>))
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatal(err)
+	}
+	todosCollection = client.Database(<span class="tok-str">"todo_db"</span>).Collection(<span class="tok-str">"todos"</span>)
+}
+
+<span class="tok-kw">func</span> main() {
+	router := gin.Default()
+
+	<span class="tok-com">// Apply middleware</span>
+	router.Use(LoggingMiddleware())
+	router.Use(CORSMiddleware())
+
+	<span class="tok-com">// Routes</span>
+	router.POST(<span class="tok-str">"/todos"</span>, CreateTodo)
+	router.GET(<span class="tok-str">"/todos"</span>, GetTodos)
+	router.GET(<span class="tok-str">"/todos/:id"</span>, GetTodoByID)
+	router.PUT(<span class="tok-str">"/todos/:id"</span>, UpdateTodo)
+	router.PATCH(<span class="tok-str">"/todos/:id"</span>, UpdateTodo)
+	router.DELETE(<span class="tok-str">"/todos/:id"</span>, DeleteTodo)
+
+	<span class="tok-com">// Start server</span>
+	router.Run(<span class="tok-str">":8080"</span>)
+}</code></pre>
+    </div>
+
+    <p>
+      The complete route table shows all CRUD operations. Note that both PUT and PATCH
+      use the same handler in this example — in a real app, you might separate them
+      for stricter validation.
+    </p>
+
+    <!-- ============================================================ -->
+    <h2 id="errors">Error Handling</h2>
+
+    <div class="viz" data-viz="error-handling">
+      <div class="viz-stage">
+        <div style="display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap; margin-bottom:1rem;">
+          <button class="btn btn-sm" data-scenario="bad-request">400 Bad Request</button>
+          <button class="btn btn-sm" data-scenario="not-found">404 Not Found</button>
+          <button class="btn btn-sm" data-scenario="server-error">500 Server Error</button>
+        </div>
+        <div data-role="result" style="font-family:var(--font-mono); font-size:0.88rem; text-align:center; min-height:3em;"></div>
+      </div>
+      <div class="viz-caption" data-role="caption">Click a scenario to see the HTTP status code and error body returned.</div>
+    </div>
+
+    <p>
+      Proper error handling is critical for APIs. Always return appropriate HTTP status codes
+      and meaningful error messages. Use context timeouts to prevent hanging requests.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Best practices for REST APIs</div>
+      <p>
+        <strong>Use appropriate status codes:</strong> 200 for success, 201 for created, 400 for bad request,
+        404 for not found, 500 for server error.<br><br>
+        <strong>Validate early:</strong> Check input before database operations.<br><br>
+        <strong>Use timeouts:</strong> Always set context timeouts for database operations to prevent hanging.<br><br>
+        <strong>Log everything:</strong> Use middleware to log requests, responses, and errors for debugging.<br><br>
+        <strong>Be consistent:</strong> Use the same error format across all endpoints.
+      </p>
+    </div>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="grpc-api.html">Continue to gRPC APIs &rarr;</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was verified against real Go tooling before publishing.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/rest-api.js"></script>
+</body>
+</html>

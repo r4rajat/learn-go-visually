@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gRPC APIs &mdash; Learn Go, Visually</title>
+<meta name="description" content="Build high-performance gRPC services in Go — protocol buffers, service definitions, streaming, and real examples.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <a href="operators.html">Operators</a>
+    <a href="rest-api.html">REST APIs</a>
+    <a href="grpc-api.html" class="active">gRPC</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Applied Go</span>
+    <h1>Building gRPC Services in Go</h1>
+    <p class="lede">
+      Learn how to build high-performance, type-safe APIs using gRPC and Protocol Buffers.
+      gRPC uses HTTP/2 for efficient communication and supports streaming, making it ideal
+      for microservices and real-time applications.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#what-is-grpc">What is gRPC</a>
+      <a class="btn btn-sm" href="#protobuf">Protocol Buffers</a>
+      <a class="btn btn-sm" href="#service-def">Service Definition</a>
+      <a class="btn btn-sm" href="#server">Building a Server</a>
+      <a class="btn btn-sm" href="#client">Building a Client</a>
+      <a class="btn btn-sm" href="#streaming">Streaming</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="what-is-grpc">What is gRPC?</h2>
+    <p>
+      gRPC is a modern RPC framework built on HTTP/2 that enables efficient communication
+      between services. Unlike REST APIs which use JSON over HTTP/1.1, gRPC uses Protocol Buffers
+      (a binary format) over HTTP/2, resulting in smaller payloads and better performance.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">gRPC vs REST</div>
+      <p>
+        <strong>gRPC advantages:</strong> Binary protocol (smaller payloads), HTTP/2 multiplexing,
+        built-in streaming, strongly typed with Protocol Buffers, better performance for high-throughput scenarios.<br><br>
+        <strong>REST advantages:</strong> Simpler to understand, works with any HTTP client, better browser support,
+        easier debugging with text-based JSON.<br><br>
+        <strong>Use gRPC for:</strong> Microservices, real-time applications, high-throughput APIs.<br>
+        <strong>Use REST for:</strong> Public APIs, web applications, simple CRUD operations.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <div class="viz" data-viz="unary-rpc">
+      <div class="viz-stage">
+        <div style="display:flex; gap:1.5rem; justify-content:center; align-items:center; flex-wrap:wrap;">
+          <div class="recon-box" data-role="client" style="min-width:140px; transition: border-color 0.3s ease;">
+            <div class="recon-box-title">Client</div>
+            <div class="recon-field" style="font-family:var(--font-mono); font-size:0.82rem;">CreateTodo(req)</div>
+          </div>
+          <div style="font-size:1.5rem; color:var(--text-dim);">&#8644;</div>
+          <div class="recon-box" data-role="server" style="min-width:140px; opacity:0.3; transition: opacity 0.4s ease, border-color 0.3s ease;">
+            <div class="recon-box-title">gRPC Server</div>
+            <div class="recon-field" style="font-family:var(--font-mono); font-size:0.82rem;">returns Todo</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-controls">
+        <button class="btn btn-sm" data-role="call">Make RPC Call</button>
+      </div>
+      <div class="viz-caption" data-role="caption">Click to simulate a unary RPC call — one request, one response over HTTP/2.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="protobuf">Protocol Buffers</h2>
+    <p>
+      Protocol Buffers (protobuf) is Google's language-neutral, platform-neutral mechanism
+      for serializing structured data. You define your data structures in a <code>.proto</code> file,
+      then compile it to generate Go code.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">todo.proto</span></div>
+      <pre><code><span class="tok-kw">syntax</span> = <span class="tok-str">"proto3"</span>;
+
+<span class="tok-kw">package</span> todo;
+
+<span class="tok-kw">option</span> go_package = <span class="tok-str">"github.com/example/todo-grpc/pb"</span>;
+
+<span class="tok-kw">message</span> Todo {
+  <span class="tok-type">string</span> id = 1;
+  <span class="tok-type">string</span> title = 2;
+  <span class="tok-type">bool</span> completed = 3;
+  <span class="tok-type">int64</span> created_at = 4;
+  <span class="tok-type">int64</span> updated_at = 5;
+}
+
+<span class="tok-kw">message</span> CreateTodoRequest {
+  <span class="tok-type">string</span> title = 1;
+}
+
+<span class="tok-kw">message</span> UpdateTodoRequest {
+  <span class="tok-type">string</span> id = 1;
+  <span class="tok-type">string</span> title = 2;
+  <span class="tok-type">bool</span> completed = 3;
+}
+
+<span class="tok-kw">message</span> GetTodosRequest {}
+
+<span class="tok-kw">message</span> TodoList {
+  <span class="tok-type">repeated</span> Todo todos = 1;
+}</code></pre>
+    </div>
+
+    <p>
+      Each field has a number (1, 2, 3, etc.) that identifies it in the binary format.
+      The <code>repeated</code> keyword indicates a list. Compile this with:
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
+      <div class="code-output show">$ protoc --go_out=. --go-grpc_out=. todo.proto</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <div class="viz" data-viz="protobuf">
+      <div class="viz-stage">
+        <div style="display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;">
+          <div class="recon-box" data-field="id" data-field-num="1" style="min-width:110px; cursor:pointer; transition: border-color 0.2s ease;">
+            <div class="recon-box-title">field 1</div>
+            <div class="recon-field"><span class="val" style="font-family:var(--font-mono);">string id</span></div>
+          </div>
+          <div class="recon-box" data-field="title" data-field-num="2" style="min-width:110px; cursor:pointer; transition: border-color 0.2s ease;">
+            <div class="recon-box-title">field 2</div>
+            <div class="recon-field"><span class="val" style="font-family:var(--font-mono);">string title</span></div>
+          </div>
+          <div class="recon-box" data-field="completed" data-field-num="3" style="min-width:110px; cursor:pointer; transition: border-color 0.2s ease;">
+            <div class="recon-box-title">field 3</div>
+            <div class="recon-field"><span class="val" style="font-family:var(--font-mono);">bool completed</span></div>
+          </div>
+          <div class="recon-box" data-field="created_at" data-field-num="4" style="min-width:110px; cursor:pointer; transition: border-color 0.2s ease;">
+            <div class="recon-box-title">field 4</div>
+            <div class="recon-field"><span class="val" style="font-family:var(--font-mono);">int64 created_at</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-caption" data-role="caption">Click a field to learn how Protocol Buffers encodes it.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="service-def">Service Definition</h2>
+    <p>
+      Define your RPC methods in the same <code>.proto</code> file. Each method specifies
+      its input and output message types.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">todo.proto (continued)</span></div>
+      <pre><code><span class="tok-kw">service</span> TodoService {
+  <span class="tok-com">// Unary RPC: single request, single response</span>
+  rpc CreateTodo(CreateTodoRequest) <span class="tok-kw">returns</span> (Todo);
+  rpc GetTodos(GetTodosRequest) <span class="tok-kw">returns</span> (TodoList);
+  rpc UpdateTodo(UpdateTodoRequest) <span class="tok-kw">returns</span> (Todo);
+
+  <span class="tok-com">// Server streaming: single request, stream of responses</span>
+  rpc StreamTodos(GetTodosRequest) <span class="tok-kw">returns</span> (<span class="tok-kw">stream</span> Todo);
+
+  <span class="tok-com">// Client streaming: stream of requests, single response</span>
+  rpc CreateMultipleTodos(<span class="tok-kw">stream</span> CreateTodoRequest) <span class="tok-kw">returns</span> (TodoList);
+
+  <span class="tok-com">// Bidirectional streaming: stream of requests, stream of responses</span>
+  rpc SyncTodos(<span class="tok-kw">stream</span> Todo) <span class="tok-kw">returns</span> (<span class="tok-kw">stream</span> Todo);
+}</code></pre>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="server">Building a Server</h2>
+    <p>
+      Implement the service interface generated by protoc. Each RPC method becomes a function
+      that receives a context and the request message.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">server.go</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"log"</span>
+	<span class="tok-str">"net"</span>
+	<span class="tok-str">"google.golang.org/grpc"</span>
+	pb <span class="tok-str">"github.com/example/todo-grpc/pb"</span>
+)
+
+<span class="tok-kw">type</span> TodoServer <span class="tok-kw">struct</span> {
+	pb.UnimplementedTodoServiceServer
+	todos map[<span class="tok-type">string</span>]*pb.Todo
+}
+
+<span class="tok-kw">func</span> (s *TodoServer) CreateTodo(ctx context.Context, req *pb.CreateTodoRequest) (*pb.Todo, error) {
+	todo := &amp;pb.Todo{
+		Id:        <span class="tok-str">"todo-1"</span>,
+		Title:     req.Title,
+		Completed: <span class="tok-kw">false</span>,
+		CreatedAt: <span class="tok-type">int64</span>(time.Now().Unix()),
+		UpdatedAt: <span class="tok-type">int64</span>(time.Now().Unix()),
+	}
+	s.todos[todo.Id] = todo
+	<span class="tok-kw">return</span> todo, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (s *TodoServer) GetTodos(ctx context.Context, req *pb.GetTodosRequest) (*pb.TodoList, error) {
+	<span class="tok-kw">var</span> todos []*pb.Todo
+	<span class="tok-kw">for</span> _, todo := <span class="tok-kw">range</span> s.todos {
+		todos = <span class="tok-kw">append</span>(todos, todo)
+	}
+	<span class="tok-kw">return</span> &amp;pb.TodoList{Todos: todos}, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (s *TodoServer) StreamTodos(req *pb.GetTodosRequest, stream pb.TodoService_StreamTodosServer) error {
+	<span class="tok-kw">for</span> _, todo := <span class="tok-kw">range</span> s.todos {
+		<span class="tok-kw">if</span> err := stream.Send(todo); err != <span class="tok-kw">nil</span> {
+			<span class="tok-kw">return</span> err
+		}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	listener, err := net.Listen(<span class="tok-str">"tcp"</span>, <span class="tok-str">":50051"</span>)
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"Failed to listen: %v"</span>, err)
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterTodoServiceServer(grpcServer, &amp;TodoServer{
+		todos: make(map[<span class="tok-type">string</span>]*pb.Todo),
+	})
+
+	log.Println(<span class="tok-str">"gRPC server listening on :50051"</span>)
+	<span class="tok-kw">if</span> err := grpcServer.Serve(listener); err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"Failed to serve: %v"</span>, err)
+	}
+}</code></pre>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="client">Building a Client</h2>
+    <p>
+      Create a client connection and call the RPC methods. The generated code handles
+      all the serialization and network communication.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">client.go</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"log"</span>
+	<span class="tok-str">"google.golang.org/grpc"</span>
+	pb <span class="tok-str">"github.com/example/todo-grpc/pb"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-com">// Connect to server</span>
+	conn, err := grpc.Dial(<span class="tok-str">":50051"</span>, grpc.WithInsecure())
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"Failed to connect: %v"</span>, err)
+	}
+	<span class="tok-kw">defer</span> conn.Close()
+
+	client := pb.NewTodoServiceClient(conn)
+	ctx := context.Background()
+
+	<span class="tok-com">// Create a todo</span>
+	todo, err := client.CreateTodo(ctx, &amp;pb.CreateTodoRequest{
+		Title: <span class="tok-str">"Learn gRPC"</span>,
+	})
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"CreateTodo failed: %v"</span>, err)
+	}
+	log.Printf(<span class="tok-str">"Created: %v"</span>, todo)
+
+	<span class="tok-com">// Get all todos</span>
+	list, err := client.GetTodos(ctx, &amp;pb.GetTodosRequest{})
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"GetTodos failed: %v"</span>, err)
+	}
+	log.Printf(<span class="tok-str">"Todos: %v"</span>, list.Todos)
+}</code></pre>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="streaming">Streaming</h2>
+
+    <div class="viz" data-viz="streaming">
+      <div class="viz-stage">
+        <div style="display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap; margin-bottom:1rem;">
+          <button class="btn btn-sm" data-stream-type="server">Server Streaming</button>
+          <button class="btn btn-sm" data-stream-type="client">Client Streaming</button>
+          <button class="btn btn-sm" data-stream-type="bidirectional">Bidirectional</button>
+        </div>
+        <div data-role="visualization" style="display:flex; gap:1.5rem; justify-content:center; align-items:center; flex-wrap:wrap; min-height:60px;">
+          <div class="recon-box" style="min-width:120px; text-align:center;">
+            <div class="recon-box-title">Client</div>
+          </div>
+          <div style="font-size:1.4rem; color:var(--text-dim);">&#8644;</div>
+          <div class="recon-box" style="min-width:120px; text-align:center;">
+            <div class="recon-box-title">Server</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz-caption" data-role="caption">Select a streaming type to see how messages flow.</div>
+    </div>
+    <p>
+      gRPC supports four types of streaming: unary (request-response), server streaming,
+      client streaming, and bidirectional streaming. Streaming is useful for large datasets
+      or real-time updates.
+    </p>
+
+    <div class="code-panel">
+      <div class="code-panel-head"><span class="code-panel-title">streaming_client.go</span></div>
+      <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"log"</span>
+	pb <span class="tok-str">"github.com/example/todo-grpc/pb"</span>
+)
+
+<span class="tok-com">// Server streaming: receive multiple responses</span>
+<span class="tok-kw">func</span> streamTodos(client pb.TodoServiceClient) {
+	stream, err := client.StreamTodos(context.Background(), &amp;pb.GetTodosRequest{})
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"StreamTodos failed: %v"</span>, err)
+	}
+
+	<span class="tok-kw">for</span> {
+		todo, err := stream.Recv()
+		<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+			<span class="tok-kw">break</span> <span class="tok-com">// stream ended</span>
+		}
+		log.Printf(<span class="tok-str">"Received: %v"</span>, todo)
+	}
+}
+
+<span class="tok-com">// Client streaming: send multiple requests</span>
+<span class="tok-kw">func</span> createMultipleTodos(client pb.TodoServiceClient) {
+	stream, err := client.CreateMultipleTodos(context.Background())
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"CreateMultipleTodos failed: %v"</span>, err)
+	}
+
+	<span class="tok-kw">for</span> i := 0; i &lt; 3; i++ {
+		stream.Send(&amp;pb.CreateTodoRequest{
+			Title: <span class="tok-str">"Todo \"</span> + <span class="tok-type">string</span>(<span class="tok-type">rune</span>('A'+i)) + <span class="tok-str">"\"</span>,
+		})
+	}
+
+	list, err := stream.CloseAndRecv()
+	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+		log.Fatalf(<span class="tok-str">"CloseAndRecv failed: %v"</span>, err)
+	}
+	log.Printf(<span class="tok-str">"Created todos: %v"</span>, list.Todos)
+}</code></pre>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">When to use streaming</div>
+      <p>
+        <strong>Server streaming:</strong> Large result sets, real-time updates, log streaming.<br><br>
+        <strong>Client streaming:</strong> Bulk uploads, batch operations, log collection.<br><br>
+        <strong>Bidirectional streaming:</strong> Chat applications, collaborative editing, real-time synchronization.
+      </p>
+    </div>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="index.html">&larr; Back to the roadmap</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was verified against real Go tooling before publishing.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/grpc-api.js"></script>
+</body>
+</html>
