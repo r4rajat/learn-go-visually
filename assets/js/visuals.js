@@ -102,7 +102,10 @@ function initUnbufferedViz(root) {
     senderDot.classList.remove("waiting", "active");
     receiverDot.classList.remove("waiting", "active");
     packet.classList.remove("show");
+    packet.style.transition = "none";
     packet.style.left = "6%";
+    void packet.offsetWidth; // force reflow so transition is suppressed for the reset
+    packet.style.transition = "";
 
     if (step === 1) senderDot.classList.add("waiting");
     if (step === 2) {
@@ -140,6 +143,8 @@ function initBufferedViz(root) {
   var senderDot = root.querySelector(".queue-sender .hs-dot");
   var sendBtn = root.querySelector('[data-role="send"]');
   var recvBtn = root.querySelector('[data-role="receive"]');
+
+  if (!sendBtn || !recvBtn) return;
 
   function render() {
     slots.forEach(function (slot, i) {

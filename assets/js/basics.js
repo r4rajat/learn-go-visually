@@ -128,12 +128,12 @@ function initScopeShadowViz(root) {
         'The <code>:=</code> in the inner scope creates a <strong>new</strong> variable <code>x</code> ' +
         'instead of reassigning the outer one. The outer <code>x</code> keeps its original value.';
     } else {
-      outerX.textContent = 'x = 10';
+      outerX.textContent = 'x = 20';
       innerX.textContent = 'x = 20';
       outerX.className = 'scope-var-row ok';
       innerX.className = 'scope-var-row ok';
-      outerNote.textContent = 'x = 20 (correctly reassigned)';
-      innerNote.textContent = 'x = 20';
+      outerNote.textContent = 'outer x: 20 (correctly reassigned)';
+      innerNote.textContent = 'inner x: 20';
       btn.textContent = 'Show shadowing bug';
       caption.innerHTML =
         'With <code>=</code> instead of <code>:=</code>, the inner scope correctly reassigns the outer <code>x</code>.';
@@ -209,14 +209,19 @@ function initDeferStackViz(root) {
   function render() {
     for (var i = 0; i < frames.length; i++) {
       frames[i].className = 'defer-frame';
-      if (i < step - 3) {
-        frames[i].classList.add('show', 'done');
-      } else if (i === step - 4 && step > 3) {
-        frames[i].classList.add('show', 'executing');
-      } else if (i < 3 && step === i + 1) {
+      if (step <= 3) {
+        // Push phase: show frames that have been pushed so far
+        if (i < step) frames[i].classList.add('show');
+      } else {
+        // Pop phase: all 3 frames visible; pop order is LIFO (frame[2] first, frame[0] last)
+        // step=4 pops frame[2], step=5 pops frame[1], step=6 pops frame[0]
+        var popIdx = 3 - (step - 3); // step=4->2, step=5->1, step=6->0
         frames[i].classList.add('show');
-      } else if (i < 3 && step > i + 1 && step <= 3) {
-        frames[i].classList.add('show');
+        if (i > popIdx) {
+          frames[i].classList.add('done');
+        } else if (i === popIdx) {
+          frames[i].classList.add('executing');
+        }
       }
     }
     label.textContent = step <= 3
