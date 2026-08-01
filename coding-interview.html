@@ -63,7 +63,7 @@
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/vykygQeuqTa" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/eHzLlxEvxZM" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -76,12 +76,15 @@
 
 <span class="tok-kw">type</span> <span class="tok-type">List</span> <span class="tok-kw">struct</span> {
 	head *<span class="tok-type">Node</span>
+	<span class="tok-com">// tracking tail separately makes InsertTail O(1); without it we'd have</span>
+	<span class="tok-com">// to walk the whole list on every append</span>
 	tail *<span class="tok-type">Node</span>
 }
 
 <span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) InsertHead(v <span class="tok-type">int</span>) {
 	n := &<span class="tok-type">Node</span>{val: v, next: l.head}
 	l.head = n
+	<span class="tok-com">// first node ever inserted is both head and tail</span>
 	<span class="tok-kw">if</span> l.tail == <span class="tok-kw">nil</span> {
 		l.tail = n
 	}
@@ -89,6 +92,8 @@
 
 <span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) InsertTail(v <span class="tok-type">int</span>) {
 	n := &<span class="tok-type">Node</span>{val: v}
+	<span class="tok-com">// empty list: head and tail both need to point at the new node,</span>
+	<span class="tok-com">// there's no existing tail to link from</span>
 	<span class="tok-kw">if</span> l.tail == <span class="tok-kw">nil</span> {
 		l.head = n
 		l.tail = n
@@ -99,15 +104,19 @@
 }
 
 <span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) Delete(v <span class="tok-type">int</span>) <span class="tok-type">bool</span> {
+	<span class="tok-com">// prev starts nil so deleting the head is just "no prev to relink"</span>
 	<span class="tok-kw">var</span> prev *<span class="tok-type">Node</span>
 	cur := l.head
 	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
 		<span class="tok-kw">if</span> cur.val == v {
 			<span class="tok-kw">if</span> prev == <span class="tok-kw">nil</span> {
+				<span class="tok-com">// deleting the head: no predecessor to relink, just advance head</span>
 				l.head = cur.next
 			} <span class="tok-kw">else</span> {
 				prev.next = cur.next
 			}
+			<span class="tok-com">// deleting the tail: tail must move back to the predecessor,</span>
+			<span class="tok-com">// otherwise tail would dangle on a node no longer reachable from head</span>
 			<span class="tok-kw">if</span> cur == l.tail {
 				l.tail = prev
 			}
@@ -160,7 +169,7 @@ After inserting tail 4: 1 -&gt; 3 -&gt; 4</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/lSssCtdeW8s" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/MvOf3dY3GdI" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -172,6 +181,8 @@ After inserting tail 4: 1 -&gt; 3 -&gt; 4</div>
 }
 
 <span class="tok-kw">func</span> build(vals []<span class="tok-type">int</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-com">// keep a tail pointer so appending stays O(1) instead of walking the</span>
+	<span class="tok-com">// whole list to find the end on every insert</span>
 	<span class="tok-kw">var</span> head, tail *<span class="tok-type">Node</span>
 	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> vals {
 		n := &<span class="tok-type">Node</span>{val: v}
@@ -187,14 +198,19 @@ After inserting tail 4: 1 -&gt; 3 -&gt; 4</div>
 }
 
 <span class="tok-kw">func</span> reverse(head *<span class="tok-type">Node</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-com">// prev trails cur by one step; once cur passes a node, prev is the</span>
+	<span class="tok-com">// only link back to it, so nothing is lost even though we're about</span>
+	<span class="tok-com">// to overwrite that node's forward pointer</span>
 	<span class="tok-kw">var</span> prev *<span class="tok-type">Node</span>
 	cur := head
 	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
+		<span class="tok-com">// stash next before we clobber cur.next, or we'd lose the rest of the list</span>
 		next := cur.next
 		cur.next = prev
 		prev = cur
 		cur = next
 	}
+	<span class="tok-com">// when cur becomes nil, prev is sitting on the old tail, i.e. the new head</span>
 	<span class="tok-kw">return</span> prev
 }
 
@@ -216,6 +232,7 @@ After inserting tail 4: 1 -&gt; 3 -&gt; 4</div>
 	reversed := reverse(head)
 	fmt.Println(<span class="tok-str">"Reversed:"</span>, print(reversed))
 
+	<span class="tok-com">// a one-node list is its own reverse; exercises the loop running exactly once</span>
 	single := build([]<span class="tok-type">int</span>{42})
 	fmt.Println(<span class="tok-str">"Single node reversed:"</span>, print(reverse(single)))
 }</code></pre>
@@ -231,7 +248,7 @@ Single node reversed: 42</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/PuUGeOtZEEA" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/E-rSg559r0U" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -243,7 +260,12 @@ Single node reversed: 42</div>
 }
 
 <span class="tok-kw">func</span> hasCycle(head *<span class="tok-type">Node</span>) <span class="tok-type">bool</span> {
+	<span class="tok-com">// Floyd's tortoise and hare: fast moves twice as fast as slow. If there's</span>
+	<span class="tok-com">// a cycle, fast eventually laps slow inside the loop and they collide; if</span>
+	<span class="tok-com">// the list is acyclic, fast simply runs off the end first</span>
 	slow, fast := head, head
+	<span class="tok-com">// checking fast and fast.next (not just fast) lets fast.next.next below</span>
+	<span class="tok-com">// run safely without a nil dereference</span>
 	<span class="tok-kw">for</span> fast != <span class="tok-kw">nil</span> &amp;&amp; fast.next != <span class="tok-kw">nil</span> {
 		slow = slow.next
 		fast = fast.next.next
@@ -266,12 +288,14 @@ Single node reversed: 42</div>
 	n4.next = n2
 	fmt.Println(<span class="tok-str">"List with cycle (4 -&gt; 2), hasCycle:"</span>, hasCycle(n1))
 
-	<span class="tok-com">// Single node pointing to itself</span>
+	<span class="tok-com">// Single node pointing to itself: a cycle of length 1, so slow and fast</span>
+	<span class="tok-com">// collide on the very first step of the loop</span>
 	self := &<span class="tok-type">Node</span>{val: 99}
 	self.next = self
 	fmt.Println(<span class="tok-str">"Single self-looping node, hasCycle:"</span>, hasCycle(self))
 
-	<span class="tok-com">// Empty list</span>
+	<span class="tok-com">// Empty list: head is nil, so the loop condition fails immediately</span>
+	<span class="tok-com">// rather than needing a special-case check</span>
 	fmt.Println(<span class="tok-str">"Empty list, hasCycle:"</span>, hasCycle(<span class="tok-kw">nil</span>))
 }</code></pre>
     <div class="code-output show">List without cycle, hasCycle: false
@@ -287,7 +311,7 @@ Empty list, hasCycle: false</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/jIA3Ycd8AWq" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/zwV4B23hAU3" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -299,6 +323,7 @@ Empty list, hasCycle: false</div>
 }
 
 <span class="tok-kw">func</span> build(vals []<span class="tok-type">int</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-com">// tail pointer avoids re-walking the list to find the append point</span>
 	<span class="tok-kw">var</span> head, tail *<span class="tok-type">Node</span>
 	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> vals {
 		n := &<span class="tok-type">Node</span>{val: v}
@@ -314,11 +339,16 @@ Empty list, hasCycle: false</div>
 }
 
 <span class="tok-kw">func</span> middle(head *<span class="tok-type">Node</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-com">// fast covers two nodes for every one slow covers, so when fast runs</span>
+	<span class="tok-com">// out of list, slow has covered exactly half the distance -- one pass,</span>
+	<span class="tok-com">// no need to count the length first</span>
 	slow, fast := head, head
 	<span class="tok-kw">for</span> fast != <span class="tok-kw">nil</span> &amp;&amp; fast.next != <span class="tok-kw">nil</span> {
 		slow = slow.next
 		fast = fast.next.next
 	}
+	<span class="tok-com">// for even-length lists fast runs out one step early, leaving slow on</span>
+	<span class="tok-com">// the second (upper) of the two middle nodes</span>
 	<span class="tok-kw">return</span> slow
 }
 
@@ -348,7 +378,7 @@ Two nodes [10,20], middle: 20</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/J4mmHvchz0T" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/tAf8iR60suS" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -357,20 +387,27 @@ Two nodes [10,20], middle: 20</div>
 	<span class="tok-str">"fmt"</span>
 )
 
+<span class="tok-com">// a slice already grows from one end in amortized O(1), which is exactly</span>
+<span class="tok-com">// the shape a stack needs -- no separate node/pointer bookkeeping required</span>
 <span class="tok-kw">type</span> <span class="tok-type">Stack</span> <span class="tok-kw">struct</span> {
 	items []<span class="tok-type">int</span>
 }
 
 <span class="tok-kw">func</span> (s *<span class="tok-type">Stack</span>) Push(v <span class="tok-type">int</span>) {
+	<span class="tok-com">// the end of the slice is the top of the stack</span>
 	s.items = append(s.items, v)
 }
 
 <span class="tok-kw">func</span> (s *<span class="tok-type">Stack</span>) Pop() (<span class="tok-type">int</span>, <span class="tok-type">error</span>) {
+	<span class="tok-com">// return an error instead of panicking so callers can decide how to</span>
+	<span class="tok-com">// handle "nothing to pop" rather than crashing the program</span>
 	<span class="tok-kw">if</span> s.IsEmpty() {
 		<span class="tok-kw">return</span> 0, errors.New(<span class="tok-str">"stack is empty"</span>)
 	}
 	n := len(s.items) - 1
 	v := s.items[n]
+	<span class="tok-com">// re-slicing to drop the last element reuses the backing array --</span>
+	<span class="tok-com">// no allocation, the old last element just becomes unreachable</span>
 	s.items = s.items[:n]
 	<span class="tok-kw">return</span> v, <span class="tok-kw">nil</span>
 }
@@ -427,7 +464,7 @@ Pop on empty, error: stack is empty</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/8om27VYlwkV" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/KaXpbofWN_W" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -441,6 +478,8 @@ Pop on empty, error: stack is empty</div>
 }
 
 <span class="tok-kw">func</span> (q *<span class="tok-type">Queue</span>) Enqueue(v <span class="tok-type">int</span>) {
+	<span class="tok-com">// new items always join at the back; combined with Dequeue reading</span>
+	<span class="tok-com">// from index 0, this is what gives FIFO order (vs. a stack's LIFO)</span>
 	q.items = append(q.items, v)
 }
 
@@ -449,6 +488,11 @@ Pop on empty, error: stack is empty</div>
 		<span class="tok-kw">return</span> 0, errors.New(<span class="tok-str">"queue is empty"</span>)
 	}
 	v := q.items[0]
+	<span class="tok-com">// re-slicing off the front is simple and correct, but note it just</span>
+	<span class="tok-com">// advances the slice's start pointer -- the backing array still holds</span>
+	<span class="tok-com">// the dequeued elements until the whole array is garbage collected, so</span>
+	<span class="tok-com">// a long-lived, high-churn queue would want a ring buffer instead</span>
+	<span class="tok-com">// (see the circular buffer example)</span>
 	q.items = q.items[1:]
 	<span class="tok-kw">return</span> v, <span class="tok-kw">nil</span>
 }
@@ -505,7 +549,7 @@ Dequeue on empty, error: queue is empty</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/1mcA9auroUE" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/QO3LtvLjGtR" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -517,6 +561,8 @@ Dequeue on empty, error: queue is empty</div>
 	q2 []<span class="tok-type">int</span>
 }
 
+<span class="tok-com">// dequeue pops the front element by reslicing past index 0 (no shifting</span>
+<span class="tok-com">// or copying of the remaining elements).</span>
 <span class="tok-kw">func</span> dequeue(q *[]<span class="tok-type">int</span>) <span class="tok-type">int</span> {
 	v := (*q)[0]
 	*q = (*q)[1:]
@@ -533,6 +579,8 @@ Dequeue on empty, error: queue is empty</div>
 	s.q1, s.q2 = s.q2, s.q1
 }
 
+<span class="tok-com">// Pop is O(1) because all the reordering work happened in Push: q1 is</span>
+<span class="tok-com">// always kept with the most-recently-pushed item at the front.</span>
 <span class="tok-kw">func</span> (s *<span class="tok-type">StackTwoQueues</span>) Pop() <span class="tok-type">int</span> {
 	<span class="tok-kw">return</span> dequeue(&s.q1)
 }
@@ -570,7 +618,7 @@ IsEmpty: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/hcWgf5ewnDY" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/xJlNYtFODFv" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -582,6 +630,8 @@ IsEmpty: true</div>
 	out []<span class="tok-type">int</span>
 }
 
+<span class="tok-com">// Enqueue is always O(1): new items just pile onto in, in reverse-of-</span>
+<span class="tok-com">// dequeue order, and get flipped into out lazily by shift.</span>
 <span class="tok-kw">func</span> (q *<span class="tok-type">QueueTwoStacks</span>) Enqueue(v <span class="tok-type">int</span>) {
 	q.in = append(q.in, v)
 }
@@ -598,6 +648,9 @@ IsEmpty: true</div>
 	}
 }
 
+<span class="tok-com">// Dequeue only pays the O(n) shift cost once per batch of enqueues;</span>
+<span class="tok-com">// each element is moved from in to out exactly once over its lifetime,</span>
+<span class="tok-com">// so the amortized cost per operation is still O(1).</span>
 <span class="tok-kw">func</span> (q *<span class="tok-type">QueueTwoStacks</span>) Dequeue() <span class="tok-type">int</span> {
 	q.shift()
 	n := len(q.out) - 1
@@ -639,7 +692,7 @@ IsEmpty: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/v8NOOSHa8__r" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/K-ZGFGr6AO4" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -656,28 +709,39 @@ IsEmpty: true</div>
 	tail *<span class="tok-type">DNode</span>
 }
 
+<span class="tok-com">// PushBack wires n.prev up front (from the current tail) so the two</span>
+<span class="tok-com">// pointer updates below only ever have to look one direction: forward</span>
+<span class="tok-com">// from the old tail, or straight into head/tail if the list was empty.</span>
 <span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) PushBack(v <span class="tok-type">int</span>) *<span class="tok-type">DNode</span> {
 	n := &<span class="tok-type">DNode</span>{val: v, prev: l.tail}
 	<span class="tok-kw">if</span> l.tail != <span class="tok-kw">nil</span> {
 		l.tail.next = n
 	} <span class="tok-kw">else</span> {
+		<span class="tok-com">// list was empty: n is both the first and last node</span>
 		l.head = n
 	}
 	l.tail = n
 	<span class="tok-kw">return</span> n
 }
 
+<span class="tok-com">// PushFront is PushBack's mirror image: n.next is set from the old</span>
+<span class="tok-com">// head instead of n.prev from the old tail.</span>
 <span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) PushFront(v <span class="tok-type">int</span>) *<span class="tok-type">DNode</span> {
 	n := &<span class="tok-type">DNode</span>{val: v, next: l.head}
 	<span class="tok-kw">if</span> l.head != <span class="tok-kw">nil</span> {
 		l.head.prev = n
 	} <span class="tok-kw">else</span> {
+		<span class="tok-com">// list was empty: n is both the first and last node</span>
 		l.tail = n
 	}
 	l.head = n
 	<span class="tok-kw">return</span> n
 }
 
+<span class="tok-com">// Remove is O(1) given a node pointer, unlike a singly linked list where</span>
+<span class="tok-com">// you'd need to walk from head to find the predecessor first. Each side</span>
+<span class="tok-com">// is patched independently: if n has no prev/next, it was the head/tail,</span>
+<span class="tok-com">// so the list's head/tail pointer moves instead of a neighbor's link.</span>
 <span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) Remove(n *<span class="tok-type">DNode</span>) {
 	<span class="tok-kw">if</span> n.prev != <span class="tok-kw">nil</span> {
 		n.prev.next = n.next
@@ -702,6 +766,9 @@ IsEmpty: true</div>
 	<span class="tok-kw">return</span> s
 }
 
+<span class="tok-com">// Backward walks via prev pointers instead of next - the whole reason</span>
+<span class="tok-com">// to pay for a second pointer per node is to support this in O(n) instead</span>
+<span class="tok-com">// of needing to reverse or re-walk from head each time.</span>
 <span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) Backward() <span class="tok-type">string</span> {
 	s := <span class="tok-str">""</span>
 	<span class="tok-kw">for</span> cur := l.tail; cur != <span class="tok-kw">nil</span>; cur = cur.prev {
@@ -741,7 +808,7 @@ Backward: 4 &lt;-&gt; 3 &lt;-&gt; 2</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/_XuSaHSPtI_2" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/5URp8SgKH8O" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -761,6 +828,11 @@ Backward: 4 &lt;-&gt; 3 &lt;-&gt; 2</div>
 	t.root = insertNode(t.root, v)
 }
 
+<span class="tok-com">// insertNode returns the (possibly new) subtree root so each caller on</span>
+<span class="tok-com">// the way back up can rewire its left/right pointer - this is what lets</span>
+<span class="tok-com">// a brand-new leaf get attached without the caller needing a nil check</span>
+<span class="tok-com">// of its own. Equal values are silently dropped (no else branch), so the</span>
+<span class="tok-com">// tree only ever holds one node per distinct key.</span>
 <span class="tok-kw">func</span> insertNode(n *<span class="tok-type">TreeNode</span>, v <span class="tok-type">int</span>) *<span class="tok-type">TreeNode</span> {
 	<span class="tok-kw">if</span> n == <span class="tok-kw">nil</span> {
 		<span class="tok-kw">return</span> &<span class="tok-type">TreeNode</span>{val: v}
@@ -773,6 +845,9 @@ Backward: 4 &lt;-&gt; 3 &lt;-&gt; 2</div>
 	<span class="tok-kw">return</span> n
 }
 
+<span class="tok-com">// Search follows the same left/right comparison as insertNode but can</span>
+<span class="tok-com">// be a plain loop instead of recursion: it never needs to rewire a</span>
+<span class="tok-com">// pointer on the way back up, only to answer yes/no.</span>
 <span class="tok-kw">func</span> (t *<span class="tok-type">BST</span>) Search(v <span class="tok-type">int</span>) <span class="tok-type">bool</span> {
 	cur := t.root
 	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
@@ -787,8 +862,12 @@ Backward: 4 &lt;-&gt; 3 &lt;-&gt; 2</div>
 	<span class="tok-kw">return</span> <span class="tok-kw">false</span>
 }
 
+<span class="tok-com">// InOrder visits left-subtree, node, right-subtree in that order, which</span>
+<span class="tok-com">// for a BST always produces keys in sorted order - that's the defining</span>
+<span class="tok-com">// property this traversal is used to demonstrate.</span>
 <span class="tok-kw">func</span> (t *<span class="tok-type">BST</span>) InOrder() []<span class="tok-type">int</span> {
 	<span class="tok-kw">var</span> result []<span class="tok-type">int</span>
+	<span class="tok-com">// declared separately so the closure can reference walk recursively</span>
 	<span class="tok-kw">var</span> walk <span class="tok-kw">func</span>(n *<span class="tok-type">TreeNode</span>)
 	walk = <span class="tok-kw">func</span>(n *<span class="tok-type">TreeNode</span>) {
 		<span class="tok-kw">if</span> n == <span class="tok-kw">nil</span> {
@@ -826,7 +905,7 @@ Search 13: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/CP5hBu7Xv0M" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Ip4ck1MLF7t" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -839,8 +918,15 @@ Search 13: true</div>
 <span class="tok-kw">type</span> <span class="tok-type">MinHeap</span> []<span class="tok-type">int</span>
 
 <span class="tok-kw">func</span> (h <span class="tok-type">MinHeap</span>) Len() <span class="tok-type">int</span>            { <span class="tok-kw">return</span> len(h) }
+<span class="tok-com">// Less is the only line that decides min-heap vs max-heap: reporting the</span>
+<span class="tok-com">// smaller element as "less" is what keeps the minimum at index 0.</span>
 <span class="tok-kw">func</span> (h <span class="tok-type">MinHeap</span>) Less(i, j <span class="tok-type">int</span>) <span class="tok-type">bool</span>  { <span class="tok-kw">return</span> h[i] &lt; h[j] }
 <span class="tok-kw">func</span> (h <span class="tok-type">MinHeap</span>) Swap(i, j <span class="tok-type">int</span>)       { h[i], h[j] = h[j], h[i] }
+<span class="tok-com">// Push/Pop only manage the backing slice's length; they are never called</span>
+<span class="tok-com">// directly. Package heap wraps them: heap.Push appends here then sifts</span>
+<span class="tok-com">// the new element up, and heap.Pop swaps the root to the last slot and</span>
+<span class="tok-com">// sifts down before calling this Pop - which is why it's always safe to</span>
+<span class="tok-com">// take the element off the end rather than off the front.</span>
 <span class="tok-kw">func</span> (h *<span class="tok-type">MinHeap</span>) Push(x <span class="tok-kw">interface</span>{}) { *h = append(*h, x.(<span class="tok-type">int</span>)) }
 <span class="tok-kw">func</span> (h *<span class="tok-type">MinHeap</span>) Pop() <span class="tok-kw">interface</span>{} {
 	old := *h
@@ -881,7 +967,7 @@ Min after two pushes: 10</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/TGrJg3SGqZj" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/MgJ8CiSB6pu" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -905,6 +991,8 @@ Min after two pushes: 10</div>
 	<span class="tok-kw">return</span> &<span class="tok-type">LRUCache</span>{capacity: capacity, items: <span class="tok-kw">make</span>(<span class="tok-kw">map</span>[<span class="tok-type">int</span>]*<span class="tok-type">lruNode</span>)}
 }
 
+<span class="tok-com">// remove unlinks n from the list in O(1) - no need to search for it,</span>
+<span class="tok-com">// since the map already gave us the node pointer directly.</span>
 <span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) remove(n *<span class="tok-type">lruNode</span>) {
 	<span class="tok-kw">if</span> n.prev != <span class="tok-kw">nil</span> {
 		n.prev.next = n.next
@@ -919,6 +1007,9 @@ Min after two pushes: 10</div>
 	n.prev, n.next = <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
 }
 
+<span class="tok-com">// pushFront marks n as the most-recently-used entry by making it the</span>
+<span class="tok-com">// new head. remove+pushFront together are how both Get and Put "touch"</span>
+<span class="tok-com">// a key without duplicating the splice logic.</span>
 <span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) pushFront(n *<span class="tok-type">lruNode</span>) {
 	n.next = c.head
 	n.prev = <span class="tok-kw">nil</span>
@@ -931,6 +1022,8 @@ Min after two pushes: 10</div>
 	}
 }
 
+<span class="tok-com">// Get is itself a "write": a successful read counts as a use, so the</span>
+<span class="tok-com">// node has to move to the front or it would look stale next eviction.</span>
 <span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) Get(key <span class="tok-type">int</span>) (<span class="tok-type">int</span>, <span class="tok-type">bool</span>) {
 	n, ok := c.items[key]
 	<span class="tok-kw">if</span> !ok {
@@ -942,12 +1035,16 @@ Min after two pushes: 10</div>
 }
 
 <span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) Put(key, val <span class="tok-type">int</span>) {
+	<span class="tok-com">// key already present: overwrite in place and just re-touch it -</span>
+	<span class="tok-com">// no eviction check needed since the map size isn't growing.</span>
 	<span class="tok-kw">if</span> n, ok := c.items[key]; ok {
 		n.val = val
 		c.remove(n)
 		c.pushFront(n)
 		<span class="tok-kw">return</span>
 	}
+	<span class="tok-com">// only a genuinely new key can push us over capacity, and c.tail is</span>
+	<span class="tok-com">// by construction the least-recently-used node - the one to evict.</span>
 	<span class="tok-kw">if</span> len(c.items) &gt;= c.capacity {
 		lru := c.tail
 		c.remove(lru)
@@ -992,7 +1089,7 @@ Get(4): 400 true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/REIIjMTyD9D" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Me6HQwcbIvO" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1009,6 +1106,7 @@ Get(4): 400 true</div>
 
 <span class="tok-kw">func</span> (l *<span class="tok-type">dlist</span>) pushBack(v <span class="tok-type">int</span>) {
 	n := &<span class="tok-type">dnode</span>{val: v}
+	<span class="tok-com">// empty list is a special case: head and tail both point at the sole node</span>
 	<span class="tok-kw">if</span> l.head == <span class="tok-kw">nil</span> {
 		l.head, l.tail = n, n
 		<span class="tok-kw">return</span>
@@ -1018,12 +1116,17 @@ Get(4): 400 true</div>
 	l.tail = n
 }
 
+<span class="tok-com">// a doubly linked list reverses in O(n) with no new nodes: every node already</span>
+<span class="tok-com">// holds both neighbors, so reversing just means swapping each node's prev/next,</span>
+<span class="tok-com">// then swapping which end of the list is called head vs tail.</span>
 <span class="tok-kw">func</span> (l *<span class="tok-type">dlist</span>) reverse() {
 	cur := l.head
+	<span class="tok-com">// flip the list's own head/tail pointers first, before touching individual nodes</span>
 	l.head, l.tail = l.tail, l.head
 	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
+		<span class="tok-com">// swap this node's own prev/next so traversal direction inverts locally</span>
 		cur.prev, cur.next = cur.next, cur.prev
-		cur = cur.prev <span class="tok-com">// prev is now the old next</span>
+		cur = cur.prev <span class="tok-com">// after the swap, .prev holds the old .next, so this still walks forward</span>
 	}
 }
 
@@ -1065,7 +1168,7 @@ backward from tail: [1 2 3 4 5]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/vzYaqyDFFgh" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/XeYaa45_Wh_R" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1076,10 +1179,15 @@ backward from tail: [1 2 3 4 5]</div>
 	next *<span class="tok-type">node</span>
 }
 
+<span class="tok-com">// a dummy head node sidesteps the need to special-case "which list starts the</span>
+<span class="tok-com">// result": we always have a node to hang tail.next off of, even before the</span>
+<span class="tok-com">// first real element is chosen.</span>
 <span class="tok-kw">func</span> mergeSorted(a, b *<span class="tok-type">node</span>) *<span class="tok-type">node</span> {
 	dummy := &<span class="tok-type">node</span>{}
 	tail := dummy
 	<span class="tok-kw">for</span> a != <span class="tok-kw">nil</span> && b != <span class="tok-kw">nil</span> {
+		<span class="tok-com">// splice the smaller node in directly and reuse it, rather than allocating</span>
+		<span class="tok-com">// a new node and copying the value, so the merge is O(1) extra space</span>
 		<span class="tok-kw">if</span> a.val &lt;= b.val {
 			tail.next = a
 			a = a.next
@@ -1089,12 +1197,14 @@ backward from tail: [1 2 3 4 5]</div>
 		}
 		tail = tail.next
 	}
+	<span class="tok-com">// one list is exhausted, but the other is still sorted, so its remaining</span>
+	<span class="tok-com">// tail can be attached in one shot instead of walking it node by node</span>
 	<span class="tok-kw">if</span> a != <span class="tok-kw">nil</span> {
 		tail.next = a
 	} <span class="tok-kw">else</span> {
 		tail.next = b
 	}
-	<span class="tok-kw">return</span> dummy.next
+	<span class="tok-kw">return</span> dummy.next <span class="tok-com">// skip past the dummy to return the real head</span>
 }
 
 <span class="tok-kw">func</span> build(vals []<span class="tok-type">int</span>) *<span class="tok-type">node</span> {
@@ -1135,7 +1245,7 @@ merged:  [1 2 3 4 5 6 7 8 10]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/bxdK6Fv5njX" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/T0xpq-oNfPN" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1167,16 +1277,21 @@ merged:  [1 2 3 4 5 6 7 8 10]</div>
 <span class="tok-com">// removeNthFromEnd deletes the nth node counting from the end (1-indexed)</span>
 <span class="tok-com">// using two pointers separated by n steps, in a single pass.</span>
 <span class="tok-kw">func</span> removeNthFromEnd(head *<span class="tok-type">node</span>, n <span class="tok-type">int</span>) *<span class="tok-type">node</span> {
+	<span class="tok-com">// dummy precedes head so slow can end up pointing at the node *before* the</span>
+	<span class="tok-com">// one to remove even when that's the real head itself (n == length)</span>
 	dummy := &<span class="tok-type">node</span>{next: head}
 	fast, slow := dummy, dummy
+	<span class="tok-com">// walk fast n steps ahead first, so the gap between fast and slow is fixed at n</span>
 	<span class="tok-kw">for</span> i := 0; i &lt; n; i++ {
 		fast = fast.next
 	}
+	<span class="tok-com">// advance both until fast falls off the end; slow is then exactly n nodes</span>
+	<span class="tok-com">// behind, i.e. sitting right before the node to delete</span>
 	<span class="tok-kw">for</span> fast.next != <span class="tok-kw">nil</span> {
 		fast = fast.next
 		slow = slow.next
 	}
-	slow.next = slow.next.next
+	slow.next = slow.next.next <span class="tok-com">// unlink the target node</span>
 	<span class="tok-kw">return</span> dummy.next
 }
 
@@ -1206,15 +1321,18 @@ remove head (3rd from end of 3): [2 3]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/LNrhbQWQg6j" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/OiFEnpsPNBT" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
 <span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
 
+<span class="tok-com">// a fixed-size array indexed by letter is a common trie shortcut when the</span>
+<span class="tok-com">// alphabet is known and small (lowercase a-z); a map[rune]*trieNode would be</span>
+<span class="tok-com">// needed for arbitrary characters, at the cost of extra allocation per node</span>
 <span class="tok-kw">type</span> <span class="tok-type">trieNode</span> <span class="tok-kw">struct</span> {
 	children [26]*<span class="tok-type">trieNode</span>
-	isEnd    <span class="tok-type">bool</span>
+	isEnd    <span class="tok-type">bool</span> <span class="tok-com">// marks "a real word ends here", distinct from "a prefix passes through here"</span>
 }
 
 <span class="tok-kw">type</span> <span class="tok-type">trie</span> <span class="tok-kw">struct</span> {
@@ -1228,21 +1346,24 @@ remove head (3rd from end of 3): [2 3]</div>
 <span class="tok-kw">func</span> (t *<span class="tok-type">trie</span>) Insert(word <span class="tok-type">string</span>) {
 	cur := t.root
 	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> word {
-		i := c - <span class="tok-str">'a'</span>
+		i := c - <span class="tok-str">'a'</span> <span class="tok-com">// map the letter directly to its slot in the 26-wide array</span>
 		<span class="tok-kw">if</span> cur.children[i] == <span class="tok-kw">nil</span> {
-			cur.children[i] = &<span class="tok-type">trieNode</span>{}
+			cur.children[i] = &<span class="tok-type">trieNode</span>{} <span class="tok-com">// lazily create nodes only for paths that are actually used</span>
 		}
 		cur = cur.children[i]
 	}
-	cur.isEnd = <span class="tok-kw">true</span>
+	cur.isEnd = <span class="tok-kw">true</span> <span class="tok-com">// only the final letter's node is flagged as a complete word</span>
 }
 
+<span class="tok-com">// find walks as far down the shared prefix path as the string allows, and is</span>
+<span class="tok-com">// shared by both Search and StartsWith since they differ only in what they</span>
+<span class="tok-com">// check once they reach the end of the path (isEnd vs simply existing)</span>
 <span class="tok-kw">func</span> (t *<span class="tok-type">trie</span>) find(word <span class="tok-type">string</span>) *<span class="tok-type">trieNode</span> {
 	cur := t.root
 	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> word {
 		i := c - <span class="tok-str">'a'</span>
 		<span class="tok-kw">if</span> cur.children[i] == <span class="tok-kw">nil</span> {
-			<span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+			<span class="tok-kw">return</span> <span class="tok-kw">nil</span> <span class="tok-com">// path breaks partway through: neither a word nor a prefix exists</span>
 		}
 		cur = cur.children[i]
 	}
@@ -1251,11 +1372,13 @@ remove head (3rd from end of 3): [2 3]</div>
 
 <span class="tok-kw">func</span> (t *<span class="tok-type">trie</span>) Search(word <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
 	n := t.find(word)
+	<span class="tok-com">// reaching the node isn't enough on its own: "gop" reaches a real node in</span>
+	<span class="tok-com">// this trie (via "gopher") but was never inserted as its own word</span>
 	<span class="tok-kw">return</span> n != <span class="tok-kw">nil</span> && n.isEnd
 }
 
 <span class="tok-kw">func</span> (t *<span class="tok-type">trie</span>) StartsWith(prefix <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
-	<span class="tok-kw">return</span> t.find(prefix) != <span class="tok-kw">nil</span>
+	<span class="tok-kw">return</span> t.find(prefix) != <span class="tok-kw">nil</span> <span class="tok-com">// merely existing on the path is enough, isEnd is irrelevant here</span>
 }
 
 <span class="tok-kw">func</span> main() {
@@ -1289,7 +1412,7 @@ Search(channel): true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/6tmvqQ2MVBv" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/34SXasKY2rx" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1303,22 +1426,29 @@ Search(channel): true</div>
 	<span class="tok-kw">return</span> &<span class="tok-type">graph</span>{adj: <span class="tok-kw">make</span>(<span class="tok-kw">map</span>[<span class="tok-type">string</span>][]<span class="tok-type">string</span>)}
 }
 
+<span class="tok-com">// undirected graph: every edge is recorded on both endpoints' adjacency lists</span>
 <span class="tok-kw">func</span> (g *<span class="tok-type">graph</span>) addEdge(u, v <span class="tok-type">string</span>) {
 	g.adj[u] = append(g.adj[u], v)
 	g.adj[v] = append(g.adj[v], u)
 }
 
 <span class="tok-kw">func</span> (g *<span class="tok-type">graph</span>) bfs(start <span class="tok-type">string</span>) []<span class="tok-type">string</span> {
+	<span class="tok-com">// start is marked visited immediately (not when dequeued) so it can never</span>
+	<span class="tok-com">// be queued a second time by another node that also points to it</span>
 	visited := <span class="tok-kw">map</span>[<span class="tok-type">string</span>]<span class="tok-type">bool</span>{start: <span class="tok-kw">true</span>}
 	queue := []<span class="tok-type">string</span>{start}
 	<span class="tok-kw">var</span> order []<span class="tok-type">string</span>
 
 	<span class="tok-kw">for</span> len(queue) &gt; 0 {
+		<span class="tok-com">// FIFO queue is what makes this breadth-first: all nodes at the current</span>
+		<span class="tok-com">// distance are visited before any node one hop further out</span>
 		node := queue[0]
 		queue = queue[1:]
 		order = append(order, node)
 
 		<span class="tok-kw">for</span> _, next := <span class="tok-kw">range</span> g.adj[node] {
+			<span class="tok-com">// mark visited at discovery time, not dequeue time, so the same</span>
+			<span class="tok-com">// neighbor reached via two different paths is only queued once</span>
 			<span class="tok-kw">if</span> !visited[next] {
 				visited[next] = <span class="tok-kw">true</span>
 				queue = append(queue, next)
@@ -1352,7 +1482,7 @@ BFS from E: [E D F B C A]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/8cdLg_LChBC" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/KMrXB-Zf4he" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1371,7 +1501,10 @@ BFS from E: [E D F B C A]</div>
 	g.adj[v] = append(g.adj[v], u)
 }
 
-<span class="tok-com">// dfs performs an iterative depth-first traversal using an explicit stack.</span>
+<span class="tok-com">// dfs performs an iterative depth-first traversal using an explicit stack:</span>
+<span class="tok-com">// swapping bfs's queue for a LIFO stack is the only structural change needed</span>
+<span class="tok-com">// to turn breadth-first into depth-first, since it's the pop order that</span>
+<span class="tok-com">// decides whether we fan out sideways or plunge down one path first.</span>
 <span class="tok-kw">func</span> (g *<span class="tok-type">graph</span>) dfs(start <span class="tok-type">string</span>) []<span class="tok-type">string</span> {
 	visited := <span class="tok-kw">map</span>[<span class="tok-type">string</span>]<span class="tok-type">bool</span>{}
 	stack := []<span class="tok-type">string</span>{start}
@@ -1381,6 +1514,9 @@ BFS from E: [E D F B C A]</div>
 		node := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 
+		<span class="tok-com">// unlike the BFS version, duplicates can still be pushed onto the stack</span>
+		<span class="tok-com">// before being marked visited, so the check has to happen here on pop,</span>
+		<span class="tok-com">// not at push time, and repeats are just skipped rather than prevented</span>
 		<span class="tok-kw">if</span> visited[node] {
 			<span class="tok-kw">continue</span>
 		}
@@ -1388,6 +1524,8 @@ BFS from E: [E D F B C A]</div>
 		order = append(order, node)
 
 		neighbors := g.adj[node]
+		<span class="tok-com">// push neighbors in reverse order so that, since a stack pops last-in-</span>
+		<span class="tok-com">// first-out, they still get visited in their original left-to-right order</span>
 		<span class="tok-kw">for</span> i := len(neighbors) - 1; i &gt;= 0; i-- {
 			<span class="tok-kw">if</span> !visited[neighbors[i]] {
 				stack = append(stack, neighbors[i])
@@ -1421,7 +1559,7 @@ DFS from E: [E D B A C F]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/OmMkMx40eaA" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/k5FSaS05f7w" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1441,6 +1579,8 @@ DFS from E: [E D B A C F]</div>
 	lh := height(n.left, balanced)
 	rh := height(n.right, balanced)
 	diff := lh - rh
+	<span class="tok-com">// AVL-style balance invariant: sibling subtree heights may differ</span>
+	<span class="tok-com">// by at most 1, at every node, not just at the root.</span>
 	<span class="tok-kw">if</span> diff &lt; -1 || diff &gt; 1 {
 		*balanced = <span class="tok-kw">false</span>
 	}
@@ -1487,7 +1627,7 @@ nil tree isBalanced: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/gSjA8YzxvsP" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/QHZc0iO2UmN" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1508,9 +1648,16 @@ nil tree isBalanced: true</div>
 	queue := []*<span class="tok-type">tnode</span>{root}
 
 	<span class="tok-kw">for</span> len(queue) &gt; 0 {
+		<span class="tok-com">// Snapshot the queue length *before* enqueuing this level's</span>
+		<span class="tok-com">// children: children get pushed onto the same queue, so without</span>
+		<span class="tok-com">// freezing size up front the inner loop would drift into the</span>
+		<span class="tok-com">// next level instead of stopping at the current one.</span>
 		size := len(queue)
 		level := <span class="tok-kw">make</span>([]<span class="tok-type">int</span>, 0, size)
 		<span class="tok-kw">for</span> i := 0; i &lt; size; i++ {
+			<span class="tok-com">// Dequeue from the front (FIFO) so nodes are visited in the</span>
+			<span class="tok-com">// order they were discovered, which is what gives BFS its</span>
+			<span class="tok-com">// level-by-level shape.</span>
 			n := queue[0]
 			queue = queue[1:]
 			level = append(level, n.val)
@@ -1548,7 +1695,7 @@ level 2: [4 5 6]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/ObTn1MN6Idg" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/J8yNxgMrHyo" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1566,6 +1713,9 @@ level 2: [4 5 6]</div>
 	<span class="tok-kw">if</span> v &lt; root.val {
 		root.left = insert(root.left, v)
 	} <span class="tok-kw">else</span> {
+		<span class="tok-com">// Duplicates fall through to the right subtree; this input</span>
+		<span class="tok-com">// has no repeats, so it doesn't matter here, but the ordering</span>
+		<span class="tok-com">// invariant the LCA search below relies on still holds either way.</span>
 		root.right = insert(root.right, v)
 	}
 	<span class="tok-kw">return</span> root
@@ -1582,6 +1732,9 @@ level 2: [4 5 6]</div>
 		<span class="tok-kw">case</span> p &gt; cur.val && q &gt; cur.val:
 			cur = cur.right
 		default:
+			<span class="tok-com">// p and q no longer agree on a side (one is &lt;= cur.val and</span>
+			<span class="tok-com">// the other is &gt;=), or cur itself equals one of them: this</span>
+			<span class="tok-com">// is the deepest node both still descend from, so it's the LCA.</span>
 			<span class="tok-kw">return</span> cur
 		}
 	}
@@ -1619,7 +1772,7 @@ LCA(13, 14): 14</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/YD_vV3zlzEt" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/duoqjQtXGXD" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1639,6 +1792,10 @@ LCA(13, 14): 14</div>
 }
 
 <span class="tok-kw">func</span> (r *<span class="tok-type">ringBuffer</span>) Push(v <span class="tok-type">int</span>) {
+	<span class="tok-com">// tail is derived from head+size (mod cap) instead of stored</span>
+	<span class="tok-com">// separately, and size is tracked explicitly rather than inferred</span>
+	<span class="tok-com">// from head==tail, because head==tail alone can't tell an empty</span>
+	<span class="tok-com">// buffer apart from a full one.</span>
 	tail := (r.head + r.size) % r.cap
 	r.data[tail] = v
 	<span class="tok-kw">if</span> r.size &lt; r.cap {
@@ -1699,7 +1856,7 @@ after pushing 5,6: [4 5 6]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/auSmqHWih9L" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/XcP7uXemDZB" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1722,7 +1879,10 @@ after pushing 5,6: [4 5 6]</div>
 
 <span class="tok-kw">func</span> (uf *<span class="tok-type">unionFind</span>) Find(x <span class="tok-type">int</span>) <span class="tok-type">int</span> {
 	<span class="tok-kw">if</span> uf.parent[x] != x {
-		uf.parent[x] = uf.Find(uf.parent[x]) <span class="tok-com">// path compression</span>
+		<span class="tok-com">// path compression: rewire x straight to the set's root as we</span>
+		<span class="tok-com">// unwind, so every future Find along this path is O(1) instead</span>
+		<span class="tok-com">// of re-walking the same chain</span>
+		uf.parent[x] = uf.Find(uf.parent[x])
 	}
 	<span class="tok-kw">return</span> uf.parent[x]
 }
@@ -1732,6 +1892,12 @@ after pushing 5,6: [4 5 6]</div>
 	<span class="tok-kw">if</span> ra == rb {
 		<span class="tok-kw">return</span> <span class="tok-kw">false</span>
 	}
+	<span class="tok-com">// Union by rank: always hang the shorter (or equal) tree under the</span>
+	<span class="tok-com">// taller one's root, so ra ends up the root either way. This keeps</span>
+	<span class="tok-com">// tree depth logarithmic instead of letting chains of unions build</span>
+	<span class="tok-com">// a long, slow-to-Find spine. Rank only grows when two trees of</span>
+	<span class="tok-com">// equal height merge, since that's the one case that increases the</span>
+	<span class="tok-com">// worst-case depth of the result.</span>
 	<span class="tok-kw">switch</span> {
 	<span class="tok-kw">case</span> uf.rank[ra] &lt; uf.rank[rb]:
 		ra, rb = rb, ra
@@ -1781,7 +1947,7 @@ distinct sets after merging 2-3: 3</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Q4C4T0KoXDA" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/KM9qMb70mNs" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1804,10 +1970,17 @@ distinct sets after merging 2-3: 3</div>
 	<span class="tok-kw">if</span> n.val &lt;= min || n.val &gt;= max {
 		<span class="tok-kw">return</span> <span class="tok-kw">false</span>
 	}
+	<span class="tok-com">// Left child inherits the same floor but its ceiling tightens to</span>
+	<span class="tok-com">// n.val; the right child inherits the same ceiling but its floor</span>
+	<span class="tok-com">// rises to n.val. That's how every deeper node stays constrained</span>
+	<span class="tok-com">// by every ancestor above it, not just its direct parent.</span>
 	<span class="tok-kw">return</span> isValidBST(n.left, min, n.val) && isValidBST(n.right, n.val, max)
 }
 
 <span class="tok-kw">func</span> validate(root *<span class="tok-type">tnode</span>) <span class="tok-type">bool</span> {
+	<span class="tok-com">// Root has no ancestors yet, so seed the range with the widest</span>
+	<span class="tok-com">// possible bounds instead of a sentinel like 0 that could collide</span>
+	<span class="tok-com">// with a real node value.</span>
 	<span class="tok-kw">return</span> isValidBST(root, math.MinInt, math.MaxInt)
 }
 
@@ -1854,7 +2027,7 @@ duplicate-value tree isValidBST: false</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/B4N5GHXBtD7" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/irDfA5dGjbH" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1865,27 +2038,39 @@ duplicate-value tree isValidBST: false</div>
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> n = 10
+	<span class="tok-com">// unbuffered: a send only completes once the other goroutine is ready to</span>
+	<span class="tok-com">// receive, so this channel works as a synchronous "baton" rather than a</span>
+	<span class="tok-com">// data pipe -- struct{}{} carries no payload because only the handoff</span>
+	<span class="tok-com">// itself matters</span>
 	ch := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 	wg.Add(2)
 
-	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// prints odd numbers</span>
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// prints odd numbers; holds the baton first since i starts at 1</span>
 		<span class="tok-kw">defer</span> wg.Done()
 		<span class="tok-kw">for</span> i := 1; i &lt;= n; i += 2 {
 			fmt.Println(i)
+			<span class="tok-com">// hand the baton to the even goroutine -- this blocks until it's</span>
+			<span class="tok-com">// received, which is what pins "odd printed" before "even printed"</span>
 			ch &lt;- <span class="tok-kw">struct</span>{}{}
 			<span class="tok-kw">if</span> i+2 &lt;= n {
+				<span class="tok-com">// only wait for the baton back if another odd number remains --</span>
+				<span class="tok-com">// on the last iteration the even goroutine has already sent its</span>
+				<span class="tok-com">// final number and exits without sending again, so receiving</span>
+				<span class="tok-com">// unconditionally here would deadlock</span>
 				&lt;-ch
 			}
 		}
 	}()
 
-	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// prints even numbers</span>
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// prints even numbers; always waits for the baton before printing</span>
 		<span class="tok-kw">defer</span> wg.Done()
 		<span class="tok-kw">for</span> i := 2; i &lt;= n; i += 2 {
 			&lt;-ch
 			fmt.Println(i)
 			<span class="tok-kw">if</span> i+2 &lt;= n {
+				<span class="tok-com">// same guard as the odd side: don't send the baton back once</span>
+				<span class="tok-com">// there's no odd number left to receive it</span>
 				ch &lt;- <span class="tok-kw">struct</span>{}{}
 			}
 		}
@@ -1912,7 +2097,7 @@ duplicate-value tree isValidBST: false</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Nef_k0A0iv_I" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/tRZ_ay3-siZ" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1920,8 +2105,15 @@ duplicate-value tree isValidBST: false</div>
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> n = 10
+	<span class="tok-com">// two dedicated, unbuffered channels instead of one shared channel --</span>
+	<span class="tok-com">// each direction of the handoff gets its own name, so which goroutine's</span>
+	<span class="tok-com">// turn it is can never be ambiguous the way it would be if both sides</span>
+	<span class="tok-com">// sent and received on the same channel</span>
 	oddTurn := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
 	evenTurn := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	<span class="tok-com">// a separate completion signal is needed because main isn't one of the</span>
+	<span class="tok-com">// two ping-ponging goroutines -- it has no turn channel of its own to</span>
+	<span class="tok-com">// block on once the last number has been printed</span>
 	done := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
 
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// waits for oddTurn, prints, signals evenTurn</span>
@@ -1939,11 +2131,16 @@ duplicate-value tree isValidBST: false</div>
 			<span class="tok-kw">if</span> i &lt; n {
 				oddTurn &lt;- <span class="tok-kw">struct</span>{}{}
 			} <span class="tok-kw">else</span> {
+				<span class="tok-com">// last number printed -- signal done instead of oddTurn, since</span>
+				<span class="tok-com">// sending on oddTurn here would have no receiver left (the odd</span>
+				<span class="tok-com">// goroutine's loop has already ended) and would block forever</span>
 				done &lt;- <span class="tok-kw">struct</span>{}{}
 			}
 		}
 	}()
 
+	<span class="tok-com">// neither goroutine can proceed until someone sends the first token, so</span>
+	<span class="tok-com">// main primes the sequence itself before waiting on the finish line</span>
 	oddTurn &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// kick off the first turn</span>
 	&lt;-done
 }</code></pre>
@@ -1966,7 +2163,7 @@ duplicate-value tree isValidBST: false</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/lh35QqqbXmN" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/LDBtLHTb8Oo" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -1974,16 +2171,27 @@ duplicate-value tree isValidBST: false</div>
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> items = 6
-	buf := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3) <span class="tok-com">// buffered: producer can run ahead of consumer</span>
+	<span class="tok-com">// buffered: producer can run ahead of consumer, filling up to 3 slots</span>
+	<span class="tok-com">// before it has to block on a send -- with items=6 &gt; capacity=3 the</span>
+	<span class="tok-com">// producer still catches up to the consumer partway through, so the</span>
+	<span class="tok-com">// buffer smooths bursts but doesn't remove backpressure entirely</span>
+	buf := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3)
 
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// producer: only sends, never prints (avoids racing consumer's prints)</span>
 		<span class="tok-kw">for</span> i := 1; i &lt;= items; i++ {
 			buf &lt;- i
 		}
+		<span class="tok-com">// closing tells the consumer's range loop there's nothing more coming --</span>
+		<span class="tok-com">// without this close, range over buf would block forever after the</span>
+		<span class="tok-com">// last value instead of exiting</span>
 		close(buf)
 	}()
 
 	<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> buf { <span class="tok-com">// consumer: sole printer, drains in FIFO order</span>
+		<span class="tok-com">// a channel delivers values in the order they were sent and there's</span>
+		<span class="tok-com">// exactly one goroutine printing them, so "consumed: 1..6" in order is</span>
+		<span class="tok-com">// guaranteed -- there's no second reader that could steal an item out</span>
+		<span class="tok-com">// of sequence</span>
 		fmt.Println(<span class="tok-str">"consumed:"</span>, v)
 	}
 	fmt.Println(<span class="tok-str">"done"</span>)
@@ -2004,7 +2212,7 @@ done</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/rBeRPkim3ui" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/nwuQX5U0Lb8" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2013,9 +2221,12 @@ done</div>
 	<span class="tok-str">"sync"</span>
 )
 
+<span class="tok-com">// jobs is receive-only and results is send-only from the worker's point of</span>
+<span class="tok-com">// view -- the compiler then rejects any attempt to send on jobs or read from</span>
+<span class="tok-com">// results here, so a worker can only ever consume work and produce output</span>
 <span class="tok-kw">func</span> worker(id <span class="tok-type">int</span>, jobs &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>, results <span class="tok-kw">chan</span>&lt;- [2]<span class="tok-type">int</span>, wg *sync.WaitGroup) {
 	<span class="tok-kw">defer</span> wg.Done()
-	<span class="tok-kw">for</span> j := <span class="tok-kw">range</span> jobs {
+	<span class="tok-kw">for</span> j := <span class="tok-kw">range</span> jobs { <span class="tok-com">// exits once jobs is closed and drained, letting wg.Done fire</span>
 		results &lt;- [2]<span class="tok-type">int</span>{j, j * j} <span class="tok-com">// [job, result] pair, no printing here</span>
 	}
 }
@@ -2024,31 +2235,48 @@ done</div>
 	<span class="tok-kw">const</span> numJobs = 9
 	<span class="tok-kw">const</span> numWorkers = 3
 
+	<span class="tok-com">// both channels sized to hold every job/result up front, so the sending</span>
+	<span class="tok-com">// side (main filling jobs, workers filling results) never has to block</span>
+	<span class="tok-com">// waiting on the other side to drain -- that keeps the handoff logic</span>
+	<span class="tok-com">// below simple regardless of how fast workers happen to run</span>
 	jobs := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, numJobs)
 	results := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> [2]<span class="tok-type">int</span>, numJobs)
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 
 	<span class="tok-kw">for</span> w := 1; w &lt;= numWorkers; w++ {
 		wg.Add(1)
+		<span class="tok-com">// all workers read from the same jobs channel, so which worker handles</span>
+		<span class="tok-com">// which job is nondeterministic (first one free grabs the next job) --</span>
+		<span class="tok-com">// that's fine since nothing here depends on processing order, only on</span>
+		<span class="tok-com">// the final printed order (restored below)</span>
 		<span class="tok-kw">go</span> worker(w, jobs, results, &amp;wg)
 	}
 
 	<span class="tok-kw">for</span> j := 1; j &lt;= numJobs; j++ {
 		jobs &lt;- j
 	}
-	close(jobs)
+	close(jobs) <span class="tok-com">// no more jobs -- lets each worker's range loop end once drained</span>
 
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-com">// closing results must wait until every worker is done sending, but</span>
+		<span class="tok-com">// that can't happen on main's goroutine: main still needs to range</span>
+		<span class="tok-com">// over results below, and blocking main here on wg.Wait() first would</span>
+		<span class="tok-com">// make the two steps run in the wrong order relative to draining --</span>
+		<span class="tok-com">// running it in its own goroutine lets results be closed the moment</span>
+		<span class="tok-com">// workers finish, concurrently with main already consuming</span>
 		wg.Wait()
 		close(results)
 	}()
 
 	out := <span class="tok-kw">make</span>([]<span class="tok-type">int</span>, numJobs+1) <span class="tok-com">// index by job number</span>
-	<span class="tok-kw">for</span> r := <span class="tok-kw">range</span> results {
-		out[r[0]] = r[1]
+	<span class="tok-kw">for</span> r := <span class="tok-kw">range</span> results { <span class="tok-com">// drains in whatever order workers finished, not job order</span>
+		out[r[0]] = r[1] <span class="tok-com">// stash by job number so completion order can't leak into the output</span>
 	}
 
 	<span class="tok-kw">for</span> j := 1; j &lt;= numJobs; j++ { <span class="tok-com">// single printer, strict order</span>
+		<span class="tok-com">// iterating 1..numJobs here (instead of printing as results arrive)</span>
+		<span class="tok-com">// is what makes the output deterministic despite the nondeterministic</span>
+		<span class="tok-com">// worker scheduling above</span>
 		fmt.Printf(<span class="tok-str">"job %d -&gt; %d\n"</span>, j, out[j])
 	}
 }</code></pre>
@@ -2070,7 +2298,7 @@ job 9 -> 81</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/YPUQkL0PByi" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/9SnHvK3mLOs" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2080,9 +2308,14 @@ job 9 -> 81</div>
 	<span class="tok-str">"sync"</span>
 )
 
+<span class="tok-com">// returns a receive-only channel so callers can't accidentally send on (or</span>
+<span class="tok-com">// close) a channel they don't own the sending side of</span>
 <span class="tok-kw">func</span> source(base <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
 	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-com">// closing once this goroutine is done producing is what lets a</span>
+		<span class="tok-com">// downstream "for range" over this channel terminate instead of</span>
+		<span class="tok-com">// blocking forever after the last value</span>
 		<span class="tok-kw">defer</span> close(out)
 		<span class="tok-kw">for</span> i := 1; i &lt;= 3; i++ {
 			out &lt;- base + i
@@ -2094,8 +2327,12 @@ job 9 -> 81</div>
 <span class="tok-kw">func</span> fanIn(chans ...&lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
 	merged := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
 	<span class="tok-kw">var</span> wg sync.WaitGroup
-	wg.Add(len(chans))
+	wg.Add(len(chans)) <span class="tok-com">// set the full count before any forwarder starts, so Wait can't return early</span>
 	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> chans {
+		<span class="tok-com">// one independent forwarder goroutine per input channel -- they all</span>
+		<span class="tok-com">// send to the same merged channel with no coordination between them,</span>
+		<span class="tok-com">// which is exactly why the interleaving of a/b/c values is a race and</span>
+		<span class="tok-com">// not reproducible run to run</span>
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(c &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) {
 			<span class="tok-kw">defer</span> wg.Done()
 			<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> c {
@@ -2104,8 +2341,13 @@ job 9 -> 81</div>
 		}(c)
 	}
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-com">// runs in its own goroutine because it has to block on wg.Wait() until</span>
+		<span class="tok-com">// every forwarder finishes -- doing that inline in fanIn would block</span>
+		<span class="tok-com">// the function itself and it could never return merged to the caller</span>
+		<span class="tok-com">// for draining, which the forwarders need in order to unblock their</span>
+		<span class="tok-com">// sends and finish in the first place</span>
 		wg.Wait()
-		close(merged)
+		close(merged) <span class="tok-com">// safe: guaranteed no forwarder is still sending once wg.Wait() returns</span>
 	}()
 	<span class="tok-kw">return</span> merged
 }
@@ -2133,7 +2375,7 @@ job 9 -> 81</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/B93zpGxVAIz" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/CMPIWHhAyPz" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2149,16 +2391,28 @@ job 9 -> 81</div>
 	<span class="tok-kw">var</span> mu sync.Mutex
 
 	<span class="tok-kw">for</span> i := 0; i &lt; numWorkers; i++ {
+		<span class="tok-com">// Add(1) happens before the goroutine is started (not inside it), so</span>
+		<span class="tok-com">// the counter is guaranteed to already reflect every worker by the</span>
+		<span class="tok-com">// time wg.Wait() below runs, no matter how the scheduler interleaves</span>
+		<span class="tok-com">// startup</span>
 		wg.Add(1)
+		<span class="tok-com">// i is passed in as id rather than captured from the enclosing scope --</span>
+		<span class="tok-com">// each goroutine then has its own private copy of the loop value, so it</span>
+		<span class="tok-com">// can't observe i having already moved on to a later iteration</span>
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
 			<span class="tok-kw">defer</span> wg.Done()
+			<span class="tok-com">// mu guards the shared done slice; each goroutine only ever writes</span>
+			<span class="tok-com">// its own index so this particular write can't collide with another</span>
+			<span class="tok-com">// goroutine's, but locking is the habit that keeps this code correct</span>
+			<span class="tok-com">// by default rather than by coincidence of which index each worker</span>
+			<span class="tok-com">// happens to touch</span>
 			mu.Lock()
 			done[id] = <span class="tok-kw">true</span>
 			mu.Unlock()
 		}(i)
 	}
 
-	wg.Wait() <span class="tok-com">// blocks until all workers call Done()</span>
+	wg.Wait() <span class="tok-com">// blocks until all workers call Done(); also the point after which their writes to done are guaranteed visible here</span>
 
 	count := 0
 	<span class="tok-kw">for</span> _, d := <span class="tok-kw">range</span> done {
@@ -2180,7 +2434,7 @@ done</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/4df8HyUrfCF" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/y7XDPhtOT05" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2191,7 +2445,7 @@ done</div>
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> numGoroutines = 5
-	<span class="tok-kw">var</span> once sync.Once
+	<span class="tok-kw">var</span> once sync.Once <span class="tok-com">// guarantees initialize runs exactly once, even with 5 racing callers - no mutex/bool bookkeeping needed</span>
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 	ran := <span class="tok-kw">make</span>([]<span class="tok-type">bool</span>, numGoroutines) <span class="tok-com">// per-goroutine slot, no shared write races</span>
 
@@ -2203,14 +2457,14 @@ done</div>
 		wg.Add(1)
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
 			<span class="tok-kw">defer</span> wg.Done()
-			once.Do(initialize) <span class="tok-com">// only the first caller actually runs initialize</span>
-			ran[id] = <span class="tok-kw">true</span>
+			once.Do(initialize) <span class="tok-com">// only the first caller actually runs initialize; the other 4 block here until it finishes, then return without re-running it</span>
+			ran[id] = <span class="tok-kw">true</span> <span class="tok-com">// safe to run after once.Do returns - initialization is guaranteed complete for every goroutine, not just the winner</span>
 		}(i)
 	}
 
-	wg.Wait()
+	wg.Wait() <span class="tok-com">// without this, main could read ran before the goroutines finish writing to it</span>
 
-	<span class="tok-kw">for</span> i, r := <span class="tok-kw">range</span> ran { <span class="tok-com">// single printer, strict order</span>
+	<span class="tok-kw">for</span> i, r := <span class="tok-kw">range</span> ran { <span class="tok-com">// single printer, strict order - main is the only reader here, so ran needs no locking of its own</span>
 		fmt.Printf(<span class="tok-str">"goroutine %d saw initialization complete: %v\n"</span>, i, r)
 	}
 }</code></pre>
@@ -2229,7 +2483,7 @@ goroutine 4 saw initialization complete: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/vecBASpRSOq" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/B1oblfaT_fP" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2243,7 +2497,8 @@ goroutine 4 saw initialization complete: true</div>
 	<span class="tok-kw">const</span> goroutines = 50
 	<span class="tok-kw">const</span> incrementsEach = 1000
 
-	<span class="tok-com">// Mutex-protected counter</span>
+	<span class="tok-com">// Mutex-protected counter: mutexCounter++ is a read-modify-write, so without a lock two goroutines</span>
+	<span class="tok-com">// could read the same value and both write back the same increment, losing an update</span>
 	<span class="tok-kw">var</span> mu sync.Mutex
 	mutexCounter := 0
 	<span class="tok-kw">var</span> wg1 sync.WaitGroup
@@ -2252,15 +2507,16 @@ goroutine 4 saw initialization complete: true</div>
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 			<span class="tok-kw">defer</span> wg1.Done()
 			<span class="tok-kw">for</span> j := 0; j &lt; incrementsEach; j++ {
-				mu.Lock()
+				mu.Lock() <span class="tok-com">// serializes access so the increment below is never split across two goroutines</span>
 				mutexCounter++
 				mu.Unlock()
 			}
 		}()
 	}
-	wg1.Wait()
+	wg1.Wait() <span class="tok-com">// must finish before printing, otherwise mutexCounter could still be mid-update</span>
 
-	<span class="tok-com">// atomic counter</span>
+	<span class="tok-com">// atomic counter: same workload, but using a lock-free CPU instruction instead of a mutex -</span>
+	<span class="tok-com">// cheaper than locking for a single int64 since there's no goroutine to block/wake</span>
 	<span class="tok-kw">var</span> atomicCounter <span class="tok-type">int64</span>
 	<span class="tok-kw">var</span> wg2 sync.WaitGroup
 	<span class="tok-kw">for</span> i := 0; i &lt; goroutines; i++ {
@@ -2268,12 +2524,13 @@ goroutine 4 saw initialization complete: true</div>
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 			<span class="tok-kw">defer</span> wg2.Done()
 			<span class="tok-kw">for</span> j := 0; j &lt; incrementsEach; j++ {
-				atomic.AddInt64(&amp;atomicCounter, 1)
+				atomic.AddInt64(&amp;atomicCounter, 1) <span class="tok-com">// hardware-level fetch-and-add, so the increment can't be interleaved with another goroutine's</span>
 			}
 		}()
 	}
 	wg2.Wait()
 
+	<span class="tok-com">// both print 50000 (50 goroutines * 1000 increments) - proof neither approach dropped an update</span>
 	fmt.Println(<span class="tok-str">"mutex counter:"</span>, mutexCounter)
 	fmt.Println(<span class="tok-str">"atomic counter:"</span>, atomicCounter)
 }</code></pre>
@@ -2288,51 +2545,58 @@ atomic counter: 50000</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Zv9VKws6MdT" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/zy4ISUNwIw1" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
 <span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
 
+<span class="tok-com">// generate returns immediately with an unbuffered channel; the values are produced by a goroutine</span>
+<span class="tok-com">// running concurrently with whatever reads from the channel, so production and consumption overlap</span>
 <span class="tok-kw">func</span> generate(n <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
-	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>) <span class="tok-com">// unbuffered: each send blocks until square's goroutine is ready to receive it</span>
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
-		<span class="tok-kw">defer</span> close(out)
+		<span class="tok-kw">defer</span> close(out) <span class="tok-com">// closing signals "no more values" so downstream range loops terminate instead of blocking forever</span>
 		<span class="tok-kw">for</span> i := 1; i &lt;= n; i++ {
 			out &lt;- i
 		}
 	}()
-	<span class="tok-kw">return</span> out
+	<span class="tok-kw">return</span> out <span class="tok-com">// return the receive-only end before the goroutine finishes - caller consumes as values arrive</span>
 }
 
+<span class="tok-com">// square is the middle pipeline stage: it fans values through unchanged in shape (int -&gt; int),</span>
+<span class="tok-com">// only transforming each one, so stages can chain without knowing about their neighbors' internals</span>
 <span class="tok-kw">func</span> square(in &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
 	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 		<span class="tok-kw">defer</span> close(out)
-		<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> in {
+		<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> in { <span class="tok-com">// range over a channel exits automatically once in is closed and drained</span>
 			out &lt;- v * v
 		}
 	}()
 	<span class="tok-kw">return</span> out
 }
 
+<span class="tok-com">// sum is the terminal stage: it collapses the stream into a single value, sent only once the</span>
+<span class="tok-com">// upstream channel is closed and every value has been accumulated</span>
 <span class="tok-kw">func</span> sum(in &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
-	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>) <span class="tok-com">// still a channel (not a plain return value) so main can block-receive the final result</span>
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 		<span class="tok-kw">defer</span> close(out)
 		total := 0
 		<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> in {
 			total += v
 		}
-		out &lt;- total
+		out &lt;- total <span class="tok-com">// only reached after the range loop above sees in closed, i.e. after square/generate are done</span>
 	}()
 	<span class="tok-kw">return</span> out
 }
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> n = 5
-	<span class="tok-com">// pipeline: generate 1..n -&gt; square each -&gt; sum all</span>
-	result := &lt;-sum(square(generate(n)))
+	<span class="tok-com">// pipeline: generate 1..n -&gt; square each -&gt; sum all; three goroutines run concurrently, linked by</span>
+	<span class="tok-com">// unbuffered channels, so values flow through the moment each stage is ready rather than in batches</span>
+	result := &lt;-sum(square(generate(n))) <span class="tok-com">// blocks until the sum goroutine sends its single final value</span>
 	fmt.Printf(<span class="tok-str">"sum of squares 1..%d = %d\n"</span>, n, result)
 }</code></pre>
     <div class="code-output show">sum of squares 1..5 = 55</div>
@@ -2345,7 +2609,7 @@ atomic counter: 50000</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/BIQ0Ie5r3QY" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/uTQy60VpCZh" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2354,20 +2618,22 @@ atomic counter: 50000</div>
 	<span class="tok-str">"fmt"</span>
 )
 
+<span class="tok-com">// worker only accepts the receive-only Done() channel via ctx - it has no way to cancel itself,</span>
+<span class="tok-com">// keeping the "who can cancel" decision entirely with whoever holds the cancel function</span>
 <span class="tok-kw">func</span> worker(ctx context.Context, stopped <span class="tok-kw">chan</span>&lt;- <span class="tok-type">string</span>) {
-	&lt;-ctx.Done() <span class="tok-com">// blocks until the context is cancelled</span>
-	stopped &lt;- fmt.Sprintf(<span class="tok-str">"worker stopped: %v"</span>, ctx.Err())
+	&lt;-ctx.Done() <span class="tok-com">// Done() is closed (not sent to) on cancellation, so every waiting goroutine wakes up, not just one</span>
+	stopped &lt;- fmt.Sprintf(<span class="tok-str">"worker stopped: %v"</span>, ctx.Err()) <span class="tok-com">// ctx.Err() reports why it was cancelled, e.g. "context canceled" vs a deadline timeout</span>
 }
 
 <span class="tok-kw">func</span> main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	stopped := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">string</span>)
+	ctx, cancel := context.WithCancel(context.Background()) <span class="tok-com">// cancel is the only handle that can close ctx.Done() - the worker never sees it</span>
+	stopped := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">string</span>) <span class="tok-com">// unbuffered handshake channel: lets main block until the worker has actually observed the cancellation</span>
 
 	<span class="tok-kw">go</span> worker(ctx, stopped)
 
 	fmt.Println(<span class="tok-str">"worker started"</span>)
-	cancel() <span class="tok-com">// cancel the context, signalling the worker to stop</span>
-	fmt.Println(&lt;-stopped)
+	cancel() <span class="tok-com">// cancel the context, signalling the worker to stop; safe to call more than once and from any goroutine</span>
+	fmt.Println(&lt;-stopped) <span class="tok-com">// blocks here until worker's &lt;-ctx.Done() unblocks and it sends its message - proves the signal was received, not just sent</span>
 }</code></pre>
     <div class="code-output show">worker started
 worker stopped: context canceled</div>
@@ -2380,30 +2646,32 @@ worker stopped: context canceled</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/M9M8MqZyka6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/emEp6z9EKXl" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
 <span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
 
+<span class="tok-com">// a select with only one case would block until ch has a value; adding default makes the receive</span>
+<span class="tok-com">// non-blocking - if no value is ready right now, default runs instead of waiting</span>
 <span class="tok-kw">func</span> tryRecv(ch &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>, label <span class="tok-type">string</span>) {
 	<span class="tok-kw">select</span> {
-	<span class="tok-kw">case</span> v := &lt;-ch:
+	<span class="tok-kw">case</span> v := &lt;-ch: <span class="tok-com">// only taken if a value is immediately available to receive</span>
 		fmt.Printf(<span class="tok-str">"%s: got value %d\n"</span>, label, v)
-	<span class="tok-kw">default</span>:
+	<span class="tok-kw">default</span>: <span class="tok-com">// runs immediately when ch is empty, so the caller never stalls waiting for a sender</span>
 		fmt.Printf(<span class="tok-str">"%s: channel empty, moving on\n"</span>, label)
 	}
 }
 
 <span class="tok-kw">func</span> main() {
-	ch := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 1)
+	ch := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 1) <span class="tok-com">// buffered so a send can complete without a receiver already waiting</span>
 
-	tryRecv(ch, <span class="tok-str">"check 1"</span>) <span class="tok-com">// channel is empty</span>
+	tryRecv(ch, <span class="tok-str">"check 1"</span>) <span class="tok-com">// channel is empty, so this hits default rather than blocking</span>
 
-	ch &lt;- 42
-	tryRecv(ch, <span class="tok-str">"check 2"</span>) <span class="tok-com">// channel now has a value</span>
+	ch &lt;- 42 <span class="tok-com">// buffer has room, so this send returns immediately instead of waiting for a receiver</span>
+	tryRecv(ch, <span class="tok-str">"check 2"</span>) <span class="tok-com">// channel now has a value; the receive case fires and also drains it</span>
 
-	tryRecv(ch, <span class="tok-str">"check 3"</span>) <span class="tok-com">// value was drained by check 2, empty again</span>
+	tryRecv(ch, <span class="tok-str">"check 3"</span>) <span class="tok-com">// value was drained by check 2, empty again - proves select/default doesn't accidentally leave the value behind</span>
 }</code></pre>
     <div class="code-output show">check 1: channel empty, moving on
 check 2: got value 42
@@ -2417,7 +2685,7 @@ check 3: channel empty, moving on</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/GiKZ8RlESNs" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/xZtIur08Ga5" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2428,27 +2696,29 @@ check 3: channel empty, moving on</div>
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> n = 8
+	<span class="tok-com">// n+1 unbuffered channels form a chain: batons[i-1] wakes goroutine i, which then wakes i+1 via</span>
+	<span class="tok-com">// batons[i] - each channel is a one-shot baton passed exactly once, never reused</span>
 	batons := <span class="tok-kw">make</span>([]<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}, n+1)
 	<span class="tok-kw">for</span> i := <span class="tok-kw">range</span> batons {
-		batons[i] = <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+		batons[i] = <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}) <span class="tok-com">// struct{}{} carries no data - the channel is used purely as a signal, not to transfer a value</span>
 	}
 
 	<span class="tok-kw">var</span> wg sync.WaitGroup
-	wg.Add(n)
+	wg.Add(n) <span class="tok-com">// registered up front so main's wg.Wait() below always has the right count to wait for</span>
 
 	<span class="tok-kw">for</span> i := 1; i &lt;= n; i++ {
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
 			<span class="tok-kw">defer</span> wg.Done()
-			&lt;-batons[id-1]  <span class="tok-com">// wait for the previous goroutine's turn</span>
+			&lt;-batons[id-1]  <span class="tok-com">// blocks here - all n goroutines start immediately but only one is unblocked at a time, so they can't race each other to print</span>
 			fmt.Println(id) <span class="tok-com">// this goroutine's exclusive turn to print</span>
 			<span class="tok-kw">if</span> id &lt; n {
-				batons[id] &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// pass the baton to the next goroutine</span>
+				batons[id] &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// pass the baton to the next goroutine; the last goroutine (id == n) has no successor to unblock</span>
 			}
 		}(i)
 	}
 
-	batons[0] &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// kick off goroutine 1</span>
-	wg.Wait()
+	batons[0] &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// kick off goroutine 1; without this nothing would ever unblock and the program would deadlock</span>
+	wg.Wait() <span class="tok-com">// blocks until all n goroutines have printed and returned, guaranteeing the full 1..n sequence lands before main exits</span>
 }</code></pre>
     <div class="code-output show">1
 2
@@ -2466,7 +2736,7 @@ check 3: channel empty, moving on</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/EJoObFAcki6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/uvDZA7xzKoE" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2480,30 +2750,42 @@ check 3: channel empty, moving on</div>
 	<span class="tok-kw">const</span> numJobs = 6
 	<span class="tok-kw">const</span> maxConcurrent = 2
 
+	<span class="tok-com">// a buffered channel used purely for its capacity: the buffer size caps how many</span>
+	<span class="tok-com">// goroutines can hold a "token" at once, so it works as a counting semaphore</span>
 	sem := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}, maxConcurrent)
+	<span class="tok-com">// pre-sized and written by index (not appended) so each goroutine can write its</span>
+	<span class="tok-com">// own slot without racing with the others, no locking needed for this part</span>
 	results := <span class="tok-kw">make</span>([]<span class="tok-type">string</span>, numJobs)
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 
 	<span class="tok-kw">for</span> i := 1; i &lt;= numJobs; i++ {
 		wg.Add(1)
+		<span class="tok-com">// i is passed in as job (not captured directly) so each goroutine gets</span>
+		<span class="tok-com">// its own private copy of the loop value to write into results with</span>
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(job <span class="tok-type">int</span>) {
 			<span class="tok-kw">defer</span> wg.Done()
 			sem &lt;- <span class="tok-kw">struct</span>{}{}        <span class="tok-com">// acquire a slot in the semaphore</span>
+			<span class="tok-com">// deferred (not a plain call at the end) so the slot is freed even if the</span>
+			<span class="tok-com">// goroutine panics after this point, otherwise a panic would leak a token</span>
+			<span class="tok-com">// and permanently shrink the effective concurrency limit</span>
 			<span class="tok-kw">defer</span> <span class="tok-kw">func</span>() { &lt;-sem }() <span class="tok-com">// release the slot when done</span>
 
 			time.Sleep(20 * time.Millisecond) <span class="tok-com">// simulate work</span>
+			<span class="tok-com">// writing to results[job-1] instead of appending means the final printed</span>
+			<span class="tok-com">// order is job 1..N regardless of which goroutine actually finishes first</span>
 			results[job-1] = fmt.Sprintf(<span class="tok-str">"job %d: done (ran with at most %d jobs active)"</span>, job, maxConcurrent)
 		}(i)
 	}
 
+	<span class="tok-com">// blocks until every goroutine has called wg.Done(); this also establishes a</span>
+	<span class="tok-com">// happens-before edge so all the writes into results above are visible here</span>
 	wg.Wait()
 	fmt.Printf(<span class="tok-str">"semaphore capacity: %d concurrent job(s) allowed\n"</span>, maxConcurrent)
 	<span class="tok-kw">for</span> _, r := <span class="tok-kw">range</span> results {
 		fmt.Println(r)
 	}
 	fmt.Println(<span class="tok-str">"all jobs completed"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">semaphore capacity: 2 concurrent job(s) allowed
 job 1: done (ran with at most 2 jobs active)
 job 2: done (ran with at most 2 jobs active)
@@ -2521,7 +2803,7 @@ all jobs completed</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/q0aOfPKJ-_x" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/E0e3FX0EORZ" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2532,6 +2814,9 @@ all jobs completed</div>
 
 <span class="tok-com">// fetch simulates work that takes `delay` before it has a result ready.</span>
 <span class="tok-kw">func</span> fetch(delay time.Duration) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">string</span> {
+	<span class="tok-com">// buffered with capacity 1 so the send below never blocks: if the caller</span>
+	<span class="tok-com">// times out and stops listening, this goroutine can still deliver its</span>
+	<span class="tok-com">// value into the buffer and exit instead of leaking forever</span>
 	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">string</span>, 1)
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 		time.Sleep(delay)
@@ -2542,10 +2827,17 @@ all jobs completed</div>
 
 <span class="tok-com">// fetchWithTimeout waits for the fetch to finish, but gives up after `timeout`.</span>
 <span class="tok-kw">func</span> fetchWithTimeout(delay, timeout time.Duration) <span class="tok-type">string</span> {
+	<span class="tok-com">// select blocks on both channels at once and proceeds with whichever fires</span>
+	<span class="tok-com">// first, so the "fetch finished" and "timeout" cases race fairly instead</span>
+	<span class="tok-com">// of one being checked before the other</span>
 	<span class="tok-kw">select</span> {
 	<span class="tok-kw">case</span> res := &lt;-fetch(delay):
 		<span class="tok-kw">return</span> res
 	<span class="tok-kw">case</span> &lt;-time.After(timeout):
+		<span class="tok-com">// time.After starts a fresh timer each call and returns its channel;</span>
+		<span class="tok-com">// no cleanup is needed here since fetchWithTimeout returns right after --</span>
+		<span class="tok-com">// as of Go 1.23+ an unstopped, undrained timer is still garbage collected</span>
+		<span class="tok-com">// once unreachable, so this doesn't leak the way it would have in older Go</span>
 		<span class="tok-kw">return</span> <span class="tok-str">"timed out waiting for result"</span>
 	}
 }
@@ -2558,8 +2850,7 @@ all jobs completed</div>
 
 	fmt.Println(<span class="tok-str">"call B: work finishes in 200ms, timeout is 50ms"</span>)
 	fmt.Println(<span class="tok-str">"  -&gt;"</span>, fetchWithTimeout(200*time.Millisecond, timeout))
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">call A: work finishes in 10ms, timeout is 50ms
   -&gt; result ready
 call B: work finishes in 200ms, timeout is 50ms
@@ -2573,7 +2864,7 @@ call B: work finishes in 200ms, timeout is 50ms
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/4_I9vb1OnPD" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/xRoJa7GSfEV" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2585,21 +2876,30 @@ call B: work finishes in 200ms, timeout is 50ms
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> numWorkers = 4
-	done := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}) <span class="tok-com">// closing this broadcasts "stop" to every worker</span>
+	<span class="tok-com">// closing this broadcasts "stop" to every worker: a send on done could only</span>
+	<span class="tok-com">// ever wake one waiting receiver, but a closed channel makes every pending</span>
+	<span class="tok-com">// and future receive return immediately, so all N workers wake up together</span>
+	done := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	<span class="tok-com">// indexed by id-1 (not appended) so printing in slice order below is the</span>
+	<span class="tok-com">// same as worker id order, independent of the order workers actually exit</span>
 	results := <span class="tok-kw">make</span>([]<span class="tok-type">string</span>, numWorkers)
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 
 	<span class="tok-kw">for</span> i := 1; i &lt;= numWorkers; i++ {
 		wg.Add(1)
+		<span class="tok-com">// i passed in as id gives each goroutine its own copy to index results with</span>
 		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
 			<span class="tok-kw">defer</span> wg.Done()
 			<span class="tok-kw">for</span> {
+				<span class="tok-com">// the default case makes this select non-blocking: on each loop the</span>
+				<span class="tok-com">// worker peeks at done without waiting, so it can keep "working" in</span>
+				<span class="tok-com">// between checks instead of parking on the receive</span>
 				<span class="tok-kw">select</span> {
 				<span class="tok-kw">case</span> &lt;-done:
 					results[id-1] = fmt.Sprintf(<span class="tok-str">"worker %d: stop signal received, exiting"</span>, id)
 					<span class="tok-kw">return</span>
 				<span class="tok-kw">default</span>:
-					time.Sleep(5 * time.Millisecond)
+					time.Sleep(5 * time.Millisecond) <span class="tok-com">// stand-in for a unit of work; also throttles the loop so it polls done instead of spinning the CPU</span>
 				}
 			}
 		}(i)
@@ -2614,8 +2914,7 @@ call B: work finishes in 200ms, timeout is 50ms
 		fmt.Println(r)
 	}
 	fmt.Println(<span class="tok-str">"main: all workers stopped"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">main: broadcasting stop to all workers
 worker 1: stop signal received, exiting
 worker 2: stop signal received, exiting
@@ -2631,7 +2930,7 @@ main: all workers stopped</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/ME3xzfD5E5h" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/XY8DEjHEnt4" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2643,9 +2942,16 @@ main: all workers stopped</div>
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> numRequests = 5
 
+	<span class="tok-com">// the ticker's channel receives a value every 10ms; that fixed cadence is</span>
+	<span class="tok-com">// what enforces the rate limit below, not any locking or counting</span>
 	limiter := time.NewTicker(10 * time.Millisecond)
+	<span class="tok-com">// Stop releases the ticker's internal timer resource; without it the ticker</span>
+	<span class="tok-com">// would keep firing in the background for the life of the program</span>
 	<span class="tok-kw">defer</span> limiter.Stop()
 
+	<span class="tok-com">// sized to hold all requests up front and then closed, so it's just a</span>
+	<span class="tok-com">// pre-filled queue for range to drain in order — there's no producer</span>
+	<span class="tok-com">// goroutine here, so this isn't guarding against blocking sends</span>
 	requests := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, numRequests)
 	<span class="tok-kw">for</span> i := 1; i &lt;= numRequests; i++ {
 		requests &lt;- i
@@ -2655,12 +2961,13 @@ main: all workers stopped</div>
 	<span class="tok-com">// Every request must wait for a tick before it is allowed through,</span>
 	<span class="tok-com">// so actions never happen more often than one per tick.</span>
 	<span class="tok-kw">for</span> req := <span class="tok-kw">range</span> requests {
+		<span class="tok-com">// blocking receive: this is what actually paces the loop to one</span>
+		<span class="tok-com">// iteration per tick instead of running as fast as possible</span>
 		&lt;-limiter.C
 		fmt.Printf(<span class="tok-str">"request %d: allowed through at tick\n"</span>, req)
 	}
 	fmt.Println(<span class="tok-str">"rate limiter: all requests processed, one per tick"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">request 1: allowed through at tick
 request 2: allowed through at tick
 request 3: allowed through at tick
@@ -2676,7 +2983,7 @@ rate limiter: all requests processed, one per tick</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/av8uLjIGDxC" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/4hCbpVPnDXO" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2691,12 +2998,18 @@ rate limiter: all requests processed, one per tick</div>
 }
 
 <span class="tok-kw">func</span> (c *SafeConfig) Read() <span class="tok-type">int</span> {
+	<span class="tok-com">// RLock lets any number of readers in at once (unlike a plain Mutex, which</span>
+	<span class="tok-com">// would serialize them); it only blocks if a writer currently holds Lock</span>
 	c.mu.RLock()
 	<span class="tok-kw">defer</span> c.mu.RUnlock()
 	<span class="tok-kw">return</span> c.value
 }
 
 <span class="tok-kw">func</span> (c *SafeConfig) Write(v <span class="tok-type">int</span>) {
+	<span class="tok-com">// the exclusive Lock (not RLock) is what makes this safe to mix with</span>
+	<span class="tok-com">// Read: it waits for every current reader to RUnlock first, and blocks</span>
+	<span class="tok-com">// any new RLock until this Unlock, so a write can never be torn or seen</span>
+	<span class="tok-com">// half-applied by a concurrent read</span>
 	c.mu.Lock()
 	<span class="tok-kw">defer</span> c.mu.Unlock()
 	c.value = v
@@ -2712,6 +3025,8 @@ rate limiter: all requests processed, one per tick</div>
 
 	<span class="tok-com">// Phase 2: many readers may hold the RLock at the same time.</span>
 	<span class="tok-com">// They all observe the same value since no writer runs concurrently with them.</span>
+	<span class="tok-com">// reads is indexed by id-1 (not appended) purely so the printed order below</span>
+	<span class="tok-com">// matches reader id order, regardless of which goroutine actually ran first</span>
 	reads := <span class="tok-kw">make</span>([]<span class="tok-type">string</span>, numReaders)
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 	<span class="tok-kw">for</span> i := 1; i &lt;= numReaders; i++ {
@@ -2729,11 +3044,13 @@ rate limiter: all requests processed, one per tick</div>
 
 	<span class="tok-com">// Phase 3: the writer updates the value again; RWMutex ensures this</span>
 	<span class="tok-com">// waits until all in-flight readers from phase 2 are done.</span>
+	<span class="tok-com">// wg.Wait() above already guarantees phase 2's readers finished, so this</span>
+	<span class="tok-com">// Lock call is uncontended here — the comment holds for the general case</span>
+	<span class="tok-com">// where a writer arrives while readers are still active</span>
 	cfg.Write(200)
 	fmt.Println(<span class="tok-str">"writer: set value to 200"</span>)
 	fmt.Println(<span class="tok-str">"final read:"</span>, cfg.Read())
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">writer: set value to 100
 reader 1: read value 100
 reader 2: read value 100
@@ -2750,7 +3067,7 @@ final read: 200</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Cg2IYZjBcjc" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Sw3TAl-IQa4" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2762,12 +3079,18 @@ final read: 200</div>
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">var</span> mu sync.Mutex
+	<span class="tok-com">// a Cond is always paired with a Locker: Wait() needs the lock to check the</span>
+	<span class="tok-com">// predicate (ready) safely, and Signal/Broadcast need it to change that</span>
+	<span class="tok-com">// same state safely from the other goroutine</span>
 	cond := sync.NewCond(&mu)
 	ready := <span class="tok-kw">false</span>
 
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 	wg.Add(1)
 
+	<span class="tok-com">// closing this is how main confirms the waiter has actually started and</span>
+	<span class="tok-com">// locked mu before main goes on to flip ready and Signal - without it main</span>
+	<span class="tok-com">// could race ahead and signal before anyone is listening</span>
 	waitingPrinted := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
 
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
@@ -2775,6 +3098,9 @@ final read: 200</div>
 		mu.Lock()
 		fmt.Println(<span class="tok-str">"waiter: waiting for condition to become true"</span>)
 		close(waitingPrinted)
+		<span class="tok-com">// cond.Wait() atomically unlocks mu and suspends the goroutine, then</span>
+		<span class="tok-com">// re-locks mu before returning - that's what makes it safe to re-check</span>
+		<span class="tok-com">// ready here without a lost-wakeup gap between unlocking and sleeping</span>
 		<span class="tok-kw">for</span> !ready { <span class="tok-com">// predicate loop guards against spurious/early wakeups</span>
 			cond.Wait()
 		}
@@ -2783,18 +3109,26 @@ final read: 200</div>
 	}()
 
 	&lt;-waitingPrinted                  <span class="tok-com">// make sure the waiter has printed and is entering Wait</span>
+	<span class="tok-com">// Wait() only guarantees the waiter reached Println/close above, not that it</span>
+	<span class="tok-com">// has gotten past cond.Wait()'s internal unlock; this sleep buys it that</span>
+	<span class="tok-com">// time. Unlike a channel send, a Signal delivered before Wait() begins</span>
+	<span class="tok-com">// listening has no buffer to sit in and is simply lost forever</span>
 	time.Sleep(20 * time.Millisecond) <span class="tok-com">// give it time to actually reach cond.Wait()</span>
 
+	<span class="tok-com">// the state change must happen under the same lock the waiter checks</span>
+	<span class="tok-com">// ready with, otherwise the waiter could observe a torn/partial update</span>
 	mu.Lock()
 	ready = <span class="tok-kw">true</span>
 	fmt.Println(<span class="tok-str">"signaler: state changed, signaling waiter"</span>)
 	mu.Unlock()
+	<span class="tok-com">// Signal wakes at most one goroutine parked in Wait (Broadcast would wake</span>
+	<span class="tok-com">// all of them); called after Unlock here purely as a minor optimization so</span>
+	<span class="tok-com">// the woken waiter isn't immediately blocked again re-acquiring mu</span>
 	cond.Signal()
 
 	wg.Wait()
 	fmt.Println(<span class="tok-str">"main: done"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">waiter: waiting for condition to become true
 signaler: state changed, signaling waiter
 waiter: condition is true, proceeding
@@ -2808,7 +3142,7 @@ main: done</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/pAOXC2EUr-w" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/SRuQjUQx2Hp" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2822,8 +3156,15 @@ main: done</div>
 <span class="tok-kw">func</span> main() {
 	<span class="tok-kw">const</span> numWorkers = 3
 	<span class="tok-kw">const</span> jobsPerWorker = 3
+	<span class="tok-com">// Each job has its own slot, and only the worker that owns that job ever</span>
+	<span class="tok-com">// writes to it, so this needs no mutex despite being shared across goroutines.</span>
+	<span class="tok-com">// Printing walks the slice by index afterward, so output order is fixed</span>
+	<span class="tok-com">// by job number, not by whichever goroutine happens to finish first.</span>
 	status := <span class="tok-kw">make</span>([]<span class="tok-type">string</span>, numWorkers*jobsPerWorker)
 
+	<span class="tok-com">// WithCancel gives every worker a shared ctx.Done() channel: calling cancel()</span>
+	<span class="tok-com">// once closes it, and a closed channel is readable by any number of goroutines</span>
+	<span class="tok-com">// at once, which is what makes it a cheap one-to-many broadcast.</span>
 	ctx, cancel := context.WithCancel(context.Background())
 	<span class="tok-kw">var</span> wg sync.WaitGroup
 
@@ -2833,6 +3174,8 @@ main: done</div>
 			<span class="tok-kw">defer</span> wg.Done()
 			<span class="tok-kw">for</span> k := 0; k &lt; jobsPerWorker; k++ {
 				job := worker*jobsPerWorker + k + 1
+				<span class="tok-com">// The default case makes this a non-blocking poll: if ctx.Done() isn't</span>
+				<span class="tok-com">// closed yet, fall straight through to the work instead of waiting on it.</span>
 				<span class="tok-kw">select</span> {
 				<span class="tok-kw">case</span> &lt;-ctx.Done():
 					status[job-1] = fmt.Sprintf(<span class="tok-str">"job %d: skipped (context cancelled)"</span>, job)
@@ -2853,12 +3196,14 @@ main: done</div>
 		cancel()
 	}()
 
+	<span class="tok-com">// Wait for every worker to finish writing its slots (completed or skipped)</span>
+	<span class="tok-com">// before reading the slice back; without this the read here would race</span>
+	<span class="tok-com">// with the still-running writes above.</span>
 	wg.Wait()
 	<span class="tok-kw">for</span> _, s := <span class="tok-kw">range</span> status {
 		fmt.Println(s)
 	}
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">job 1: completed
 job 2: skipped (context cancelled)
 job 3: skipped (context cancelled)
@@ -2877,7 +3222,7 @@ job 9: skipped (context cancelled)</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Pt_PndodwC7" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/ChuDtTC-xY2" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2886,14 +3231,21 @@ job 9: skipped (context cancelled)</div>
 <span class="tok-com">// squares returns a channel that lazily produces the squares of 1, 2, 3, ...</span>
 <span class="tok-com">// It only computes and sends the next value once the consumer asks for it.</span>
 <span class="tok-kw">func</span> squares(done &lt;-<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
+	<span class="tok-com">// Unbuffered: the goroutine below can only get one value ahead of the</span>
+	<span class="tok-com">// consumer, since a send blocks until something receives it. That's what</span>
+	<span class="tok-com">// makes generation "lazy" instead of racing ahead to produce every value.</span>
 	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 		<span class="tok-kw">defer</span> close(out)
 		<span class="tok-kw">for</span> n := 1; ; n++ {
+			<span class="tok-com">// Without the done case, this send would block forever once main stops</span>
+			<span class="tok-com">// reading from gen, leaking this goroutine for the rest of the program.</span>
 			<span class="tok-kw">select</span> {
 			<span class="tok-kw">case</span> out &lt;- n * n:
 				<span class="tok-com">// value delivered, generator waits for next request</span>
 			<span class="tok-kw">case</span> &lt;-done:
+				<span class="tok-com">// A closed channel is always immediately ready to receive from, so once</span>
+				<span class="tok-com">// close(done) runs, this case wins the select and the generator exits.</span>
 				<span class="tok-kw">return</span> <span class="tok-com">// consumer stopped listening; stop generating</span>
 			}
 		}
@@ -2914,8 +3266,7 @@ job 9: skipped (context cancelled)</div>
 
 	close(done) <span class="tok-com">// tell the generator to stop producing further values</span>
 	fmt.Println(<span class="tok-str">"consumer: done pulling values, generator signaled to stop"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">requested value 1: 1
 requested value 2: 4
 requested value 3: 9
@@ -2931,7 +3282,7 @@ consumer: done pulling values, generator signaled to stop</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/e_QR93Sd45P" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/P0FlhYSsXUM" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -2955,20 +3306,28 @@ consumer: done pulling values, generator signaled to stop</div>
 <span class="tok-com">// mergeTwo reads from both a and b until both are closed, preserving</span>
 <span class="tok-com">// whichever one becomes ready at each step.</span>
 <span class="tok-kw">func</span> mergeTwo(a, b &lt;-<span class="tok-kw">chan</span> <span class="tok-type">string</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">string</span> {
+	<span class="tok-com">// A single goroutine drives this merge, so values only ever go into out</span>
+	<span class="tok-com">// one at a time, in the same order select picked them up in below.</span>
 	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">string</span>)
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
 		<span class="tok-kw">defer</span> close(out)
+		<span class="tok-com">// Loop until both source channels are nilled out below; a nil channel</span>
+		<span class="tok-com">// in a select case blocks forever, so once one source is drained the</span>
+		<span class="tok-com">// loop naturally keeps selecting only the other one.</span>
 		<span class="tok-kw">for</span> a != <span class="tok-kw">nil</span> || b != <span class="tok-kw">nil</span> {
 			<span class="tok-kw">select</span> {
 			<span class="tok-kw">case</span> v, ok := &lt;-a:
 				<span class="tok-kw">if</span> !ok {
+					<span class="tok-com">// Receiving from a closed channel never blocks and always succeeds,</span>
+					<span class="tok-com">// so without nilling a out here, this case would fire on every loop</span>
+					<span class="tok-com">// iteration going forward and spam zero-value strings into out.</span>
 					a = <span class="tok-kw">nil</span> <span class="tok-com">// stop selecting a closed channel</span>
 					<span class="tok-kw">continue</span>
 				}
 				out &lt;- v
 			<span class="tok-kw">case</span> v, ok := &lt;-b:
 				<span class="tok-kw">if</span> !ok {
-					b = <span class="tok-kw">nil</span>
+					b = <span class="tok-kw">nil</span> <span class="tok-com">// same trick: remove b from consideration once it's drained</span>
 					<span class="tok-kw">continue</span>
 				}
 				out &lt;- v
@@ -2988,8 +3347,7 @@ consumer: done pulling values, generator signaled to stop</div>
 		fmt.Println(<span class="tok-str">"received:"</span>, v)
 	}
 	fmt.Println(<span class="tok-str">"both channels closed, merge complete"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">received: A-1
 received: B-1
 received: A-2
@@ -3005,7 +3363,7 @@ both channels closed, merge complete</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/heeHGrfAvI6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/BPUUUlhHb7W" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3026,6 +3384,10 @@ both channels closed, merge complete</div>
 <span class="tok-com">// other). The fix: always acquire the two locks in a fixed global order</span>
 <span class="tok-com">// (lowest account id first), regardless of transfer direction.</span>
 <span class="tok-kw">func</span> transfer(from, to *Account, amount <span class="tok-type">int</span>) {
+	<span class="tok-com">// Reorder by id so a transfer A-&gt;B and a concurrent transfer B-&gt;A both</span>
+	<span class="tok-com">// lock the same account first. Whichever goroutine gets there first fully</span>
+	<span class="tok-com">// acquires both locks before the other can grab even one, so no goroutine</span>
+	<span class="tok-com">// ever waits on a lock held by something that is itself waiting on it.</span>
 	first, second := from, to
 	<span class="tok-kw">if</span> first.id &gt; second.id {
 		first, second = second, first
@@ -3062,12 +3424,17 @@ both channels closed, merge complete</div>
 		}(t.from, t.to, t.amount)
 	}
 
+	<span class="tok-com">// If transfer didn't reorder its locks, this mix of A-&gt;B and B-&gt;A transfers</span>
+	<span class="tok-com">// running concurrently would be exactly the pattern that can deadlock.</span>
 	wg.Wait()
 	fmt.Println(<span class="tok-str">"all transfers completed without deadlock (locks always acquired lowest-id first)"</span>)
+	<span class="tok-com">// the four transfers can run in any order relative to each other, but +=</span>
+	<span class="tok-com">// and -= are commutative, so the final balances come out the same</span>
+	<span class="tok-com">// regardless of that order -- it's only the deadlock risk, not the result,</span>
+	<span class="tok-com">// that depends on lock ordering here</span>
 	fmt.Printf(<span class="tok-str">"account %d balance: %d\n"</span>, a.id, a.balance)
 	fmt.Printf(<span class="tok-str">"account %d balance: %d\n"</span>, b.id, b.balance)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">all transfers completed without deadlock (locks always acquired lowest-id first)
 account 1 balance: 500
 account 2 balance: 500</div>
@@ -3080,7 +3447,7 @@ account 2 balance: 500</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/5vdOgimV3w8" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/vQw1mcAi06V" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3093,6 +3460,10 @@ account 2 balance: 500</div>
 	<span class="tok-kw">const</span> bucketSize = 3
 	<span class="tok-kw">const</span> numRequests = 5
 
+	<span class="tok-com">// A buffered channel doubles as the token bucket itself: its capacity is</span>
+	<span class="tok-com">// the max number of tokens that can ever be outstanding at once, and</span>
+	<span class="tok-com">// sends/receives on it are already safe across goroutines with no extra</span>
+	<span class="tok-com">// locking needed.</span>
 	bucket := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}, bucketSize)
 	<span class="tok-kw">for</span> i := 0; i &lt; bucketSize; i++ {
 		bucket &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// start with a full bucket</span>
@@ -3100,30 +3471,41 @@ account 2 balance: 500</div>
 
 	stopRefill := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
 	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-com">// A ticker fires on a fixed 10ms schedule, and pairing it with select lets</span>
+		<span class="tok-com">// this goroutine keep listening for the stop signal between ticks instead</span>
+		<span class="tok-com">// of being stuck inside a blocking time.Sleep with no way to exit early.</span>
 		ticker := time.NewTicker(10 * time.Millisecond)
 		<span class="tok-kw">defer</span> ticker.Stop()
 		<span class="tok-kw">for</span> {
 			<span class="tok-kw">select</span> {
 			<span class="tok-kw">case</span> &lt;-ticker.C:
+				<span class="tok-com">// The inner select's default case makes this a non-blocking send: if the</span>
+				<span class="tok-com">// bucket is already at bucketSize tokens, this refill is simply dropped</span>
+				<span class="tok-com">// instead of the whole goroutine stalling on a full channel. That's what</span>
+				<span class="tok-com">// actually caps the bucket at bucketSize rather than letting tokens pile</span>
+				<span class="tok-com">// up unbounded.</span>
 				<span class="tok-kw">select</span> {
 				<span class="tok-kw">case</span> bucket &lt;- <span class="tok-kw">struct</span>{}{}: <span class="tok-com">// add a token if there's room</span>
 				<span class="tok-kw">default</span>: <span class="tok-com">// bucket full, drop the token</span>
 				}
 			<span class="tok-kw">case</span> &lt;-stopRefill:
-				<span class="tok-kw">return</span>
+				<span class="tok-kw">return</span> <span class="tok-com">// closing stopRefill below lets this goroutine exit instead of leaking</span>
 			}
 		}
 	}()
 
 	<span class="tok-kw">for</span> i := 1; i &lt;= numRequests; i++ {
+		<span class="tok-com">// Because bucket is buffered, this only blocks once it's genuinely empty:</span>
+		<span class="tok-com">// requests 1-3 drain the initial fill instantly, but requests 4 and 5 each</span>
+		<span class="tok-com">// have to wait for the ticker to deposit another token - that wait is the</span>
+		<span class="tok-com">// rate limiting.</span>
 		&lt;-bucket <span class="tok-com">// blocks until a token is available</span>
 		fmt.Printf(<span class="tok-str">"request %d: granted a token\n"</span>, i)
 	}
 
 	close(stopRefill)
 	fmt.Println(<span class="tok-str">"token bucket: all requests served, first 3 used the initial fill, the rest waited for refills"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">request 1: granted a token
 request 2: granted a token
 request 3: granted a token
@@ -3139,7 +3521,7 @@ token bucket: all requests served, first 3 used the initial fill, the rest waite
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/8oLjnlZFQbm" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/d6YeJpZsGmO" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3166,6 +3548,9 @@ token bucket: all requests served, first 3 used the initial fill, the rest waite
 	mirrorB := query(<span class="tok-str">"mirror-B"</span>, 50*time.Millisecond)
 	mirrorC := query(<span class="tok-str">"mirror-C"</span>, 90*time.Millisecond)
 
+	<span class="tok-com">// select would pick fairly among cases that are ready at the same instant,</span>
+	<span class="tok-com">// but the delays above are staggered widely enough that mirrorA is reliably</span>
+	<span class="tok-com">// the only one ready when this runs, making the winner deterministic here</span>
 	<span class="tok-kw">var</span> winner <span class="tok-type">string</span>
 	<span class="tok-kw">select</span> {
 	<span class="tok-kw">case</span> winner = &lt;-mirrorA:
@@ -3174,9 +3559,13 @@ token bucket: all requests served, first 3 used the initial fill, the rest waite
 	}
 
 	fmt.Println(<span class="tok-str">"first result wins:"</span>, winner)
+	<span class="tok-com">// mirrorB and mirrorC's goroutines are still running at this point and will</span>
+	<span class="tok-com">// eventually send too, but because their result channels are buffered with</span>
+	<span class="tok-com">// room for that one value, those sends complete immediately instead of</span>
+	<span class="tok-com">// blocking forever with no receiver - the goroutines simply exit and their</span>
+	<span class="tok-com">// unread values are garbage collected along with the channels.</span>
 	fmt.Println(<span class="tok-str">"the other two responses are discarded once a winner is chosen"</span>)
-}
-</code></pre>
+}</code></pre>
     <div class="code-output show">first result wins: mirror-A: answer ready
 the other two responses are discarded once a winner is chosen</div>
   </div>
@@ -3189,7 +3578,7 @@ the other two responses are discarded once a winner is chosen</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/LsY-5J5b3DS" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Pe2ehV1TgIh" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3201,6 +3590,8 @@ the other two responses are discarded once a winner is chosen</div>
 	seen := <span class="tok-kw">make</span>(map[<span class="tok-type">int</span>]<span class="tok-type">int</span>) <span class="tok-com">// value -&gt; index</span>
 	<span class="tok-kw">for</span> i, n := <span class="tok-kw">range</span> nums {
 		complement := target - n
+		<span class="tok-com">// check before inserting the current number: this guarantees j &lt; i and</span>
+		<span class="tok-com">// prevents pairing an element with itself when target is exactly 2*n</span>
 		<span class="tok-kw">if</span> j, ok := seen[complement]; ok {
 			<span class="tok-kw">return</span> j, i, <span class="tok-kw">true</span>
 		}
@@ -3249,7 +3640,7 @@ found pair: false</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/6YaTfEj2kna" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/izAM8FttpZy" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3259,6 +3650,8 @@ found pair: false</div>
 <span class="tok-com">// characters (like accented letters or emoji) are not corrupted.</span>
 <span class="tok-kw">func</span> reverseString(s <span class="tok-type">string</span>) <span class="tok-type">string</span> {
 	runes := []<span class="tok-type">rune</span>(s)
+	<span class="tok-com">// walk from both ends toward the middle; stopping at i &lt; j means an odd-length</span>
+	<span class="tok-com">// string's middle rune is left in place instead of being swapped with itself</span>
 	<span class="tok-kw">for</span> i, j := 0, len(runes)-1; i &lt; j; i, j = i+1, j-1 {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
@@ -3293,7 +3686,7 @@ output: "語本日"
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/tbXKo3qg-_d" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/OfzSQGme904" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3308,10 +3701,14 @@ output: "語本日"
 	runes := []<span class="tok-type">rune</span>(s)
 	i, j := 0, len(runes)-1
 	<span class="tok-kw">for</span> i &lt; j {
+		<span class="tok-com">// advance i past punctuation/spaces on its own; a continue here re-checks</span>
+		<span class="tok-com">// i &lt; j without touching j, so the two sides skip independently</span>
 		<span class="tok-kw">if</span> !unicode.IsLetter(runes[i]) &amp;&amp; !unicode.IsDigit(runes[i]) {
 			i++
 			<span class="tok-kw">continue</span>
 		}
+		<span class="tok-com">// same skip, mirrored for j, so unequal amounts of punctuation on each</span>
+		<span class="tok-com">// side (e.g. "a," vs "a") don't throw off the alignment of the comparison</span>
 		<span class="tok-kw">if</span> !unicode.IsLetter(runes[j]) &amp;&amp; !unicode.IsDigit(runes[j]) {
 			j--
 			<span class="tok-kw">continue</span>
@@ -3349,7 +3746,7 @@ input: "12321" -&gt; palindrome: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Am6jWH3pCBU" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/LNgSe8sUEbH" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3368,12 +3765,16 @@ input: "12321" -&gt; palindrome: true</div>
 		}
 		counts[unicode.ToLower(r)]++
 	}
+	<span class="tok-com">// reuse the same map and decrement for b instead of building a second map:</span>
+	<span class="tok-com">// if a and b are anagrams, every letter's count nets back to exactly zero</span>
 	<span class="tok-kw">for</span> _, r := <span class="tok-kw">range</span> b {
 		<span class="tok-kw">if</span> unicode.IsSpace(r) {
 			<span class="tok-kw">continue</span>
 		}
 		counts[unicode.ToLower(r)]--
 	}
+	<span class="tok-com">// any surviving nonzero count means that letter appeared a different</span>
+	<span class="tok-com">// number of times in a than in b</span>
 	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> counts {
 		<span class="tok-kw">if</span> c != 0 {
 			<span class="tok-kw">return</span> <span class="tok-kw">false</span>
@@ -3404,7 +3805,7 @@ input: "12321" -&gt; palindrome: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/aIaMVE8hmHX" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/n_xWcXWloVO" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3415,6 +3816,9 @@ input: "12321" -&gt; palindrome: true</div>
 <span class="tok-com">// "FizzBuzz" for multiples of both, otherwise the number itself.</span>
 <span class="tok-kw">func</span> fizzBuzz(n <span class="tok-type">int</span>) <span class="tok-type">string</span> {
 	<span class="tok-kw">switch</span> {
+	<span class="tok-com">// the multiple-of-15 case must be checked first: every multiple of 15 is</span>
+	<span class="tok-com">// also a multiple of 3 and 5, so checking those individually first would</span>
+	<span class="tok-com">// always return early with just "Fizz" or "Buzz" and never "FizzBuzz"</span>
 	<span class="tok-kw">case</span> n%15 == 0:
 		<span class="tok-kw">return</span> <span class="tok-str">"FizzBuzz"</span>
 	<span class="tok-kw">case</span> n%3 == 0:
@@ -3460,7 +3864,7 @@ Buzz</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/WDeXDe0bIOk" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/8Cx5Lcml4AG" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3471,13 +3875,17 @@ Buzz</div>
 <span class="tok-kw">func</span> binarySearch(sorted []<span class="tok-type">int</span>, target <span class="tok-type">int</span>) <span class="tok-type">int</span> {
 	lo, hi := 0, len(sorted)-1
 	<span class="tok-kw">for</span> lo &lt;= hi {
+		<span class="tok-com">// lo + (hi-lo)/2 instead of (lo+hi)/2: the latter can overflow int when</span>
+		<span class="tok-com">// lo and hi are both large, even though neither alone is out of range</span>
 		mid := lo + (hi-lo)/2
 		<span class="tok-kw">switch</span> {
 		<span class="tok-kw">case</span> sorted[mid] == target:
 			<span class="tok-kw">return</span> mid
 		<span class="tok-kw">case</span> sorted[mid] &lt; target:
+			<span class="tok-com">// target is to the right; mid is excluded since it's already ruled out</span>
 			lo = mid + 1
 		<span class="tok-kw">default</span>:
+			<span class="tok-com">// target is to the left; same reasoning, mid is excluded going down</span>
 			hi = mid - 1
 		}
 	}
@@ -3506,7 +3914,7 @@ searching for 4 in [1 3 5 7 9 11 13 17 19] -&gt; index -1</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Ypx7qbbn6Mj" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/PmG2AX4_Rvb" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3515,13 +3923,16 @@ searching for 4 in [1 3 5 7 9 11 13 17 19] -&gt; index -1</div>
 <span class="tok-com">// firstDuplicate scans nums left to right and returns the first value</span>
 <span class="tok-com">// that has already been seen earlier in the slice, using a set for O(n).</span>
 <span class="tok-kw">func</span> firstDuplicate(nums []<span class="tok-type">int</span>) (<span class="tok-type">int</span>, <span class="tok-type">bool</span>) {
+	<span class="tok-com">// empty struct{} as the value costs no extra memory; the map is used purely as a set</span>
 	seen := <span class="tok-kw">make</span>(map[<span class="tok-type">int</span>]struct{})
 	<span class="tok-kw">for</span> _, n := <span class="tok-kw">range</span> nums {
+		<span class="tok-com">// check membership before recording n, so a value doesn't count as its own duplicate</span>
 		<span class="tok-kw">if</span> _, ok := seen[n]; ok {
 			<span class="tok-kw">return</span> n, <span class="tok-kw">true</span>
 		}
 		seen[n] = struct{}{}
 	}
+	<span class="tok-com">// reached the end with every value unique</span>
 	<span class="tok-kw">return</span> 0, <span class="tok-kw">false</span>
 }
 
@@ -3553,7 +3964,7 @@ nums=[7 7 1 2] -&gt; first duplicate: 7</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/7awXimdtnL6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/LB_3ybh8XJp" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3562,8 +3973,10 @@ nums=[7 7 1 2] -&gt; first duplicate: 7</div>
 <span class="tok-com">// mergeSorted merges two already-sorted slices into one sorted slice</span>
 <span class="tok-com">// in O(n+m) time by walking both with two pointers.</span>
 <span class="tok-kw">func</span> mergeSorted(a, b []<span class="tok-type">int</span>) []<span class="tok-type">int</span> {
+	<span class="tok-com">// pre-size the backing array to the combined length so append never reallocates</span>
 	merged := <span class="tok-kw">make</span>([]<span class="tok-type">int</span>, 0, len(a)+len(b))
 	i, j := 0, 0
+	<span class="tok-com">// advance whichever pointer holds the smaller front element, so merged stays sorted</span>
 	<span class="tok-kw">for</span> i &lt; len(a) &amp;&amp; j &lt; len(b) {
 		<span class="tok-kw">if</span> a[i] &lt;= b[j] {
 			merged = append(merged, a[i])
@@ -3573,6 +3986,8 @@ nums=[7 7 1 2] -&gt; first duplicate: 7</div>
 			j++
 		}
 	}
+	<span class="tok-com">// one slice is exhausted by now; the other's remaining tail is already sorted,</span>
+	<span class="tok-com">// so append it wholesale instead of comparing element by element</span>
 	merged = append(merged, a[i:]...)
 	merged = append(merged, b[j:]...)
 	<span class="tok-kw">return</span> merged
@@ -3603,7 +4018,7 @@ merged=[-3 -1 0 2]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/8TAsR8FiV0H" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/1xTk7eaFog_N" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3618,10 +4033,14 @@ merged=[-3 -1 0 2]</div>
 	best, bestStart := 0, 0
 	start := 0
 	<span class="tok-kw">for</span> i, r := <span class="tok-kw">range</span> runes {
+		<span class="tok-com">// idx &gt;= start matters: a stale sighting of r from before the current window</span>
+		<span class="tok-com">// started is irrelevant and must not push start forward again</span>
 		<span class="tok-kw">if</span> idx, ok := lastSeen[r]; ok &amp;&amp; idx &gt;= start {
 			start = idx + 1
 		}
+		<span class="tok-com">// record/overwrite the most recent index of r regardless, so future repeats see it</span>
 		lastSeen[r] = i
+		<span class="tok-com">// current window [start, i] is unique by construction; keep it if it's the longest so far</span>
 		<span class="tok-kw">if</span> length := i - start + 1; length &gt; best {
 			best = length
 			bestStart = start
@@ -3650,7 +4069,7 @@ input: "go gopher" -&gt; longest unique substring: " gopher" (length 7)</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/oiCE6nUiYb6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/MYNZ-H7Q11p" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3659,19 +4078,25 @@ input: "go gopher" -&gt; longest unique substring: " gopher" (length 7)</div>
 <span class="tok-com">// isBalanced reports whether every bracket in s is properly opened and</span>
 <span class="tok-com">// closed in the right order, using a stack to track open brackets.</span>
 <span class="tok-kw">func</span> isBalanced(s <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
+	<span class="tok-com">// maps each closing bracket to the opener it must match</span>
 	pairs := map[<span class="tok-type">rune</span>]<span class="tok-type">rune</span>{<span class="tok-str">')'</span>: <span class="tok-str">'('</span>, <span class="tok-str">']'</span>: <span class="tok-str">'['</span>, <span class="tok-str">'}'</span>: <span class="tok-str">'{'</span>}
+	<span class="tok-com">// the most recently opened, still-unclosed bracket is always on top,</span>
+	<span class="tok-com">// which is exactly what a stack gives us in O(1) per operation</span>
 	<span class="tok-kw">var</span> stack []<span class="tok-type">rune</span>
 	<span class="tok-kw">for</span> _, r := <span class="tok-kw">range</span> s {
 		<span class="tok-kw">switch</span> r {
 		<span class="tok-kw">case</span> <span class="tok-str">'('</span>, <span class="tok-str">'['</span>, <span class="tok-str">'{'</span>:
 			stack = append(stack, r)
 		<span class="tok-kw">case</span> <span class="tok-str">')'</span>, <span class="tok-str">']'</span>, <span class="tok-str">'}'</span>:
+			<span class="tok-com">// invalid if there's nothing open to close, or the top of the stack</span>
+			<span class="tok-com">// isn't the matching opener (wrong type or wrong order)</span>
 			<span class="tok-kw">if</span> len(stack) == 0 || stack[len(stack)-1] != pairs[r] {
 				<span class="tok-kw">return</span> <span class="tok-kw">false</span>
 			}
 			stack = stack[:len(stack)-1]
 		}
 	}
+	<span class="tok-com">// a leftover open bracket with nothing closing it is also unbalanced</span>
 	<span class="tok-kw">return</span> len(stack) == 0
 }
 
@@ -3695,7 +4120,7 @@ input: "{[()()]}" -&gt; balanced: true</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/Z4_kvKzVLXe" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/53WFvpNv5e_v" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3705,9 +4130,12 @@ input: "{[()()]}" -&gt; balanced: true</div>
 <span class="tok-com">// on both smaller subproblems. It recomputes the same values many times,</span>
 <span class="tok-com">// so it's exponential time: O(2^n).</span>
 <span class="tok-kw">func</span> fibRecursive(n <span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	<span class="tok-com">// base cases fib(0)=0 and fib(1)=1 stop the recursion</span>
 	<span class="tok-kw">if</span> n &lt; 2 {
 		<span class="tok-kw">return</span> n
 	}
+	<span class="tok-com">// each call branches into two more calls with no memory of work already done,</span>
+	<span class="tok-com">// so the same smaller subproblems (e.g. fib(3)) get recomputed many times over</span>
 	<span class="tok-kw">return</span> fibRecursive(n-1) + fibRecursive(n-2)
 }
 
@@ -3717,10 +4145,13 @@ input: "{[()()]}" -&gt; balanced: true</div>
 	<span class="tok-kw">if</span> n &lt; 2 {
 		<span class="tok-kw">return</span> n
 	}
+	<span class="tok-com">// if this subproblem was already solved on an earlier branch, reuse it</span>
+	<span class="tok-com">// instead of paying for the recursion again</span>
 	<span class="tok-kw">if</span> v, ok := cache[n]; ok {
 		<span class="tok-kw">return</span> v
 	}
 	result := fibMemo(n-1, cache) + fibMemo(n-2, cache)
+	<span class="tok-com">// save the result before returning so every future call for n is O(1)</span>
 	cache[n] = result
 	<span class="tok-kw">return</span> result
 }
@@ -3732,12 +4163,16 @@ input: "{[()()]}" -&gt; balanced: true</div>
 	}
 
 	fmt.Println(<span class="tok-str">"\nmemoized fibonacci:"</span>)
+	<span class="tok-com">// one cache shared across every call in this loop, so it keeps growing instead</span>
+	<span class="tok-com">// of being rebuilt from scratch each time</span>
 	cache := <span class="tok-kw">make</span>(map[<span class="tok-type">int</span>]<span class="tok-type">int</span>)
 	<span class="tok-kw">for</span> i := 0; i &lt;= 10; i++ {
 		fmt.Printf(<span class="tok-str">"fib(%d) = %d\n"</span>, i, fibMemo(i, cache))
 	}
 
 	fmt.Println(<span class="tok-str">"\nmemoization makes larger values practical, e.g.:"</span>)
+	<span class="tok-com">// fib(40) would take billions of calls with fibRecursive; reusing the</span>
+	<span class="tok-com">// already-populated cache makes it near-instant here</span>
 	fmt.Printf(<span class="tok-str">"fib(40) = %d\n"</span>, fibMemo(40, cache))
 }</code></pre>
     <div class="code-output show">naive recursive fibonacci:
@@ -3777,7 +4212,7 @@ fib(40) = 102334155</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/LzlKOOb8LGp" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/FP_e0hQl8EC" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3786,11 +4221,16 @@ fib(40) = 102334155</div>
 <span class="tok-com">// quicksort sorts nums in place by picking a pivot, partitioning the</span>
 <span class="tok-com">// slice around it, then recursively sorting each side: average O(n log n).</span>
 <span class="tok-kw">func</span> quicksort(nums []<span class="tok-type">int</span>) {
+	<span class="tok-com">// 0 or 1 elements are trivially sorted; this also ends the recursion</span>
 	<span class="tok-kw">if</span> len(nums) &lt; 2 {
 		<span class="tok-kw">return</span>
 	}
+	<span class="tok-com">// the middle element avoids the worst-case O(n^2) behavior that picking</span>
+	<span class="tok-com">// the first or last element would cause on already-sorted input</span>
 	pivot := nums[len(nums)/2]
 	left, right := 0, len(nums)-1
+	<span class="tok-com">// Hoare partition: walk left up and right down past elements already on</span>
+	<span class="tok-com">// the correct side of the pivot, swapping the ones that are out of place</span>
 	<span class="tok-kw">for</span> left &lt;= right {
 		<span class="tok-kw">for</span> nums[left] &lt; pivot {
 			left++
@@ -3800,10 +4240,13 @@ fib(40) = 102334155</div>
 		}
 		<span class="tok-kw">if</span> left &lt;= right {
 			nums[left], nums[right] = nums[right], nums[left]
+			<span class="tok-com">// move past the pair just swapped so it isn't re-examined</span>
 			left++
 			right--
 		}
 	}
+	<span class="tok-com">// right and left have crossed, splitting nums into two partitions around</span>
+	<span class="tok-com">// the pivot's final resting place; recursively sort each independently</span>
 	quicksort(nums[:right+1])
 	quicksort(nums[left:])
 }
@@ -3832,7 +4275,7 @@ after:  [-1 3 5 5 5]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/d0Goo3WVS-h" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/mmlLCTqK2wB" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3845,11 +4288,15 @@ after:  [-1 3 5 5 5]</div>
 	cur := nums[0]
 	<span class="tok-kw">for</span> i := 1; i &lt; len(nums); i++ {
 		n := nums[i]
+		<span class="tok-com">// a negative running sum can only drag down any future subarray,</span>
+		<span class="tok-com">// so it's never worth carrying forward - start fresh from n instead</span>
 		<span class="tok-kw">if</span> cur &lt; 0 {
 			cur = n
 		} <span class="tok-kw">else</span> {
 			cur += n
 		}
+		<span class="tok-com">// best tracks the max cur seen at any point, since the optimal</span>
+		<span class="tok-com">// subarray must end at some index i and cur is the best sum ending there</span>
 		<span class="tok-kw">if</span> cur &gt; best {
 			best = cur
 		}
@@ -3880,7 +4327,7 @@ nums=[-3 -1 -8 -2] -&gt; max subarray sum=-1</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/6JaopqBqukD" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/4DmsLr0AFYU" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3896,9 +4343,13 @@ nums=[-3 -1 -8 -2] -&gt; max subarray sum=-1</div>
 	<span class="tok-kw">var</span> order []<span class="tok-type">string</span>
 
 	<span class="tok-kw">for</span> _, w := <span class="tok-kw">range</span> words {
+		<span class="tok-com">// any two anagrams produce the same sorted rune sequence, so that</span>
+		<span class="tok-com">// sorted form is a canonical key every member of the group shares</span>
 		runes := []<span class="tok-type">rune</span>(w)
 		sort.Slice(runes, <span class="tok-kw">func</span>(i, j <span class="tok-type">int</span>) <span class="tok-type">bool</span> { <span class="tok-kw">return</span> runes[i] &lt; runes[j] })
 		key := <span class="tok-type">string</span>(runes)
+		<span class="tok-com">// record each key only the first time it's seen, so groups come</span>
+		<span class="tok-com">// out in first-appearance order even though map iteration isn't ordered</span>
 		<span class="tok-kw">if</span> _, ok := groups[key]; !ok {
 			order = append(order, key)
 		}
@@ -3932,7 +4383,7 @@ group: [bat]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/8CAJ7YVh1Lf" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/QttOyJ5HTqA" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -3944,13 +4395,20 @@ group: [bat]</div>
 	<span class="tok-kw">if</span> len(strs) == 0 {
 		<span class="tok-kw">return</span> <span class="tok-str">""</span>
 	}
+	<span class="tok-com">// start assuming the whole first word is the prefix, then shrink it</span>
+	<span class="tok-com">// down as each subsequent word disagrees with it</span>
 	prefix := strs[0]
 	<span class="tok-kw">for</span> _, s := <span class="tok-kw">range</span> strs[1:] {
 		i := 0
+		<span class="tok-com">// walk both strings together and stop at the first mismatching</span>
+		<span class="tok-com">// column (or the end of the shorter one) - everything before that</span>
+		<span class="tok-com">// point is still common to every word seen so far</span>
 		<span class="tok-kw">for</span> i &lt; len(prefix) && i &lt; len(s) && prefix[i] == s[i] {
 			i++
 		}
 		prefix = prefix[:i]
+		<span class="tok-com">// once the prefix is empty it can't shrink any further, so there's</span>
+		<span class="tok-com">// no point checking the remaining words</span>
 		<span class="tok-kw">if</span> prefix == <span class="tok-str">""</span> {
 			<span class="tok-kw">break</span>
 		}
@@ -3981,7 +4439,7 @@ strs=[interspecies interstellar interstate] -&gt; longest common prefix="inters"
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/ofBCRd-BEMk" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/yqxvmB76tAW" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4013,10 +4471,14 @@ strs=[interspecies interstellar interstate] -&gt; longest common prefix="inters"
 	heap.Init(h)
 	<span class="tok-kw">for</span> _, n := <span class="tok-kw">range</span> nums {
 		heap.Push(h, n)
+		<span class="tok-com">// once the heap holds more than k elements, the smallest of them</span>
+		<span class="tok-com">// can no longer be among the k largest overall, so evict it</span>
 		<span class="tok-kw">if</span> h.Len() &gt; k {
 			heap.Pop(h)
 		}
 	}
+	<span class="tok-com">// after processing every element, the heap holds exactly the k</span>
+	<span class="tok-com">// largest values, and its root is the smallest of those - i.e. the k-th largest</span>
 	<span class="tok-kw">return</span> (*h)[0]
 }
 
@@ -4042,7 +4504,7 @@ nums=[3 2 3 1 2 4 5 5 6], k=4 -&gt; 4-th largest=4</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/jq-SPAQqFWx" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/6YYIivFeQYd" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4064,7 +4526,12 @@ nums=[3 2 3 1 2 4 5 5 6], k=4 -&gt; 4-th largest=4</div>
 	<span class="tok-kw">if</span> n == 0 {
 		<span class="tok-kw">return</span>
 	}
+	<span class="tok-com">// k can exceed n (rotating by n is a no-op), so reduce it to its</span>
+	<span class="tok-com">// effective value in [0, n) before using it as an index</span>
 	k %= n
+	<span class="tok-com">// reversing the whole slice puts every element in its final half but</span>
+	<span class="tok-com">// backwards within each half; reversing the two halves individually</span>
+	<span class="tok-com">// then un-reverses each one back into the correct order</span>
 	reverse(nums, 0, n-1)
 	reverse(nums, 0, k-1)
 	reverse(nums, k, n-1)
@@ -4104,7 +4571,7 @@ after=[3 1 2]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/xcC0nAb_yi2" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/JqTPdAYPLfX" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4113,9 +4580,12 @@ after=[3 1 2]</div>
 <span class="tok-com">// maxArea finds the two lines in height that, together with the x-axis,</span>
 <span class="tok-com">// form the container holding the most water, using the two-pointer method.</span>
 <span class="tok-kw">func</span> maxArea(height []<span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	<span class="tok-com">// start with the widest possible container and narrow it, since width</span>
+	<span class="tok-com">// only shrinks from here - any better area has to come from a taller side</span>
 	lo, hi := 0, len(height)-1
 	best := 0
 	<span class="tok-kw">for</span> lo &lt; hi {
+		<span class="tok-com">// the container's height is capped by its shorter wall</span>
 		h := height[lo]
 		<span class="tok-kw">if</span> height[hi] &lt; h {
 			h = height[hi]
@@ -4124,6 +4594,9 @@ after=[3 1 2]</div>
 		<span class="tok-kw">if</span> area &gt; best {
 			best = area
 		}
+		<span class="tok-com">// move whichever side is shorter: keeping it in place can never beat</span>
+		<span class="tok-com">// the current area (width shrinks, height stays capped by the same wall),</span>
+		<span class="tok-com">// so moving it is the only way to possibly find a taller pair</span>
 		<span class="tok-kw">if</span> height[lo] &lt; height[hi] {
 			lo++
 		} <span class="tok-kw">else</span> {
@@ -4156,7 +4629,7 @@ height=[4 3 2 1 4] -&gt; max water area=16</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/qHu5wVI2vuU" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/2NgRc8n4Ufl" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4165,9 +4638,15 @@ height=[4 3 2 1 4] -&gt; max water area=16</div>
 <span class="tok-com">// moveZeroes shifts every zero in nums to the end, in place, while keeping</span>
 <span class="tok-com">// the relative order of the non-zero elements, using a single write pointer.</span>
 <span class="tok-kw">func</span> moveZeroes(nums []<span class="tok-type">int</span>) {
+	<span class="tok-com">// write marks the boundary: everything before it is the non-zero</span>
+	<span class="tok-com">// elements packed so far, in their original relative order.</span>
 	write := 0
 	<span class="tok-kw">for</span> read := 0; read &lt; len(nums); read++ {
 		<span class="tok-kw">if</span> nums[read] != 0 {
+			<span class="tok-com">// swapping (rather than just assigning) puts whatever was at</span>
+			<span class="tok-com">// write - a zero already accounted for, or nums[write] itself</span>
+			<span class="tok-com">// when read==write - into read's old slot, so no extra buffer</span>
+			<span class="tok-com">// or second pass is needed to shift the zeros down.</span>
 			nums[write], nums[read] = nums[read], nums[write]
 			write++
 		}
@@ -4205,7 +4684,7 @@ after=[4 2 4 3 5 1 0 0 0 0]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/3tXQaf12QuG" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/ksLUklAolp5" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4222,13 +4701,21 @@ after=[4 2 4 3 5 1 0 0 0 0]</div>
 		<span class="tok-kw">return</span> <span class="tok-str">""</span>
 	}
 	<span class="tok-kw">var</span> b strings.Builder
+	<span class="tok-com">// decode to runes first so multi-byte characters count as one character</span>
+	<span class="tok-com">// each, not as however many UTF-8 bytes they occupy.</span>
 	runeStr := []<span class="tok-type">rune</span>(s)
 	count := 1
+	<span class="tok-com">// i runs one past the last index on purpose: that out-of-range step is</span>
+	<span class="tok-com">// what forces the final run to be flushed, since otherwise the loop</span>
+	<span class="tok-com">// would end mid-run with count never written out.</span>
 	<span class="tok-kw">for</span> i := 1; i &lt;= len(runeStr); i++ {
 		<span class="tok-kw">if</span> i &lt; len(runeStr) && runeStr[i] == runeStr[i-1] {
 			count++
 			<span class="tok-kw">continue</span>
 		}
+		<span class="tok-com">// runeStr[i-1] is the last character of the run that just ended</span>
+		<span class="tok-com">// (or the run-end sentinel step at i==len(runeStr)); flush it with</span>
+		<span class="tok-com">// its accumulated count before starting the next run.</span>
 		b.WriteRune(runeStr[i-1])
 		b.WriteString(strconv.Itoa(count))
 		count = 1
@@ -4255,7 +4742,7 @@ input="wwwwwwwwwwwwx" -&gt; compressed="w12x1"</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/_PbpUTljZgH" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/ykCi9M8ZOyK" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4268,9 +4755,14 @@ input="wwwwwwwwwwwwx" -&gt; compressed="w12x1"</div>
 <span class="tok-com">// rotation of "waterbottle"). The trick: any rotation of s1 is a substring</span>
 <span class="tok-com">// of s1+s1.</span>
 <span class="tok-kw">func</span> isRotation(s1, s2 <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
+	<span class="tok-com">// a rotation must have exactly the same length; without this check a</span>
+	<span class="tok-com">// shorter s2 could false-positive as "contained" in s1+s1.</span>
 	<span class="tok-kw">if</span> len(s1) != len(s2) {
 		<span class="tok-kw">return</span> <span class="tok-kw">false</span>
 	}
+	<span class="tok-com">// concatenating s1 with itself lines up every possible rotation point</span>
+	<span class="tok-com">// as a contiguous substring, so a single Contains check covers all of</span>
+	<span class="tok-com">// them without trying each rotation offset individually.</span>
 	<span class="tok-kw">return</span> strings.Contains(s1+s1, s2)
 }
 
@@ -4299,7 +4791,7 @@ s1="abc", s2="abcd" -&gt; is rotation=false</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/g7ymFy4lcZJ" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/cPkRUDLCtbO" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4314,18 +4806,30 @@ s1="abc", s2="abcd" -&gt; is rotation=false</div>
 	<span class="tok-kw">if</span> len(intervals) == 0 {
 		<span class="tok-kw">return</span> <span class="tok-kw">nil</span>
 	}
+	<span class="tok-com">// copy first so the caller's slice isn't reordered as a side effect of</span>
+	<span class="tok-com">// sorting it in place.</span>
 	sorted := <span class="tok-kw">make</span>([][2]<span class="tok-type">int</span>, len(intervals))
 	copy(sorted, intervals)
+	<span class="tok-com">// sorting by start turns "do any two intervals overlap" into "does each</span>
+	<span class="tok-com">// interval overlap only its immediate neighbor", since once ordered by</span>
+	<span class="tok-com">// start, an overlap can only ever involve the most recently merged one.</span>
 	sort.Slice(sorted, <span class="tok-kw">func</span>(i, j <span class="tok-type">int</span>) <span class="tok-type">bool</span> { <span class="tok-kw">return</span> sorted[i][0] &lt; sorted[j][0] })
 
 	result := [][2]<span class="tok-type">int</span>{sorted[0]}
 	<span class="tok-kw">for</span> _, cur := <span class="tok-kw">range</span> sorted[1:] {
+		<span class="tok-com">// take the address of the slice element so extending it in place</span>
+		<span class="tok-com">// (below) updates result directly, without a separate lookup/write.</span>
 		last := &result[len(result)-1]
 		<span class="tok-kw">if</span> cur[0] &lt;= last[1] {
+			<span class="tok-com">// cur starts inside (or right at) last's range, so they overlap;</span>
+			<span class="tok-com">// only grow the end if cur reaches further, since cur could be</span>
+			<span class="tok-com">// fully contained within last (e.g. [1,4] then [2,3]).</span>
 			<span class="tok-kw">if</span> cur[1] &gt; last[1] {
 				last[1] = cur[1]
 			}
 		} <span class="tok-kw">else</span> {
+			<span class="tok-com">// cur starts after last ends, so it can't overlap anything seen</span>
+			<span class="tok-com">// so far (thanks to the sort) - it becomes its own interval.</span>
 			result = append(result, cur)
 		}
 	}
@@ -4357,7 +4861,7 @@ intervals=[[1 4] [2 3]] -&gt; merged=[[1 4]]</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/u5AVB5VDAGi" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/8tAZPeCkm-n" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4371,9 +4875,14 @@ intervals=[[1 4] [2 3]] -&gt; merged=[[1 4]]</div>
 <span class="tok-com">// wordFrequency splits text into lowercase words (stripping punctuation) and</span>
 <span class="tok-com">// counts how many times each word appears.</span>
 <span class="tok-kw">func</span> wordFrequency(text <span class="tok-type">string</span>) map[<span class="tok-type">string</span>]<span class="tok-type">int</span> {
+	<span class="tok-com">// treat any rune that's neither a letter nor a digit as a separator, so</span>
+	<span class="tok-com">// FieldsFunc splits on punctuation and whitespace alike in one pass</span>
+	<span class="tok-com">// without a separate strip-punctuation step.</span>
 	fields := strings.FieldsFunc(strings.ToLower(text), <span class="tok-kw">func</span>(r <span class="tok-type">rune</span>) <span class="tok-type">bool</span> {
 		<span class="tok-kw">return</span> !unicode.IsLetter(r) && !unicode.IsDigit(r)
 	})
+	<span class="tok-com">// a map gives O(1) increment per word instead of a linear scan for each</span>
+	<span class="tok-com">// occurrence to find its existing count.</span>
 	counts := <span class="tok-kw">make</span>(map[<span class="tok-type">string</span>]<span class="tok-type">int</span>)
 	<span class="tok-kw">for</span> _, w := <span class="tok-kw">range</span> fields {
 		counts[w]++
@@ -4384,10 +4893,14 @@ intervals=[[1 4] [2 3]] -&gt; merged=[[1 4]]</div>
 <span class="tok-com">// sortedByCount returns words ordered by descending count, then alphabetically</span>
 <span class="tok-com">// to keep output deterministic.</span>
 <span class="tok-kw">func</span> sortedByCount(counts map[<span class="tok-type">string</span>]<span class="tok-type">int</span>) []<span class="tok-type">string</span> {
+	<span class="tok-com">// Go's map iteration order is randomized, so the keys must be collected</span>
+	<span class="tok-com">// and explicitly sorted to get any stable, repeatable output.</span>
 	words := <span class="tok-kw">make</span>([]<span class="tok-type">string</span>, 0, len(counts))
 	<span class="tok-kw">for</span> w := <span class="tok-kw">range</span> counts {
 		words = append(words, w)
 	}
+	<span class="tok-com">// primary key: count descending. Ties fall back to alphabetical order</span>
+	<span class="tok-com">// so words with equal counts still print in a fixed, reproducible order.</span>
 	sort.Slice(words, <span class="tok-kw">func</span>(i, j <span class="tok-type">int</span>) <span class="tok-type">bool</span> {
 		<span class="tok-kw">if</span> counts[words[i]] != counts[words[j]] {
 			<span class="tok-kw">return</span> counts[words[i]] &gt; counts[words[j]]
@@ -4428,7 +4941,7 @@ runs: 1</div>
   <div class="code-panel">
     <div class="code-panel-head">
       <span class="code-panel-title">main.go</span>
-      <a class="btn btn-sm" href="https://go.dev/play/p/OVAAztpaYfw" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+      <a class="btn btn-sm" href="https://go.dev/play/p/-mjL4Qexfn__1" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
     </div>
     <pre><code><span class="tok-kw">package</span> main
 
@@ -4442,23 +4955,40 @@ runs: 1</div>
 		<span class="tok-kw">return</span> 0
 	}
 	rows, cols := len(grid), len(grid[0])
+	<span class="tok-com">// visited is a parallel grid, separate from the input, marking every</span>
+	<span class="tok-com">// land cell already assigned to an island; without it the outer scan</span>
+	<span class="tok-com">// below would walk into the same island repeatedly and over-count it,</span>
+	<span class="tok-com">// and the BFS itself could revisit a cell and loop forever.</span>
 	visited := <span class="tok-kw">make</span>([][]<span class="tok-type">bool</span>, rows)
 	<span class="tok-kw">for</span> i := <span class="tok-kw">range</span> visited {
 		visited[i] = <span class="tok-kw">make</span>([]<span class="tok-type">bool</span>, cols)
 	}
 
 	<span class="tok-kw">type</span> point <span class="tok-kw">struct</span>{ r, c <span class="tok-type">int</span> }
+	<span class="tok-com">// bfs claims every land cell reachable from (sr, sc) by 4-directional</span>
+	<span class="tok-com">// steps, marking each one visited the moment it's enqueued (not when</span>
+	<span class="tok-com">// it's dequeued) so the same cell can never be added to the queue twice.</span>
 	bfs := <span class="tok-kw">func</span>(sr, sc <span class="tok-type">int</span>) {
 		queue := []point{{sr, sc}}
 		visited[sr][sc] = <span class="tok-kw">true</span>
 		<span class="tok-kw">for</span> len(queue) &gt; 0 {
+			<span class="tok-com">// pop from the front - this is what makes it a breadth-first</span>
+			<span class="tok-com">// (layer-by-layer) search rather than depth-first; either order</span>
+			<span class="tok-com">// finds the same island, but BFS avoids deep recursion on large</span>
+			<span class="tok-com">// islands.</span>
 			p := queue[0]
 			queue = queue[1:]
+			<span class="tok-com">// the four orthogonal neighbors; islands are defined by</span>
+			<span class="tok-com">// horizontal/vertical adjacency only, so diagonals are excluded.</span>
 			dirs := []point{{p.r - 1, p.c}, {p.r + 1, p.c}, {p.r, p.c - 1}, {p.r, p.c + 1}}
 			<span class="tok-kw">for</span> _, d := <span class="tok-kw">range</span> dirs {
+				<span class="tok-com">// skip neighbors that would fall outside the grid before</span>
+				<span class="tok-com">// indexing into it, to avoid a panic at the edges/corners.</span>
 				<span class="tok-kw">if</span> d.r &lt; 0 || d.r &gt;= rows || d.c &lt; 0 || d.c &gt;= cols {
 					<span class="tok-kw">continue</span>
 				}
+				<span class="tok-com">// skip water, and skip land already claimed by this (or an</span>
+				<span class="tok-com">// earlier) BFS - both cases mean there's nothing new to add.</span>
 				<span class="tok-kw">if</span> visited[d.r][d.c] || grid[d.r][d.c] != <span class="tok-str">'1'</span> {
 					<span class="tok-kw">continue</span>
 				}
@@ -4469,6 +4999,10 @@ runs: 1</div>
 	}
 
 	count := 0
+	<span class="tok-com">// scanning every cell guarantees no island is missed regardless of its</span>
+	<span class="tok-com">// shape or position; the !visited check is what makes each island only</span>
+	<span class="tok-com">// ever trigger one bfs call - once flood-filled, its cells are skipped</span>
+	<span class="tok-com">// for the rest of the scan.</span>
 	<span class="tok-kw">for</span> r := 0; r &lt; rows; r++ {
 		<span class="tok-kw">for</span> c := 0; c &lt; cols; c++ {
 			<span class="tok-kw">if</span> grid[r][c] == <span class="tok-str">'1'</span> && !visited[r][c] {
