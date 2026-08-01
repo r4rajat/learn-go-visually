@@ -36,6 +36,7 @@
       <a class="btn btn-sm" href="#generics">Generics</a>
       <a class="btn btn-sm" href="#context">Context</a>
       <a class="btn btn-sm" href="#testing">Testing</a>
+      <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
     </div>
 
     <!-- ============================================================ -->
@@ -654,6 +655,135 @@ ok  	example.com/goverify/mathutil	2.106s</div>
         regression test that runs with every <code>go test</code> even without
         <code>-fuzz</code>.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interview-questions">Interview Questions</h2>
+    <p>
+      Common interview questions about generics, context, and testing &mdash; organized by
+      experience level. Click a tab to filter.
+    </p>
+
+    <div class="interview-tabs" data-viz="interview-qa">
+      <div class="interview-tab-buttons">
+        <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+        <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+        <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="beginner">
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What are generics in Go, and when were they added to the language?</p>
+          <p class="interview-a">Generics let you write functions and types that operate on a type parameter instead of a concrete type, so the same code works for <code>int</code>, <code>string</code>, or any type satisfying a constraint. They were added in Go 1.18 (2022) and have been stable ever since &mdash; no experimental flags are needed in Go 1.26.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. How do you declare a generic function? Show the syntax for a function that works on any slice element type.</p>
+          <p class="interview-a">Type parameters go in square brackets before the regular parameter list, e.g. <code>func Map[T, U any](s []T, f func(T) U) []U</code>. Here <code>T</code> and <code>U</code> are type parameters constrained by <code>any</code>, meaning they can be any type.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What is a constraint in Go generics?</p>
+          <p class="interview-a">A constraint is an interface that specifies which types are allowed to be substituted for a type parameter, and which operations (methods, operators) are permitted on values of that type parameter. It's written where you'd normally see a type, e.g. <code>[T Ordered]</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What does the <code>comparable</code> constraint mean, and when do you need it?</p>
+          <p class="interview-a"><code>comparable</code> is a built-in constraint that permits only types supporting <code>==</code> and <code>!=</code>. You need it when a generic function or type uses a type parameter as a map key or compares two values of that type directly, e.g. <code>func Contains[T comparable](s []T, v T) bool</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is <code>context.Context</code> used for in Go?</p>
+          <p class="interview-a"><code>context.Context</code> carries a cancellation signal, an optional deadline, and optional request-scoped values across API boundaries and between goroutines. It's the standard way to tell downstream work "stop, the caller no longer needs this."</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. How do you create a context that can be cancelled manually?</p>
+          <p class="interview-a"><code>ctx, cancel := context.WithCancel(parent)</code> returns a derived context and a <code>cancel func()</code>. Calling <code>cancel()</code> closes the context's <code>Done()</code> channel, signaling cancellation to anything that received <code>ctx</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What does a context's <code>Done()</code> method return, and how is it typically used?</p>
+          <p class="interview-a"><code>Done()</code> returns a <code>&lt;-chan struct{}</code> that is closed when the context is cancelled or its deadline expires. Code typically selects on it alongside other channels, e.g. <code>select { case &lt;-ctx.Done(): return ctx.Err() case v := &lt;-work: ... }</code>, to exit early.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. How do you write a basic test in Go &mdash; file naming and function signature?</p>
+          <p class="interview-a">Tests live in a file ending in <code>_test.go</code> in the same package, and each test is a function named <code>TestXxx(t *testing.T)</code> where <code>Xxx</code> starts with a capital letter. Failures are reported with <code>t.Error</code>/<code>t.Errorf</code> (continues) or <code>t.Fatal</code>/<code>t.Fatalf</code> (stops the test), and you run them with <code>go test</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What is a table-driven test?</p>
+          <p class="interview-a">A table-driven test defines a slice of struct literals, each holding an input and its expected output, then loops over the slice running the same assertion logic for every case. It keeps many similar test cases concise and makes adding a new case a one-line change instead of a new function.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Why does Go's generic type inference sometimes fail, forcing you to write out the type arguments explicitly?</p>
+          <p class="interview-a">Type inference works by unifying type parameters against the types of the function's ordinary arguments, so it can fail when a type parameter only appears in the return type, when constraint type sets don't pin down a single type, or when arguments mix types the compiler can't unify (e.g. passing both <code>int</code> and <code>int32</code> for the same parameter). In those cases you instantiate explicitly, e.g. <code>Map[int, string](nums, fn)</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. Why write a generic function with a narrow constraint instead of just using <code>any</code> (interface{})?</p>
+          <p class="interview-a">A narrow constraint (like requiring <code>cmp.Ordered</code> or a custom interface) lets the compiler check at compile time that the type supports the operators or methods you use, and it preserves static type information so no type assertions are needed inside the function. With <code>any</code> you'd lose that safety and have to do runtime type switches or reflection to do anything useful with the value.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. Can a generic type have generic methods with their own type parameters?</p>
+          <p class="interview-a">No. A method can use the type parameters declared on its receiver's type, but it cannot introduce additional type parameters of its own &mdash; Go does not support generic methods in that sense. If you need that flexibility, you write a standalone generic function instead of a method.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. Why should <code>context.Value</code> be used sparingly, and what shouldn't go in it?</p>
+          <p class="interview-a"><code>context.Value</code> is untyped and unenforced by the compiler, so overusing it turns function signatures into a lie &mdash; dependencies get hidden instead of passed explicitly. It's meant only for request-scoped metadata that truly cuts across API boundaries (request IDs, trace spans, auth tokens), not for passing optional parameters, config, or anything a function actually depends on to do its job.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. Why do contexts form a tree, and how does cancellation propagate?</p>
+          <p class="interview-a">Every <code>WithCancel</code>/<code>WithTimeout</code>/<code>WithDeadline</code>/<code>WithValue</code> call derives a new child context from a parent, so a request's contexts form a tree rooted at something like <code>context.Background()</code>. Cancelling (or timing out) a context cancels that node and every descendant beneath it, but never propagates upward to its parent or sideways to siblings.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. Why must you always call the <code>cancel</code> function returned by <code>WithCancel</code> or <code>WithTimeout</code>, even if the context finishes naturally?</p>
+          <p class="interview-a">Each derived context registers itself with its parent so the parent can cancel it later; failing to call <code>cancel</code> keeps that association (and any timer, for <code>WithTimeout</code>/<code>WithDeadline</code>) alive until the parent itself is cancelled, leaking memory and goroutines. The idiom is <code>ctx, cancel := context.WithTimeout(parent, d); defer cancel()</code>, and <code>go vet</code>'s <code>lostcancel</code> check flags call sites that discard <code>cancel</code> without calling it.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Walk through the table-driven test pattern with subtests.</p>
+          <p class="interview-a">You define a slice of anonymous structs, each with a <code>name</code> field plus inputs and expected outputs, then loop over it calling <code>t.Run(tc.name, func(t *testing.T) { ... })</code> for each case. Using <code>t.Run</code> gives each case its own named subtest in the output (and lets you run just one with <code>go test -run TestX/case_name</code>), rather than lumping all failures into one undifferentiated test.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What does <code>t.Helper()</code> do, and why use it?</p>
+          <p class="interview-a"><code>t.Helper()</code> marks the current function as a test helper, so when an assertion inside it fails, <code>go test</code> reports the line number in the caller (the actual test) instead of the line inside the helper. It's typically the first line of small reusable assert-style functions shared across tests.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. How do you measure test coverage in Go?</p>
+          <p class="interview-a">Run <code>go test -cover</code> for a quick percentage, or <code>go test -coverprofile=cover.out</code> followed by <code>go tool cover -html=cover.out</code> to get an interactive HTML report showing exactly which lines were and weren't exercised. Coverage measures which statements ran, not whether the assertions were meaningful, so a high number doesn't guarantee good tests.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Explain union type constraints and the <code>~</code> (tilde) syntax, e.g. <code>interface { ~int | ~int32 }</code>.</p>
+          <p class="interview-a">A union like <code>int | int32</code> means the type argument must be exactly <code>int</code> or exactly <code>int32</code>. Prefixing with <code>~</code>, as in <code>~int</code>, means "any type whose underlying type is <code>int</code>," so a named type like <code>type UserID int</code> also satisfies the constraint &mdash; without the tilde it wouldn't, since <code>UserID</code> is a distinct defined type even though its underlying type is <code>int</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. How does the performance of generic code compare to interface{}-based code, and how does the Go compiler implement instantiation?</p>
+          <p class="interview-a">Go's compiler uses a hybrid strategy sometimes called "GC shape stenciling": it generates a separate compiled version per distinct GC shape (roughly, per distinct pointer/memory layout) rather than one copy per concrete type, and types sharing a shape pass a runtime dictionary describing type-specific details like methods. This avoids the boxing and dynamic dispatch that <code>interface{}</code>-based code pays for on every call, so generics are generally faster than interface-based equivalents, though not always quite as fast as a fully monomorphized (one-copy-per-type) implementation like Rust's or C++'s.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What's a common cause of context-related goroutine or resource leaks in production code?</p>
+          <p class="interview-a">The classic cause is calling <code>WithCancel</code>/<code>WithTimeout</code>/<code>WithDeadline</code> and never invoking (or conditionally skipping) the returned <code>cancel</code> function on every code path, including early returns and error branches. Each uncancelled derived context keeps its parent's cancellation bookkeeping (and any associated timer) alive, and any goroutine blocked selecting on that <code>Done()</code> channel never wakes up, leaking both memory and goroutines until the process exits.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What's the relationship between <code>context.WithTimeout</code> and <code>context.WithDeadline</code>, and what happens if the parent's deadline is already earlier than the one you request?</p>
+          <p class="interview-a"><code>WithTimeout(parent, d)</code> is implemented as <code>WithDeadline(parent, time.Now().Add(d))</code> &mdash; it's shorthand for a deadline computed from "now." If the parent context already has a deadline earlier than the one you're requesting, the child's effective deadline is the earlier of the two: the returned context is set up so it fires at the parent's (sooner) deadline, since a child can never outlive its parent's cancellation.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. Why is <code>context.Value</code> deliberately not designed as a general-purpose way to pass optional parameters or dependencies into a function?</p>
+          <p class="interview-a">Go's design philosophy favors explicit dependencies visible in a function signature, which are checked by the compiler and easy to trace; <code>context.Value</code> is untyped (<code>interface{}</code> in, <code>interface{}</code> out), unenforced, and searched dynamically up the context tree, so misuse hides real dependencies, breaks static analysis, and invites key collisions. It exists narrowly for cross-cutting request metadata (trace IDs, deadlines-adjacent data) that has no natural place in every function's parameter list, not as a substitute for dependency injection.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. How do you design Go code so it's easy to test, particularly code that depends on time, randomness, or external services?</p>
+          <p class="interview-a">Depend on small interfaces rather than concrete types (e.g. accept an interface with a <code>Get(ctx, url)</code> method instead of a concrete HTTP client) so tests can substitute fakes or mocks, and inject those dependencies through constructors or function parameters rather than reaching for globals or <code>init()</code>-created singletons. For time, accept a <code>func() time.Time</code> or a small clock interface instead of calling <code>time.Now()</code> directly, so tests can control it deterministically.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. How does fuzzing work with <code>go test -fuzz</code>?</p>
+          <p class="interview-a">You write <code>func FuzzXxx(f *testing.F)</code>, seed it with example inputs via <code>f.Add(...)</code>, then call <code>f.Fuzz(func(t *testing.T, args ...) { ... })</code> with the property to check. Running <code>go test -fuzz=FuzzXxx</code> mutates the seed corpus to search for inputs that panic or fail the property, saving any failing input under <code>testdata/fuzz/</code> so it's replayed automatically on every future <code>go test</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. When would you use <code>httptest.NewServer</code> versus <code>httptest.NewRecorder</code>?</p>
+          <p class="interview-a"><code>httptest.NewServer</code> spins up a real listening HTTP server on a loopback address, useful when the code under test needs an actual URL to hit (e.g. testing an HTTP client, or an integration-style test across a real network round trip). <code>httptest.NewRecorder</code> is a lighter-weight <code>http.ResponseWriter</code> implementation you pass directly to a handler's <code>ServeHTTP</code>, useful for fast, in-process unit tests of a single handler without opening any sockets.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What's the tradeoff of using generics versus code generation or reflection for writing type-agnostic Go code?</p>
+          <p class="interview-a">Generics give compile-time type checking and near-native performance without a separate build step, whereas code generation (e.g. <code>go generate</code> plus a template) produces fully monomorphized, debuggable code at the cost of tooling complexity, and reflection gives ultimate flexibility at runtime but sacrifices compile-time safety and speed due to boxing and dynamic dispatch. In practice, generics now cover most of the cases people used to reach for code generation or <code>interface{}</code> plus reflection, such as generic containers, comparison helpers, and constrained numeric algorithms.</p>
+        </div>
+      </div>
     </div>
 
     <p style="margin-top:3rem;">

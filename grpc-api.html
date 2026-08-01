@@ -41,6 +41,7 @@
       <a class="btn btn-sm" href="#server">Building a Server</a>
       <a class="btn btn-sm" href="#client">Building a Client</a>
       <a class="btn btn-sm" href="#streaming">Streaming</a>
+      <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
     </div>
 
     <!-- ============================================================ -->
@@ -386,6 +387,135 @@
         <strong>Client streaming:</strong> Bulk uploads, batch operations, log collection.<br><br>
         <strong>Bidirectional streaming:</strong> Chat applications, collaborative editing, real-time synchronization.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interview-questions">Interview Questions</h2>
+    <p>
+      Common interview questions about gRPC and Protocol Buffers in Go &mdash; organized by
+      experience level. Click a tab to filter.
+    </p>
+
+    <div class="interview-tabs" data-viz="interview-qa">
+      <div class="interview-tab-buttons">
+        <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+        <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+        <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="beginner">
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What is gRPC?</p>
+          <p class="interview-a">gRPC is an open-source remote procedure call (RPC) framework, originally built at Google, that lets a client call a method on a server as if it were a local function. It runs over HTTP/2, uses Protocol Buffers as its default serialization format, and generates strongly-typed client and server code from a service definition &mdash; instead of hand-writing HTTP routes and JSON parsing, you call generated methods directly.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What is Protocol Buffers?</p>
+          <p class="interview-a">Protocol Buffers (protobuf) is a language-neutral, binary serialization format developed by Google. You define message shapes in a <code>.proto</code> file, and a compiler generates code to encode and decode those messages efficiently in your target language. It is more compact and faster to parse than JSON, at the cost of not being human-readable on the wire.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What is a .proto file?</p>
+          <p class="interview-a">A <code>.proto</code> file is a schema file written in Protocol Buffers' interface definition language (IDL). It declares <code>message</code> types (the data structures) and <code>service</code> definitions (the RPC methods), each field tagged with a unique number and type. This file is the single source of truth from which client and server code is generated for every supported language.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What does protoc / protoc-gen-go do?</p>
+          <p class="interview-a"><code>protoc</code> is the Protocol Buffers compiler; it parses a <code>.proto</code> file and invokes language-specific plugins to generate code. <code>protoc-gen-go</code> is the Go plugin that generates Go structs for each message and marshal/unmarshal methods, while <code>protoc-gen-go-grpc</code> generates the client stub and server interface for each <code>service</code> block.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is a service definition in a proto file?</p>
+          <p class="interview-a">A <code>service</code> block in a <code>.proto</code> file declares one or more RPC methods, each specifying a request message type and a response message type, for example <code>rpc GetUser(GetUserRequest) returns (GetUserResponse)</code>. The code generator turns this into a Go interface the server must implement and a client struct with matching methods.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What's the basic difference between gRPC and REST?</p>
+          <p class="interview-a">REST is an architectural style typically layered over HTTP/1.1 with JSON payloads and resource-oriented URLs (<code>GET /users/1</code>), while gRPC is a strict RPC contract layered over HTTP/2 with binary protobuf payloads and generated method calls. gRPC also has native support for streaming, whereas plain REST over HTTP/1.1 does not.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What is a client stub in gRPC?</p>
+          <p class="interview-a">A client stub is generated code that exposes the RPC methods declared in a <code>service</code> block as regular Go function calls on a struct, for example <code>client.GetUser(ctx, req)</code>. Internally the stub serializes the request to protobuf, sends it over an HTTP/2 connection, and deserializes the response &mdash; the caller never touches wire-level details.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What transport protocol does gRPC use?</p>
+          <p class="interview-a">gRPC is built on top of HTTP/2. It relies on HTTP/2 features like multiplexed streams over a single TCP connection, binary framing, and header compression to support concurrent requests and long-lived streaming without opening a new connection per call.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What are the four types of RPC that gRPC supports?</p>
+          <p class="interview-a">gRPC supports unary RPC (one request, one response), server-streaming RPC (one request, a stream of responses), client-streaming RPC (a stream of requests, one response), and bidirectional streaming RPC (both sides stream independently over the same call). All four are declared in the <code>.proto</code> service definition using the <code>stream</code> keyword on the relevant message type.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Why does gRPC use HTTP/2 instead of HTTP/1.1?</p>
+          <p class="interview-a">HTTP/2 supports multiplexing many concurrent requests over a single TCP connection, binary framing, and header compression, which HTTP/1.1's text-based, one-request-per-connection-at-a-time model can't do efficiently. This lets gRPC keep one persistent connection open and stream multiple RPCs (including long-lived streaming calls) over it without head-of-line blocking at the application layer.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. Why must field numbers in a proto message never be reused or changed?</p>
+          <p class="interview-a">The field number, not the field name, is what's actually encoded on the wire in protobuf's binary format &mdash; the name only exists in generated code. If you reuse a number for a different field, an old binary reading new data (or vice versa) will decode bytes intended for one field as if they belonged to another, silently corrupting data instead of failing loudly.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. Why is gRPC generally more efficient than a JSON-over-REST API?</p>
+          <p class="interview-a">Protobuf's binary encoding is smaller and faster to parse than JSON text because it avoids field names, quoting, and string-to-number conversion on the wire. Combined with HTTP/2 multiplexing and header compression, this reduces both payload size and connection overhead, which matters most at high request volume or for latency-sensitive internal service-to-service calls.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. When would you use a server-streaming RPC instead of unary?</p>
+          <p class="interview-a">Server-streaming is a good fit when a single request logically produces a sequence of results over time, such as tailing logs, watching for resource changes, or returning a large result set in chunks. The client sends one request and keeps the same call open to receive multiple responses, avoiding repeated polling with separate unary calls.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What's the difference between using protoc directly and using buf?</p>
+          <p class="interview-a"><code>protoc</code> is the low-level compiler that requires manually managing plugin paths, include directories, and versions across a team. <code>buf</code> wraps <code>protoc</code> with dependency management, linting, breaking-change detection, and reproducible generation config (<code>buf.gen.yaml</code>), which is why most teams building gRPC services in Go now use <code>buf generate</code> instead of invoking <code>protoc</code> by hand.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. If you add a new field to a proto message, is that backward compatible?</p>
+          <p class="interview-a">Yes &mdash; adding a new field with a fresh, unused field number is safe. Old clients that don't know about the field simply ignore it when decoding, and old servers reading a message from a new client will leave that field's default value at the code level, since protobuf is designed for both forward and backward compatibility as long as field numbers and types aren't repurposed.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Why does proto3 need an explicit <code>optional</code> keyword for presence?</p>
+          <p class="interview-a">In proto3, singular scalar fields (like <code>int32</code> or <code>string</code>) don't track whether they were explicitly set &mdash; an unset field and one explicitly set to its zero value (0, <code>""</code>) are indistinguishable by default. Adding <code>optional</code> to a field generates a wrapper so generated Go code can check presence explicitly (via a generated getter/has-method or pointer field), which matters when "not provided" needs to be distinguished from "provided as zero."</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What does <code>grpc.NewServer</code> do, and how do you wire up a service?</p>
+          <p class="interview-a"><code>grpc.NewServer</code> constructs an unstarted gRPC server instance, optionally configured with interceptors, TLS credentials, and other <code>grpc.ServerOption</code> values. You then call the generated <code>Register&lt;Service&gt;Server</code> function to attach your implementation of the generated server interface, and finally call <code>Serve</code> with a <code>net.Listener</code> to start accepting connections.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What's the difference between <code>grpc.Dial</code> and <code>grpc.NewClient</code>?</p>
+          <p class="interview-a"><code>grpc.Dial</code> is the older constructor that, despite its name, doesn't actually connect eagerly by default and is now deprecated in favor of <code>grpc.NewClient</code>. <code>grpc.NewClient</code> is the current recommended API for creating a client connection with clearer lazy-connect semantics and is the constructor generated client code and documentation now point to.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. How does protobuf's wire format achieve backward/forward compatibility?</p>
+          <p class="interview-a">Protobuf encodes each field as a tag (field number + wire type) followed by its value, so a decoder can skip any tag it doesn't recognize without needing to understand the full schema. This tag-length/type-value structure is what allows old code to safely ignore new fields and new code to see sensible zero values for fields it doesn't find, as long as field numbers are never reassigned to a different type or meaning.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. How do deadlines and cancellation propagate through a gRPC call chain?</p>
+          <p class="interview-a">A deadline set on a Go <code>context.Context</code> (via <code>context.WithTimeout</code> or <code>WithDeadline</code>) is transmitted with the RPC as HTTP/2 metadata (<code>grpc-timeout</code>), so the server derives its own context with the remaining budget. If that context is cancelled or its deadline expires at any point in a multi-hop call chain, gRPC surfaces a <code>DeadlineExceeded</code> or <code>Canceled</code> status and downstream calls made with the derived context are cancelled too, preventing wasted work after the caller has given up.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What are gRPC interceptors, and how do unary and stream interceptors differ?</p>
+          <p class="interview-a">Interceptors are gRPC's equivalent of HTTP middleware &mdash; they wrap RPC calls to add cross-cutting behavior like authentication, logging, metrics, or panic recovery without touching handler code. Unary interceptors wrap a single request/response call, while stream interceptors wrap the entire lifetime of a streaming call and must handle multiple messages over time; multiple interceptors are composed via chaining helpers so they run in a defined order around the actual handler.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. Why doesn't traditional HTTP load balancing work well for gRPC?</p>
+          <p class="interview-a">Standard L4/L7 load balancers spread load by distributing individual TCP or HTTP/1.1 requests, but gRPC clients hold a single long-lived HTTP/2 connection over which many RPCs are multiplexed &mdash; a simple L4 balancer just pins that whole connection to one backend, starving others. gRPC-Go addresses this with client-side load balancing (a resolver plus a load-balancing policy like <code>round_robin</code> that opens subconnections to multiple backend addresses) or by routing through an L7 proxy that understands HTTP/2 framing, such as Envoy, that can load-balance individual streams rather than connections.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. When would you choose gRPC over REST for a given service, and vice versa?</p>
+          <p class="interview-a">gRPC fits well for internal, high-throughput service-to-service communication where you control both ends, want strict typed contracts, code generation, and native streaming, and can tolerate binary payloads that aren't directly browser- or curl-friendly. REST/JSON remains the better choice for public-facing APIs, third-party integrations, or anywhere broad HTTP tooling, human-readability, and easy debugging in a browser matter more than raw efficiency.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What design patterns are common for bidirectional streaming RPCs?</p>
+          <p class="interview-a">Bidirectional streams are used for chat-like or event-driven workloads where both sides need to push messages independently, such as live collaboration, telemetry ingestion, or a control-plane watch loop. A common pattern is running the send and receive loops in separate goroutines against the same stream, using <code>context</code> cancellation to tear both down together, and applying backpressure or buffering deliberately since a slow reader on one side can otherwise stall the whole stream.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. How does gRPC represent and propagate errors compared to plain RPC calls?</p>
+          <p class="interview-a">gRPC errors are represented as a <code>status.Status</code>, combining a well-defined status code (like <code>NotFound</code>, <code>InvalidArgument</code>, or <code>Unavailable</code>) with a message and optional structured error details, rather than relying on arbitrary HTTP status codes. In Go, handlers return errors created with <code>status.Errorf</code>, and clients extract the code via <code>status.FromError</code> to branch on failure type instead of parsing an HTTP status or response body.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What's the difference between client-side load balancing and proxy-based load balancing for gRPC?</p>
+          <p class="interview-a">Client-side load balancing has each gRPC client resolve a set of backend addresses itself (via a name resolver) and choose among them using a policy like <code>round_robin</code>, avoiding an extra network hop but requiring the client library to embed that logic. Proxy-based load balancing puts an HTTP/2-aware proxy such as Envoy or a service mesh sidecar in front of the backends, centralizing routing and failover decisions at the cost of an additional hop, which is often preferred in Kubernetes environments for consistency across languages.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. How should a team manage proto schema evolution safely across multiple services?</p>
+          <p class="interview-a">Treat the <code>.proto</code> files as a versioned contract: never reuse or change field numbers, mark removed fields as <code>reserved</code> (both number and name) so they can never be reintroduced by mistake, and only add new optional fields rather than changing existing ones' types or semantics. Tooling like <code>buf breaking</code> is typically wired into CI to detect incompatible changes automatically, since manual review alone is unreliable once several teams share the same proto repository.</p>
+        </div>
+      </div>
     </div>
 
     <p style="margin-top:3rem;">

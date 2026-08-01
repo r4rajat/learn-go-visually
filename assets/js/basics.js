@@ -267,6 +267,27 @@ function initClosureCapViz(root) {
   });
 }
 
+/* ---------- Interview questions (level tabs) ---------- */
+function initInterviewQA(root) {
+  var buttons = root.querySelectorAll('.interview-tab-btn');
+  var panels = root.querySelectorAll('.interview-qa-panel');
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var level = btn.getAttribute('data-level');
+
+      buttons.forEach(function (b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+
+      panels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute('data-level-panel') !== level;
+      });
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('[data-viz="hello-anno"]').forEach(initAnnotateViz);
   document.querySelectorAll('[data-viz="type-zero"]').forEach(initTypeViz);
@@ -276,4 +297,5 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('[data-viz="range-decomp"]').forEach(initRangeDecompViz);
   document.querySelectorAll('[data-viz="defer-stack"]').forEach(initDeferStackViz);
   document.querySelectorAll('[data-viz="closure-cap"]').forEach(initClosureCapViz);
+  document.querySelectorAll('[data-viz="interview-qa"]').forEach(initInterviewQA);
 });

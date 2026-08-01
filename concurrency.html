@@ -39,6 +39,7 @@
       <a class="btn btn-sm" href="#buffered">Buffered channels</a>
       <a class="btn btn-sm" href="#closed">Closing channels</a>
       <a class="btn btn-sm" href="#select">Select</a>
+      <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
     </div>
 
     <!-- ============================================================ -->
@@ -776,6 +777,135 @@ all workers stopped</div>
         no data, only a lifecycle signal." It also avoids any ambiguity about what
         <code>true</code> vs <code>false</code> might mean in the signal context.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interview-questions">Interview Questions</h2>
+    <p>
+      Common interview questions about goroutines, channels, and select &mdash; organized by
+      experience level. Click a tab to filter.
+    </p>
+
+    <div class="interview-tabs" data-viz="interview-qa">
+      <div class="interview-tab-buttons">
+        <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+        <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+        <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="beginner">
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What is a goroutine?</p>
+          <p class="interview-a">A goroutine is a lightweight function invocation managed by the Go runtime rather than the OS, started by prefixing a call with the <code>go</code> keyword. Many goroutines are multiplexed onto a small number of OS threads by Go's scheduler, so you can create thousands of them cheaply &mdash; each starts with only a few KB of stack that grows as needed.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. How do you start a goroutine, and does the program wait for it to finish?</p>
+          <p class="interview-a">You write <code>go f()</code> to run <code>f</code> concurrently. The calling goroutine does not wait &mdash; execution continues immediately to the next statement. If <code>main</code> returns before the goroutine finishes, the goroutine is simply abandoned, so you need an explicit synchronization mechanism like <code>sync.WaitGroup</code> or a channel.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What is <code>sync.WaitGroup</code> used for?</p>
+          <p class="interview-a"><code>sync.WaitGroup</code> lets one goroutine wait for a collection of other goroutines to finish. You call <code>Add(n)</code> to set the count of goroutines to wait for, each goroutine calls <code>Done()</code> when finished, and the waiting goroutine calls <code>Wait()</code>, which blocks until the count reaches zero.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What is a channel in Go?</p>
+          <p class="interview-a">A channel is a typed conduit created with <code>make(chan T)</code> that goroutines use to send and receive values with the <code>&lt;-</code> operator. Channels provide both data transfer and synchronization between goroutines, avoiding the need for goroutines to share memory directly.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is the difference between an unbuffered and a buffered channel?</p>
+          <p class="interview-a">An unbuffered channel, made with <code>make(chan T)</code>, has no capacity &mdash; a send blocks until another goroutine performs a matching receive, forming a synchronous handshake. A buffered channel, made with <code>make(chan T, n)</code>, has room for <code>n</code> values, so a send only blocks once the buffer is full.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. How do you close a channel, and why would you?</p>
+          <p class="interview-a">You call <code>close(ch)</code> to signal that no more values will be sent on it. It is typically used to tell one or more receiving goroutines that a stream of values is complete, most commonly so a <code>range</code> loop over the channel can terminate.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What does the "comma ok" idiom tell you when receiving from a channel?</p>
+          <p class="interview-a">Writing <code>v, ok := &lt;-ch</code> receives a value and sets <code>ok</code> to <code>true</code> if the value came from an active send, or <code>false</code> if the channel is closed and drained, in which case <code>v</code> is the zero value of the channel's type. It's the only reliable way to distinguish a real zero value from a closed channel.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What happens when you range over a channel?</p>
+          <p class="interview-a"><code>for v := range ch</code> receives values from <code>ch</code> one at a time, blocking between each until a value arrives, and the loop exits automatically when the channel is closed and all buffered values have been received. It's a convenient shorthand for repeated receives with the comma-ok check.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What is a <code>select</code> statement used for?</p>
+          <p class="interview-a"><code>select</code> lets a goroutine wait on multiple channel operations at once, proceeding with whichever case is ready first. It's the primary tool for multiplexing several channels &mdash; for example waiting on a result channel and a timeout channel simultaneously.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What is a goroutine leak, and how does it typically happen?</p>
+          <p class="interview-a">A goroutine leak occurs when a goroutine blocks forever &mdash; usually on a channel send or receive that will never be matched &mdash; and is never garbage collected because the runtime can't prove it's unreachable while blocked. A common cause is a goroutine sending on an unbuffered channel whose only receiver has already returned, or a worker reading from a channel that the producer forgot to close.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. Why is it usually the sender's responsibility to close a channel, not the receiver's?</p>
+          <p class="interview-a">Only a sender knows when it's truly done producing values; if a receiver closes the channel, a subsequent send from the producer will panic. Closing should also happen exactly once and typically by whichever goroutine "owns" the channel, so multiple senders generally require a separate coordination mechanism (like a <code>sync.WaitGroup</code>) to decide when it's safe to close.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What happens if you send on a closed channel? What about closing a channel twice?</p>
+          <p class="interview-a">Sending on a closed channel panics with <code>send on closed channel</code>. Calling <code>close</code> on an already-closed channel also panics, with <code>close of closed channel</code>. Both are why channel ownership and close semantics need to be unambiguous in concurrent code.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What happens if you receive from a nil channel, or use one in a <code>select</code>?</p>
+          <p class="interview-a">A receive (or send) on a nil channel blocks forever, since there's no channel to synchronize with. This is actually useful in a <code>select</code>: a nil channel case is never selected, which lets you disable a case dynamically by setting its channel variable to nil.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is the purpose of the <code>default</code> case in a <code>select</code> statement?</p>
+          <p class="interview-a">If none of a <code>select</code>'s channel cases are ready and a <code>default</code> case is present, <code>default</code> runs immediately instead of blocking. This turns <code>select</code> into a non-blocking channel check, useful for polling a channel without stalling the goroutine.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. How would you implement a timeout on a channel receive?</p>
+          <p class="interview-a">Use a <code>select</code> with the channel receive as one case and <code>&lt;-time.After(d)</code> as another. <code>time.After</code> returns a channel that receives a value after duration <code>d</code>, so whichever fires first wins; if the original receive doesn't happen in time, the timeout case runs instead.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Give an example of a simple deadlock involving channels, and how Go reports it.</p>
+          <p class="interview-a">Sending on an unbuffered channel with no goroutine ever receiving from it &mdash; for example <code>ch := make(chan int); ch &lt;- 1</code> in <code>main</code> with nothing else running &mdash; blocks forever. If every goroutine in the program is blocked like this, the Go runtime detects it and terminates with <code>fatal error: all goroutines are asleep - deadlock!</code></p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What's a common mistake when calling <code>wg.Add()</code> with goroutines, and why does it cause bugs?</p>
+          <p class="interview-a">Calling <code>wg.Add(1)</code> inside the goroutine itself, rather than before starting it, creates a race: <code>Wait()</code> might run before <code>Add</code> executes, so the count could still be zero and <code>Wait()</code> returns early while goroutines are still pending. <code>Add</code> should always be called in the parent goroutine before the corresponding <code>go</code> statement.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. Why can looping variables captured by goroutines cause bugs, and how is it fixed?</p>
+          <p class="interview-a">Historically, a <code>for</code> loop reused the same variable across iterations, so goroutines closing over it by reference could all see the final value once they actually ran, rather than the value at the iteration when they were launched. Since Go 1.22 the loop variable is scoped per iteration, fixing this automatically, but code targeting older toolchains still needs to shadow the variable inside the loop body or pass it as a parameter to the goroutine's function.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. If multiple cases in a <code>select</code> are ready simultaneously, which one runs?</p>
+          <p class="interview-a">Go picks uniformly at random among the ready cases, specifically to prevent starvation and to stop programs from accidentally depending on evaluation order. This means code that assumes a particular case "wins" when several channels are ready simultaneously is relying on undefined behavior.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What is a data race, and how does it differ from a deadlock?</p>
+          <p class="interview-a">A data race is when two or more goroutines access the same memory location concurrently, at least one of them a write, without synchronization &mdash; it produces undefined, often nondeterministic behavior rather than necessarily hanging. A deadlock, by contrast, is goroutines permanently blocked waiting on each other; it's a liveness problem, not a memory-correctness problem, and the two can occur independently of each other.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. How does Go's race detector work, and what are its limitations?</p>
+          <p class="interview-a">Running with <code>go run -race</code> or <code>go test -race</code> instruments memory accesses and goroutine synchronization events at compile time to detect races dynamically as the program executes. It only catches races on code paths that actually run during that execution, so it can miss races in untested paths, and it adds significant memory and CPU overhead, making it unsuitable for production use.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. Explain the phrase "don't communicate by sharing memory; share memory by communicating."</p>
+          <p class="interview-a">Rather than having goroutines mutate shared variables protected by locks, Go encourages passing ownership of data between goroutines over channels, so at any moment only one goroutine is actively working with a given piece of data. This doesn't eliminate <code>sync.Mutex</code> or atomics as tools &mdash; they're still appropriate for protecting simple shared counters or caches &mdash; but channels are favored for coordinating higher-level control flow and data ownership transfer.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is the fan-out/fan-in pattern, and what problem does it solve?</p>
+          <p class="interview-a">Fan-out starts multiple goroutines reading from the same input channel to parallelize work across them; fan-in merges multiple result channels into a single channel, typically by starting a goroutine per input channel that forwards values into a shared output channel, closed once a <code>sync.WaitGroup</code> confirms all forwarders are done. Together they let you scale up worker concurrency while still consuming results through one unified channel.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. When would you use <code>context.Context</code> cancellation instead of just closing a channel to signal goroutines to stop?</p>
+          <p class="interview-a"><code>context</code> is preferable when cancellation needs to propagate across API boundaries, carry a deadline or timeout, or fan out to a tree of goroutines and downstream calls that didn't create the original channel &mdash; <code>ctx.Done()</code> is itself a channel closed on cancellation, so it composes naturally with <code>select</code>. Closing a plain channel works well for simple, localized "stop" signals within a single package where you control both ends.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Why is closing a channel a broadcast, and how is that used to signal multiple goroutines at once?</p>
+          <p class="interview-a">A closed channel immediately and repeatedly yields the zero value with <code>ok == false</code> to every goroutine that receives from it, unlike a single value sent on it which only one receiver can consume. This makes <code>close(done)</code> a common way to broadcast a stop signal to an arbitrary number of goroutines simultaneously, each selecting on <code>&lt;-done</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What determines the size of a buffered channel's queue, and how does full/empty affect send and receive?</p>
+          <p class="interview-a">The capacity is fixed at creation with <code>make(chan T, n)</code> and cannot be changed afterward. A send blocks only when the buffer holds <code>n</code> unreceived values (it's full), and a receive blocks only when the buffer is empty, so a correctly sized buffer can decouple producer and consumer speed without either goroutine blocking on every operation.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. Between an unbuffered channel and a mutex-protected shared variable, what tradeoffs would push you toward one over the other?</p>
+          <p class="interview-a">A mutex is typically cheaper and simpler for protecting a small piece of shared state accessed briefly and frequently, like a counter or cache entry, with no need to model control flow. A channel is preferable when you're coordinating handoff of ownership, sequencing steps between goroutines, or building pipelines, since it expresses "this goroutine is done with this data, the next one may proceed" directly rather than through ad hoc lock discipline.</p>
+        </div>
+      </div>
     </div>
 
     <p style="margin-top:3rem;">

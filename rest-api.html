@@ -44,6 +44,7 @@
       <a class="btn btn-sm" href="#middleware">Middleware</a>
       <a class="btn btn-sm" href="#validation">Validation</a>
       <a class="btn btn-sm" href="#errors">Error Handling</a>
+      <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
     </div>
 
     <!-- ============================================================ -->
@@ -519,6 +520,135 @@ $ go get github.com/go-playground/validator/v10</div>
         <strong>Log everything:</strong> Use middleware to log requests, responses, and errors for debugging.<br><br>
         <strong>Be consistent:</strong> Use the same error format across all endpoints.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interview-questions">Interview Questions</h2>
+    <p>
+      Common interview questions about designing and building REST APIs in Go &mdash;
+      organized by experience level. Click a tab to filter.
+    </p>
+
+    <div class="interview-tabs" data-viz="interview-qa">
+      <div class="interview-tab-buttons">
+        <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+        <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+        <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="beginner">
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What is REST?</p>
+          <p class="interview-a">REST (Representational State Transfer) is an architectural style for networked APIs built around resources identified by URLs, manipulated through a small set of uniform verbs (GET, POST, PUT, PATCH, DELETE), and exchanged as representations such as JSON. It favors statelessness, a uniform interface, and layered, cacheable communication over the transport (almost always HTTP).</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What does it mean for a REST API to be "stateless"?</p>
+          <p class="interview-a">Statelessness means each request contains all the information the server needs to process it &mdash; the server does not rely on data stored from a previous request (like server-side session state). This is why REST APIs authenticate every request independently, typically with a token or credential sent in a header rather than a cookie-backed session.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What is a "resource" in REST?</p>
+          <p class="interview-a">A resource is any named entity an API exposes &mdash; a user, an order, a document &mdash; identified by a URL such as <code>/users/42</code>. Collections of resources (<code>/users</code>) and individual resources (<code>/users/42</code>) are the nouns that HTTP methods act on as verbs.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What does GET do, and can it have a request body?</p>
+          <p class="interview-a">GET retrieves a representation of a resource without modifying server state. While HTTP technically permits a body on a GET request, <code>net/http</code> and most servers/clients ignore or discourage it, so query parameters (<code>r.URL.Query()</code>) are the conventional way to pass input.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What does POST do?</p>
+          <p class="interview-a">POST submits data to create a new resource or trigger a server-side action, typically under a collection URL like <code>/users</code>. The server usually responds with <code>201 Created</code> and a <code>Location</code> header pointing to the new resource.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What's the difference between PUT and PATCH?</p>
+          <p class="interview-a">PUT replaces an entire resource with the representation supplied in the request body, while PATCH applies a partial update, modifying only the fields provided. PUT to a full URL like <code>/users/42</code> is expected to fully overwrite that resource's state.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What does DELETE do?</p>
+          <p class="interview-a">DELETE removes the resource identified by the URL. A successful delete commonly returns <code>204 No Content</code> with an empty body, or <code>200 OK</code> if the response includes a representation of the deleted resource.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. How do you define a route with net/http's ServeMux?</p>
+          <p class="interview-a">You create a mux with <code>http.NewServeMux()</code> and register patterns with <code>mux.HandleFunc("GET /users/{id}", handler)</code>, then pass the mux as the <code>Handler</code> to <code>http.ListenAndServe</code>. Since Go 1.22, patterns can include an HTTP method prefix and <code>{name}</code> wildcards.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What is the difference between using http.HandleFunc and implementing http.Handler directly?</p>
+          <p class="interview-a"><code>http.HandleFunc</code> registers a plain function matching <code>func(http.ResponseWriter, *http.Request)</code>, which Go adapts via the <code>http.HandlerFunc</code> type. Implementing <code>http.Handler</code> directly means defining a type with a <code>ServeHTTP(w http.ResponseWriter, r *http.Request)</code> method, which is useful when the handler needs to carry its own state, such as a database connection.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Why should PUT be idempotent but POST isn't required to be?</p>
+          <p class="interview-a">Idempotent means making the same request multiple times produces the same server state as making it once. PUT replaces a resource wholesale, so repeating it with identical data leaves the resource unchanged after the first call, making retries safe. POST typically creates a new resource each time, so repeating it (e.g. after a client timeout) can create duplicates unless the API adds extra protection like an idempotency key.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What's a common gotcha with Go's json struct tags?</p>
+          <p class="interview-a"><code>encoding/json</code> only marshals and unmarshals exported (capitalized) fields, so an unexported field is silently skipped with no error. Another frequent trap is <code>omitempty</code> on value types: a zero value like <code>0</code>, <code>""</code>, or <code>false</code> is omitted from output even when it was an intentional value, which is why optional fields are often modeled as pointers or explicit types.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. Why validate input before touching business logic?</p>
+          <p class="interview-a">Validating early &mdash; checking required fields, formats, and ranges right after decoding the request &mdash; lets you reject malformed input with a clear <code>400 Bad Request</code> before it reaches database calls or domain logic. This avoids partial writes, confusing downstream errors, and security issues from unchecked data reaching business rules that assume well-formed input.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What is middleware in a Go HTTP server, and how do you chain it?</p>
+          <p class="interview-a">Middleware is a function that wraps an <code>http.Handler</code>, returning a new <code>http.Handler</code> that runs logic before and/or after calling the wrapped one &mdash; the common signature is <code>func(http.Handler) http.Handler</code>. Chaining is just nested function calls, e.g. <code>logging(auth(mux))</code>, so requests flow through each layer in order before reaching the final handler.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. Why does middleware ordering matter, such as logging versus auth?</p>
+          <p class="interview-a">If logging wraps auth (<code>logging(auth(handler))</code>), every request is logged including ones auth later rejects, which is usually what you want for audit trails. If auth wraps logging instead, rejected requests never reach the logging layer, so ordering directly determines what gets observed and what gets short-circuited before reaching the handler.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. Why must you call w.WriteHeader before writing the response body?</p>
+          <p class="interview-a"><code>http.ResponseWriter</code> sends the status line and headers as soon as the first byte is written to the body via <code>Write</code>, defaulting to <code>200 OK</code> if <code>WriteHeader</code> hasn't been called yet. Calling <code>WriteHeader</code> after any <code>Write</code> has no effect and only logs a warning, so a non-200 status must always be set before the body is written.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Why is limiting request body size important?</p>
+          <p class="interview-a">Without a limit, a client can send an arbitrarily large body and exhaust server memory or bandwidth while your handler is still decoding it. <code>http.MaxBytesReader(w, r.Body, n)</code> wraps the body so reads past the limit fail with an error, letting you reject oversized payloads early with <code>413 Request Entity Too Large</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. Why return structured JSON error responses instead of plain text?</p>
+          <p class="interview-a">A structured error body (e.g. <code>{"error": "invalid email", "code": "VALIDATION_ERROR"}</code>) lets clients programmatically branch on the failure instead of parsing human-readable strings. It also keeps the response <code>Content-Type</code> consistent with successful responses, which simplifies client-side deserialization.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What's the difference between 401 Unauthorized and 403 Forbidden?</p>
+          <p class="interview-a"><code>401</code> means the request lacks valid authentication credentials entirely &mdash; the client should log in or supply a token. <code>403</code> means the credentials were recognized but the authenticated identity isn't permitted to perform the action, so re-authenticating won't help.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What are the tradeoffs between common API versioning strategies?</p>
+          <p class="interview-a">URI versioning (<code>/v1/users</code>) is explicit and cache-friendly but clutters URLs and encourages breaking changes to live under new paths. Header-based versioning (a custom header or <code>Accept</code> media-type parameter) keeps URLs stable and fits content negotiation better, but is less visible and harder to test by simply pasting a URL in a browser. Most teams pick URI versioning for simplicity and reserve header negotiation for APIs with strict hypermedia/content-type discipline.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. Offset pagination versus cursor pagination &mdash; when would you choose each?</p>
+          <p class="interview-a">Offset pagination (<code>?page=3&amp;limit=20</code>) is simple to implement and lets clients jump to arbitrary pages, but it can skip or duplicate rows if the underlying data changes between requests, and performance degrades on large offsets. Cursor pagination (<code>?after=&lt;opaque-id&gt;</code>) encodes a stable position (often the last row's sort key) and stays consistent under concurrent writes, making it the better choice for large, frequently-mutated datasets or infinite-scroll style APIs.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. How would you implement rate limiting in a Go HTTP API?</p>
+          <p class="interview-a">A common approach is a token-bucket limiter per client key (API key, user ID, or IP), such as <code>golang.org/x/time/rate</code>, applied inside middleware before the handler runs. For multi-instance deployments the bucket state needs to live in a shared store like Redis rather than in-process memory, and rejected requests should return <code>429 Too Many Requests</code> with a <code>Retry-After</code> header.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. How does context propagate through a middleware chain, and why does it matter?</p>
+          <p class="interview-a">Each middleware can derive a new context from <code>r.Context()</code> via <code>context.WithValue</code>, <code>context.WithTimeout</code>, or <code>context.WithCancel</code>, then call the next handler with <code>r.WithContext(ctx)</code> so the enriched context flows downstream. This is how request-scoped data (auth claims, trace IDs) and cancellation signals (client disconnects, deadlines) reach handlers and any database or downstream HTTP calls made with that context.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. When would you use net/http's built-in ServeMux pattern matching versus a third-party router like chi or gorilla/mux?</p>
+          <p class="interview-a">Since Go 1.22, <code>http.ServeMux</code> supports method-prefixed patterns and <code>{name}</code> wildcards (read via <code>r.PathValue("name")</code>), which covers most straightforward REST routing without a dependency. Third-party routers still add value for features the standard library omits, like route groups with shared middleware, regex constraints on path segments, or built-in sub-router mounting, which matter more as route trees grow large.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. How do you implement graceful shutdown for a Go HTTP server?</p>
+          <p class="interview-a">Run <code>http.Server.ListenAndServe</code> in a goroutine, then block the main goroutine on an OS signal (<code>SIGINT</code>/<code>SIGTERM</code>) via <code>signal.Notify</code>. On signal, call <code>srv.Shutdown(ctx)</code> with a bounded-timeout context, which stops accepting new connections and waits for in-flight requests to finish before returning, instead of dropping active clients abruptly.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What is an idempotency key and why would you add one to a POST endpoint?</p>
+          <p class="interview-a">An idempotency key is a client-generated unique value (often sent in an <code>Idempotency-Key</code> header) that the server records alongside the result of a POST operation. If the same key arrives again &mdash; typically from a client retry after a timeout &mdash; the server returns the stored result instead of re-executing the action, preventing duplicate resource creation from network-level retries.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What is HATEOAS, and what's the tradeoff of adopting it?</p>
+          <p class="interview-a">HATEOAS (Hypermedia as the Engine of Application State) means responses include links describing available next actions, so clients discover the API dynamically rather than hardcoding URLs. It decouples clients from URL structure and can ease evolution, but it adds response payload size and client complexity that most internal or mobile-backend APIs don't need, which is why it's far less common in practice than plain JSON REST.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. How should an API represent partial failure in a bulk operation, e.g. a batch create endpoint?</p>
+          <p class="interview-a">A single top-level status code can't represent "some items succeeded, some failed," so bulk endpoints typically return <code>207 Multi-Status</code> (or <code>200</code>/<code>201</code> with a per-item result array) where each item carries its own status and error detail. This lets the client identify exactly which entries need to be retried without treating the entire batch as one atomic success or failure.</p>
+        </div>
+      </div>
     </div>
 
     <p style="margin-top:3rem;">

@@ -46,6 +46,7 @@
         <a class="btn btn-sm" href="#finalizers">Finalizers</a>
         <a class="btn btn-sm" href="#testing">Testing with envtest</a>
         <a class="btn btn-sm" href="#deploying">Deploying for real</a>
+        <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
       </div>
       
       <div class="callout callout-tip">
@@ -690,10 +691,139 @@ No resources found in default namespace.</div>
         </p>
       </div>
       
+      <!-- ============================================================ -->
+      <h2 id="interview-questions">Interview Questions</h2>
+      <p>
+        Common interview questions about Kubernetes operators, CRDs, and controller-runtime
+        &mdash; organized by experience level. Click a tab to filter.
+      </p>
+
+      <div class="interview-tabs" data-viz="interview-qa">
+        <div class="interview-tab-buttons">
+          <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+          <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+          <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+        </div>
+        <div class="interview-qa-panel" data-level-panel="beginner">
+          <div class="interview-qa-item">
+            <p class="interview-q">Q1. What is a Kubernetes operator?</p>
+            <p class="interview-a">An operator is a controller that encodes operational knowledge for a specific application or system, watching custom resources and driving the cluster toward the state those resources describe. It extends the Kubernetes API with domain-specific objects (via a CRD) and a control loop that manages them, instead of relying on a human running scripts.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q2. What is a Custom Resource Definition (CRD)?</p>
+            <p class="interview-a">A CRD is a Kubernetes API object that registers a new resource type &mdash; for example <code>Website</code> &mdash; with its own schema, versions, and endpoint under the cluster's API server. Once installed, instances of that type (custom resources) can be created, read, updated, and watched just like built-in resources such as <code>Pod</code> or <code>Deployment</code>.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q3. What is reconciliation in the context of an operator?</p>
+            <p class="interview-a">Reconciliation is the process of comparing the desired state (the spec of a custom resource) against the actual state of the cluster and taking action to close the gap. It's implemented as a <code>Reconcile</code> function that controller-runtime calls whenever a watched object or a related resource changes.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q4. What does a control loop mean?</p>
+            <p class="interview-a">A control loop is the repeating cycle of observe, compare, and act that a controller runs continuously: it observes cluster state via watches, compares it to the desired state, and acts to correct any drift. Kubernetes itself is built from many such loops running independently and converging the cluster toward its declared state.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q5. What tool is used to scaffold a new operator project, and what does it generate?</p>
+            <p class="interview-a">Kubebuilder scaffolds operator projects &mdash; running <code>kubebuilder init</code> followed by <code>kubebuilder create api</code> generates the Go module layout, a manager entrypoint, CRD types under <code>api/</code>, a controller skeleton under <code>internal/controller/</code>, and Kustomize manifests for CRDs, RBAC, and the deployment.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q6. What is the difference between the spec and status fields on a custom resource?</p>
+            <p class="interview-a"><code>Spec</code> holds the desired state, written by the user or another client. <code>Status</code> holds the observed, actual state, written only by the controller. Keeping them separate lets the controller report progress and conditions without a client's write ever being clobbered by the controller, and vice versa.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q7. What client does a controller-runtime controller use to talk to the API server?</p>
+            <p class="interview-a">It uses the controller-runtime <code>client.Client</code> obtained from the <code>Manager</code>, which wraps a cached client backed by informers for reads and a direct client for writes. This gives the reconciler <code>Get</code>/<code>List</code>/<code>Create</code>/<code>Update</code>/<code>Delete</code> methods without each controller needing to manage its own informers.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q8. What does it mean to "requeue" a reconcile request?</p>
+            <p class="interview-a">Requeueing means returning a result from <code>Reconcile</code> that tells controller-runtime to call it again later for the same object, either immediately (<code>Requeue: true</code>), after a delay (<code>RequeueAfter</code>), or via a returned error which triggers requeue with backoff. It's how a controller polls for eventual conditions, like waiting for a dependent resource to become ready.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q9. What is <code>envtest</code> used for?</p>
+            <p class="interview-a"><code>envtest</code> is a package that spins up a real <code>kube-apiserver</code> and <code>etcd</code> binary pair (no kubelet, no scheduler, no container runtime) so integration tests can exercise a controller against a genuine API server. It's faster and more hermetic than a full cluster while still validating CRD schemas, defaulting, and webhook behavior for real.</p>
+          </div>
+        </div>
+        <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q1. Why must <code>Reconcile</code> be idempotent?</p>
+            <p class="interview-a"><code>Reconcile</code> can be called repeatedly for the same object &mdash; on startup, after any watched resource changes, on requeue, or after a crash and restart &mdash; and controller-runtime gives no guarantee it runs exactly once per change. If applying the same reconcile twice produced different results or duplicate side effects (like creating a second child object), the controller would corrupt state instead of converging on it.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q2. Why requeue with a delay instead of retrying in a tight loop?</p>
+            <p class="interview-a">Returning <code>RequeueAfter</code> (or letting an error trigger exponential backoff) avoids hammering the API server and burning CPU while waiting on a condition that resolves on its own timescale, such as a Pod becoming Ready. A tight retry loop with no backoff also risks overwhelming the API server across many objects reconciling simultaneously.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q3. What's the difference between an owner reference and a finalizer?</p>
+            <p class="interview-a">An owner reference is metadata on a dependent object pointing back to its owner; Kubernetes' garbage collector uses it to automatically delete dependents once the owner is deleted, with no controller code required. A finalizer is a string on the owning object itself that blocks its deletion until the controller that added it removes external, non-Kubernetes resources (like a cloud load balancer) and then strips the finalizer.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q4. Why keep status as a separate subresource from spec?</p>
+            <p class="interview-a">Enabling the <code>/status</code> subresource means updates to <code>status</code> go through a distinct endpoint with its own <code>resourceVersion</code> checks, so a controller writing status can't accidentally overwrite a user's concurrent spec edit and vice versa. It also lets RBAC grant users write access to spec while restricting status writes to the controller's service account.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q5. What's the risk of a controller mutating cached objects returned by <code>client.Get</code>?</p>
+            <p class="interview-a">The controller-runtime client's reads come from a shared informer cache, so the object returned by <code>Get</code> is the same in-memory object other goroutines may be reading. Mutating it in place without calling <code>DeepCopy</code> first can corrupt the cache and produce data races across reconciles.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q6. Why should a controller set an owner reference on every resource it creates?</p>
+            <p class="interview-a">Owner references let Kubernetes garbage-collect child resources automatically when the parent custom resource is deleted, so the controller doesn't need custom deletion logic for ordinary cleanup. They also let <code>controllerutil.SetControllerReference</code> wire watches so changes to a child (like a Deployment) trigger reconciliation of its owning custom resource.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q7. What happens if a reconciler is deleted from a resource without removing its finalizer?</p>
+            <p class="interview-a">The object stays stuck with a non-nil <code>deletionTimestamp</code> forever: the API server won't actually remove it from etcd until every finalizer string is cleared from its metadata. This is a common cause of resources that appear to hang in "Terminating" state.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q8. Why does Kubebuilder generate RBAC markers as code comments above the <code>Reconcile</code> method?</p>
+            <p class="interview-a">Markers like <code>// +kubebuilder:rbac:groups=...,resources=...,verbs=...</code> are parsed by <code>controller-gen</code> to produce the <code>ClusterRole</code> manifest, keeping the permissions a controller actually needs declared next to the code that uses them. This avoids hand-maintaining RBAC YAML that drifts out of sync with what the reconciler really does.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q9. Why use <code>envtest</code> instead of only unit tests for controller logic?</p>
+            <p class="interview-a">Unit tests with fakes can validate reconciler logic in isolation, but they don't catch problems with CRD schema validation, defaulting, or how the reconciler behaves against real API server semantics like optimistic concurrency conflicts. <code>envtest</code> runs the actual reconcile loop against a genuine (if kubelet-less) API server, catching integration bugs unit tests would miss, at a fraction of the cost of a full cluster.</p>
+          </div>
+        </div>
+        <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q1. What does it mean for reconciliation to be level-triggered rather than edge-triggered, and why does controller-runtime favor it?</p>
+            <p class="interview-a">Edge-triggered means reacting to a specific change event (this field went from A to B); level-triggered means reacting to the current observed state regardless of what event caused it, recomputing the full desired-vs-actual diff each time. Level-triggering is more resilient because it self-heals from missed or coalesced events &mdash; if a watch drops an update, the next reconcile still converges to correct state instead of leaving the system permanently out of sync.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q2. How should a controller handle a conflict error when updating a resource's status?</p>
+            <p class="interview-a">A 409 conflict means the object's <code>resourceVersion</code> changed since it was read, so the update was rejected by optimistic concurrency control rather than silently overwriting someone else's write. The correct response is to re-<code>Get</code> the object, reapply the intended change, and retry &mdash; controller-runtime's reconcile-on-error-with-backoff naturally does this if the error is simply returned, and <code>retry.RetryOnConflict</code> can be used for tighter, in-loop retries.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q3. How do you design a finalizer to avoid a resource getting permanently stuck in "Terminating"?</p>
+            <p class="interview-a">Cleanup logic in the finalizer branch must handle the "external resource already gone" case idempotently (treat not-found as success) and must not loop forever on a transient error without bound, and the finalizer should only be removed after cleanup is confirmed to have succeeded. It also helps to make the cleanup step observable via events or status conditions so an operator that can't finish (for example, a cloud API is unreachable) is diagnosable rather than silently hung.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q4. What's the tradeoff between testing with envtest versus a real kind cluster?</p>
+            <p class="interview-a"><code>envtest</code> runs only the API server and etcd, so it's fast and hermetic but can't validate anything that depends on the scheduler, kubelet, container runtime, or actual networking &mdash; like whether a Pod actually starts or a Service actually routes traffic. A kind cluster runs the full stack, catching those gaps, at the cost of slower, less isolated CI runs, so most operator test suites use envtest for controller logic and reserve a kind-based e2e suite for a smaller set of end-to-end smoke tests.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q5. How should RBAC be scoped for an operator following least privilege?</p>
+            <p class="interview-a">The <code>ClusterRole</code> generated from <code>+kubebuilder:rbac</code> markers should list only the exact API groups, resources, and verbs the reconciler actually calls &mdash; for example <code>get;list;watch;create;update;patch;delete</code> on the CRD's own resources and only <code>get;update;patch</code> on its <code>/status</code> subresource, with wildcard resources or verbs avoided. If the operator only ever needs to act within one namespace, a <code>Role</code>/<code>RoleBinding</code> scoped to that namespace is preferable to a cluster-wide binding.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q6. Why is leader election needed when running multiple replicas of a controller manager?</p>
+            <p class="interview-a">Running more than one active reconciler for the same objects risks duplicate or conflicting writes and wasted API server load, so controller-runtime's <code>Manager</code> supports leader election via a <code>Lease</code> object in the API server: only the replica holding the lease runs reconciles, while the rest sit idle as hot standbys. If the leader crashes or its lease expires, another replica acquires it and takes over, giving high availability without multiple writers.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q7. What is a predicate, and when would you use one to filter events?</p>
+            <p class="interview-a">A predicate is a filter attached to a watch (via <code>builder.WithPredicates</code>) that decides whether an event should actually trigger a reconcile, such as <code>predicate.GenerationChangedPredicate</code> to ignore status-only or metadata-only updates. This reduces reconcile churn from irrelevant events &mdash; important because every watched object update otherwise re-enqueues a reconcile even if nothing the controller cares about changed.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q8. How do you handle a CRD schema change (a new API version) without breaking existing stored objects?</p>
+            <p class="interview-a">Kubernetes CRDs support multiple served versions with one marked as the storage version; a conversion webhook (or, for simple additive changes, relying on lossless round-tripping) translates objects between versions on read and write. The safe path is to add the new version alongside the old, mark it served but not yet storage, migrate clients, implement conversion, and only then flip the storage version and eventually drop the old served version.</p>
+          </div>
+          <div class="interview-qa-item">
+            <p class="interview-q">Q9. Why can a naive reconciler that lists and deletes all "unwanted" children create a race with the garbage collector or with concurrent creates?</p>
+            <p class="interview-a">If a reconciler independently lists children and deletes anything it doesn't recognize as desired, it can delete an object another reconcile just created (or one whose desired-state computation it read a stale version of), because there is no single serialization point across reconciles. The safer pattern is to make ownership and naming deterministic (so "desired" children can be computed and diffed precisely) and to let owner references and the garbage collector, rather than ad hoc listing, handle removal of truly orphaned objects.</p>
+          </div>
+        </div>
+      </div>
+
       <p style="margin-top:3rem;">
         <a class="btn" href="index.html">&larr; Back to the roadmap</a>
       </p>
-      
+
     </div>
   </main>
   

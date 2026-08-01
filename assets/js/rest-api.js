@@ -181,9 +181,31 @@ function initErrorHandlingViz(root) {
   });
 }
 
+/* ---------- Interview questions (level tabs) ---------- */
+function initInterviewQA(root) {
+  var buttons = root.querySelectorAll('.interview-tab-btn');
+  var panels = root.querySelectorAll('.interview-qa-panel');
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var level = btn.getAttribute('data-level');
+
+      buttons.forEach(function (b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+
+      panels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute('data-level-panel') !== level;
+      });
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-viz="http-methods"]').forEach(initHTTPMethodsViz);
   document.querySelectorAll('[data-viz="method-table"]').forEach(initMethodTableViz);
   document.querySelectorAll('[data-viz="request-response"]').forEach(initRequestResponseViz);
   document.querySelectorAll('[data-viz="error-handling"]').forEach(initErrorHandlingViz);
+  document.querySelectorAll('[data-viz="interview-qa"]').forEach(initInterviewQA);
 });

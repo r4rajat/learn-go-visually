@@ -68,7 +68,29 @@ function initOwnerTreeVisual(root) {
   });
 }
 
+/* ---------- Interview questions (level tabs) ---------- */
+function initInterviewQA(root) {
+  var buttons = root.querySelectorAll('.interview-tab-btn');
+  var panels = root.querySelectorAll('.interview-qa-panel');
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var level = btn.getAttribute('data-level');
+
+      buttons.forEach(function (b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+
+      panels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute('data-level-panel') !== level;
+      });
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('[data-viz="recon-loop"]').forEach(initReconVisual);
   document.querySelectorAll('[data-viz="owner-tree"]').forEach(initOwnerTreeVisual);
+  document.querySelectorAll('[data-viz="interview-qa"]').forEach(initInterviewQA);
 });

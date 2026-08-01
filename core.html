@@ -38,6 +38,7 @@
       <a class="btn btn-sm" href="#slices">Slices &amp; maps</a>
       <a class="btn btn-sm" href="#interfaces">Interfaces</a>
       <a class="btn btn-sm" href="#errors">Error handling</a>
+      <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
     </div>
 
     <!-- ============================================================ -->
@@ -922,6 +923,135 @@ status: 404</div>
         request must not kill the server). Outside those contexts, prefer returning errors
         explicitly.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interview-questions">Interview Questions</h2>
+    <p>
+      Common interview questions about structs, slices, maps, interfaces, and error handling
+      in Go &mdash; organized by experience level. Click a tab to filter.
+    </p>
+
+    <div class="interview-tabs" data-viz="interview-qa">
+      <div class="interview-tab-buttons">
+        <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+        <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+        <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="beginner">
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What is a struct in Go, and how do you define one?</p>
+          <p class="interview-a">A struct is a composite type that groups named fields together, each with its own type. You declare one with the <code>type</code> keyword, e.g. <code>type Point struct { X, Y int }</code>, and create values with a struct literal like <code>Point{X: 1, Y: 2}</code>. Structs are the primary way Go models records without classes.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What's the difference between a value receiver and a pointer receiver on a method?</p>
+          <p class="interview-a">A value receiver, <code>func (p Point) Foo()</code>, operates on a copy of the struct, so changes inside the method don't affect the original. A pointer receiver, <code>func (p *Point) Foo()</code>, operates on the original struct through its address, so mutations persist. Pointer receivers also avoid copying large structs on every call.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. How do you create a slice, and how is it different from an array?</p>
+          <p class="interview-a">An array has a fixed size baked into its type, e.g. <code>[3]int</code>, while a slice, e.g. <code>[]int</code>, is a resizable view over an underlying array. You create slices with a literal (<code>[]int{1, 2, 3}</code>), <code>make([]int, len, cap)</code>, or by slicing an existing array or slice. Slices carry a pointer, length, and capacity rather than storing the data inline.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What is the zero value of a map, and what happens if you read from it before initializing?</p>
+          <p class="interview-a">The zero value of a map is <code>nil</code>. Reading from a nil map is safe and returns the zero value for the value type, as if the key were absent, but writing to a nil map with <code>m[key] = value</code> panics at runtime. Maps must be initialized with <code>make(map[K]V)</code> or a map literal before you can write to them.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is an interface in Go, and how does a type satisfy one?</p>
+          <p class="interview-a">An interface defines a set of method signatures without any implementation. A concrete type satisfies an interface automatically, with no <code>implements</code> keyword, simply by defining methods with matching names, parameters, and return types. This is called implicit (structural) satisfaction.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What is the empty interface <code>any</code> used for?</p>
+          <p class="interview-a"><code>any</code> (an alias for <code>interface{}</code> since Go 1.18) has zero methods, so every type satisfies it. It's used when a function or container needs to accept a value of any type, such as <code>fmt.Println(args ...any)</code>, at the cost of losing compile-time type information until a type assertion or switch is used.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What is the <code>error</code> interface in Go?</p>
+          <p class="interview-a"><code>error</code> is a built-in interface with a single method, <code>Error() string</code>. Any type that implements that method can be used as an error value, and Go's convention is to return errors as the last value from a function rather than using exceptions.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What's the difference between <code>errors.New</code> and <code>fmt.Errorf</code>?</p>
+          <p class="interview-a"><code>errors.New("message")</code> creates a simple error with a static message. <code>fmt.Errorf("...: %v", err)</code> lets you build a formatted error message that can include other values, and with the <code>%w</code> verb it also wraps an existing error so the original can later be recovered with <code>errors.Unwrap</code>, <code>errors.Is</code>, or <code>errors.As</code>.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What is struct embedding?</p>
+          <p class="interview-a">Embedding places one type inside another without giving it a field name, e.g. <code>type Manager struct { Employee }</code>. The outer type automatically gets promoted access to the embedded type's fields and methods, giving a form of composition that Go uses instead of classical inheritance.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Why can appending to a slice sometimes silently share the backing array with the original slice, and sometimes not?</p>
+          <p class="interview-a"><code>append</code> only allocates a new backing array when the slice's length would exceed its capacity. If there's spare capacity, the append writes into the existing array in place, so the original slice (and any other slice sharing that array) can see the mutated elements. Once capacity is exceeded, Go allocates a fresh, larger array and copies the data, silently severing the connection to the original.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. Why is map iteration order randomized in Go?</p>
+          <p class="interview-a">The Go runtime deliberately randomizes the starting point (and internal bucket ordering) of a <code>range</code> over a map so that programs cannot accidentally come to depend on a particular iteration order. This was a language design choice made early on specifically to prevent code from becoming implicitly reliant on an implementation detail that could change between runs or versions.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What are the rules that determine whether a value or pointer receiver method can be called on a given value?</p>
+          <p class="interview-a">A value of type <code>T</code> can call methods with either a <code>T</code> or <code>*T</code> receiver as long as the value is addressable, because Go automatically takes its address for you. A value that is not addressable (like a map element or a literal) can only call value-receiver methods. A <code>*T</code> can always call both value and pointer receiver methods.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. Explain the "nil interface with non-nil concrete type" gotcha.</p>
+          <p class="interview-a">An interface value is only <code>nil</code> when both its underlying type and its underlying value are nil. If you assign a nil pointer of a concrete type, e.g. <code>var p *MyErr = nil</code>, to an interface variable, the interface itself is non-nil because it carries type information even though the value is nil. So a function returning that interface will make <code>err != nil</code> true even though the pointer is nil.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. Why does comparing errors with <code>==</code> break when using wrapped errors, and what should you use instead?</p>
+          <p class="interview-a"><code>==</code> only checks if two error values are identical, but a wrapped error created via <code>fmt.Errorf("...: %w", sentinel)</code> is a different value than <code>sentinel</code> itself, so <code>==</code> returns false even though the original error is logically present. <code>errors.Is</code> walks the chain of wrapped errors (via <code>Unwrap</code>) to check whether any of them match the target, which is the correct way to test for a specific sentinel error.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. How does <code>%w</code> in <code>fmt.Errorf</code> differ from <code>%v</code> or <code>%s</code> when formatting an error?</p>
+          <p class="interview-a"><code>%v</code> and <code>%s</code> just format the error's message as text into the new error string, with no relationship preserved between the two errors. <code>%w</code> does the same formatting but also records the wrapped error so it implements <code>Unwrap() error</code>, letting <code>errors.Is</code> and <code>errors.As</code> traverse back to it later.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Why can two slices that look identical (same length and values) have very different capacities and appending behavior?</p>
+          <p class="interview-a">A slice's capacity depends on how it was created &mdash; a full slice expression, a subslice of a larger array, or a result of previous appends can all leave different amounts of spare room in the backing array even if the visible elements match. Because <code>append</code>'s decision to reallocate depends on capacity, not length, two "equal-looking" slices can behave very differently: one may mutate a shared array in place while the other allocates a new one.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. Why doesn't a map guarantee insertion order, and how do you get sorted output?</p>
+          <p class="interview-a">Go's map is a hash table, and its internal bucket layout has no relationship to the order keys were inserted, plus the runtime deliberately randomizes traversal on top of that. To produce deterministic, sorted output, collect the keys into a slice, sort the slice (e.g. with <code>sort.Strings</code> or <code>slices.Sort</code>), and then iterate the keys in that order to look up values.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. When should you use panic/recover versus returning an error?</p>
+          <p class="interview-a">Errors are the idiomatic way to signal expected, recoverable failure conditions, like a missing file or invalid input, and should be returned as normal values. <code>panic</code> is reserved for programmer errors or truly unrecoverable situations (like an out-of-bounds index or nil dereference), and <code>recover</code> is typically only used at a boundary, such as an HTTP middleware, to prevent one failing request from crashing the whole process.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. When does embedding cause method-set ambiguity, and how does Go resolve it?</p>
+          <p class="interview-a">If a struct embeds two types that both define a method with the same name at the same depth, calling that method on the outer struct is ambiguous and the compiler rejects it &mdash; you must qualify it explicitly, e.g. <code>x.TypeA.Foo()</code>. If the same method name exists at different embedding depths, the shallowest one wins automatically with no ambiguity error, which can silently shadow a deeper method rather than combine with it.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. How do <code>errors.Is</code> and <code>errors.As</code> differ from each other and from <code>==</code>?</p>
+          <p class="interview-a"><code>==</code> compares two error values directly and fails across wrapping. <code>errors.Is(err, target)</code> walks the <code>Unwrap</code> chain looking for a value equal to <code>target</code> (or satisfying an <code>Is(error) bool</code> method), used to test for a specific sentinel error. <code>errors.As(err, &amp;target)</code> instead walks the chain looking for an error whose concrete type matches <code>target</code>'s type, assigning it in so you can access that type's fields or methods.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. Explain how an error wrapping chain works with multiple <code>%w</code> verbs.</p>
+          <p class="interview-a">Since Go 1.20, <code>fmt.Errorf</code> can include more than one <code>%w</code> verb in a single format string, producing an error whose <code>Unwrap() []error</code> method returns all of the wrapped errors instead of just one. <code>errors.Is</code> and <code>errors.As</code> both understand this multi-error form and will search every branch of the tree, and <code>errors.Join</code> provides a similar way to combine several errors into one without a format string.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. How does interface satisfaction differ for a type's pointer receiver method set versus its value receiver method set, and what bugs can this cause?</p>
+          <p class="interview-a">The method set of <code>T</code> includes only methods declared with a value receiver, while the method set of <code>*T</code> includes both value and pointer receiver methods. This means a value of type <code>T</code> (not <code>*T</code>) does not satisfy an interface if any required method has a pointer receiver, which surfaces as a confusing compile error when someone tries to pass a plain struct value where a pointer was needed to implement the interface.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. How does append's growth strategy interact with aliasing bugs when a function receives a slice and appends to it?</p>
+          <p class="interview-a"><code>append</code> grows capacity by roughly doubling for small slices and by a smaller multiplier for larger ones, but whether a given append reuses the existing array or allocates a new one depends entirely on whatever spare capacity happens to exist at that call site. This makes it unsafe to assume a function's append either does or doesn't mutate the caller's backing array; the three-index slice expression <code>s[:len:cap]</code> is the standard way to cap a slice's capacity and force any further append to allocate, protecting the caller's data.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What's the exact behavior of <code>recover()</code> when it isn't called correctly?</p>
+          <p class="interview-a"><code>recover</code> only stops a panic when it is called directly inside a deferred function running as part of that panic's unwind; calling it directly in normal code, or indirectly through another function called by the deferred function, has no effect. In any of those cases, and whenever there is no panic in progress at all, <code>recover()</code> simply returns <code>nil</code> and the panic (if any) continues to propagate.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. When is a struct type comparable with <code>==</code>, and when does that comparison happen at compile time versus runtime?</p>
+          <p class="interview-a">A struct is comparable with <code>==</code> only if every one of its fields is itself comparable; fields of slice, map, or function type make the whole struct non-comparable. If the struct's type is statically known at compile time, the compiler rejects an invalid <code>==</code> outright; but if the comparison happens through two interface values whose static type is <code>any</code>, the non-comparability is only discovered at runtime and triggers a panic like "comparing uncomparable type".</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. Why can comparing two interface values with <code>==</code> panic at runtime even though the code compiles fine?</p>
+          <p class="interview-a">Comparing two <code>any</code>-typed values compiles because <code>any</code> is always comparable at the type-check level, but the actual comparison at runtime first checks that the two dynamic types match and then compares the dynamic values. If the dynamic type held by the interface is itself non-comparable, such as a slice or a struct containing one, the runtime comparison panics instead of returning a boolean.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What's the tradeoff between sentinel errors, custom error types, and wrapping when designing an error-handling strategy?</p>
+          <p class="interview-a">Sentinel errors (package-level <code>var ErrNotFound = errors.New(...)</code>) are simple and let callers check identity with <code>errors.Is</code>, but they carry no extra data and create coupling to that exact variable. Custom error types (a struct implementing <code>Error() string</code>) let callers extract structured fields via <code>errors.As</code>, at the cost of more boilerplate. Wrapping with <code>%w</code> lets a function add context at each layer while preserving the ability for any caller, at any depth, to still test against the original sentinel or type.</p>
+        </div>
+      </div>
     </div>
 
     <p style="margin-top:3rem;">

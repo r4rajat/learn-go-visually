@@ -37,6 +37,7 @@
       <a class="btn btn-sm" href="#variables">Variables &amp; types</a>
       <a class="btn btn-sm" href="#control-flow">Control flow</a>
       <a class="btn btn-sm" href="#functions">Functions</a>
+      <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
     </div>
 
     <!-- ============================================================ -->
@@ -992,6 +993,135 @@ cleanup file</div>
         its inputs are evaluated. This matters when you defer a loop body: the arguments
         are evaluated once per iteration, which is almost always the correct behavior.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="interview-questions">Interview Questions</h2>
+    <p>
+      Common interview questions about Go basics &mdash; syntax, variables, control flow, and
+      functions &mdash; organized by experience level. Click a tab to filter.
+    </p>
+
+    <div class="interview-tabs" data-viz="interview-qa">
+      <div class="interview-tab-buttons">
+        <button class="interview-tab-btn active" data-level="beginner" type="button">Beginner</button>
+        <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
+        <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="beginner">
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. What must every executable Go program have, and what does <code>func main</code> do?</p>
+          <p class="interview-a">Every executable Go program must belong to <code>package main</code> and define a <code>func main()</code> with no arguments and no return value. <code>main</code> is the entry point &mdash; execution starts there once the runtime has initialized package-level variables and run any <code>init</code> functions.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What is the difference between declaring a variable with <code>var</code> and with <code>:=</code>?</p>
+          <p class="interview-a"><code>var x int = 5</code> is an explicit declaration that can appear at package or function scope and works even with no initial value (it gets the zero value). <code>x := 5</code> is short variable declaration &mdash; it infers the type from the right-hand side and can only be used inside a function body, never at package scope.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What is a "zero value" in Go? Give an example.</p>
+          <p class="interview-a">A zero value is the default value a variable gets when it's declared without an explicit initializer. For example, <code>var n int</code> is <code>0</code>, <code>var s string</code> is <code>""</code>, <code>var b bool</code> is <code>false</code>, and <code>var p *int</code> is <code>nil</code>. Go has no concept of an uninitialized variable.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. Name some of Go's basic scalar types.</p>
+          <p class="interview-a"><code>int</code> and <code>float64</code> for numbers, <code>string</code> for text, <code>bool</code> for true/false, <code>byte</code> (an alias for <code>uint8</code>) for raw bytes, and <code>rune</code> (an alias for <code>int32</code>) for a single Unicode code point.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. What is the difference between <code>const</code> and <code>var</code>?</p>
+          <p class="interview-a"><code>const</code> declares a value that is fixed at compile time and can never be reassigned; <code>var</code> declares a variable whose value can change at runtime. Constants can only be numbers, strings, characters, or booleans &mdash; you cannot declare a <code>const</code> slice, map, or struct.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. Does Go require parentheses around <code>if</code> and <code>for</code> conditions?</p>
+          <p class="interview-a">No &mdash; Go does not use parentheses around conditions, for example <code>if x &gt; 0 { ... }</code> not <code>if (x &gt; 0)</code>. Braces around the body, however, are mandatory, even for a single statement.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. What forms can Go's <code>for</code> loop take?</p>
+          <p class="interview-a">Go has a single looping keyword, <code>for</code>, with four forms: the classic three-clause <code>for i := 0; i &lt; n; i++</code>, a condition-only form that acts like a <code>while</code> loop, a bare <code>for {}</code> for an infinite loop, and <code>for i, v := range collection</code> to iterate over arrays, slices, strings, maps, or channels.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. Does a Go <code>switch</code> fall through to the next case by default?</p>
+          <p class="interview-a">No. Unlike C or Java, each <code>case</code> in a Go <code>switch</code> breaks automatically after its statements run. You must use the explicit <code>fallthrough</code> keyword if you want execution to continue into the next case.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. Can a Go function return more than one value? Give a common use case.</p>
+          <p class="interview-a">Yes &mdash; Go functions can return multiple values, declared in the signature like <code>func divide(a, b int) (int, error)</code>. The most common use is returning a result alongside an <code>error</code>, which is Go's idiomatic replacement for exceptions.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Why does <code>x := 5</code> followed by another <code>x := 10</code> in the same scope fail to compile, but <code>x, y := 5, 6</code> work after <code>x</code> already exists?</p>
+          <p class="interview-a"><code>:=</code> requires at least one new variable on the left-hand side in the current scope; if all variables already exist, it's a plain redeclaration and the compiler rejects it as unused syntax. When mixed with a new variable like <code>y</code>, Go treats the already-declared <code>x</code> as a plain assignment and only declares <code>y</code> &mdash; this only applies within the same block scope, not across nested scopes.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. When are a deferred function's arguments evaluated &mdash; at the <code>defer</code> statement or when the function actually runs?</p>
+          <p class="interview-a">Arguments to a deferred call are evaluated immediately, at the point the <code>defer</code> statement executes &mdash; only the actual call is postponed until the surrounding function returns. So <code>for i := 0; i &lt; 3; i++ { defer fmt.Println(i) }</code> prints <code>2 1 0</code>, each with the value <code>i</code> had at the time of that iteration's <code>defer</code>, not at the end of the loop.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. What's the gotcha with writing <code>if err := doWork(); err != nil { ... }</code> when there's already an <code>err</code> in the outer scope?</p>
+          <p class="interview-a">The <code>if</code> statement's initializer introduces a new scope, so <code>err := doWork()</code> declares a fresh, shadowed <code>err</code> local to that <code>if</code> block rather than reusing the outer one. Code after the <code>if</code> block that reads the outer <code>err</code> won't see this new value, which is a common source of "why didn't my error get set" bugs.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. What is a named return value, and what's a common gotcha with it?</p>
+          <p class="interview-a">A named return, like <code>func f() (result int)</code>, pre-declares the return variable so a bare <code>return</code> statement sends back its current value. The gotcha is that using <code>:=</code> inside a nested block (like an <code>if</code>) to compute the result creates a new shadowed variable instead of assigning the named return, so a bare <code>return</code> afterward sends back the zero value instead of what you computed.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. How does <code>iota</code> work inside a <code>const</code> block?</p>
+          <p class="interview-a"><code>iota</code> starts at <code>0</code> and increments by one for each <code>ConstSpec</code> line within a single <code>const (...)</code> block, then resets to <code>0</code> in the next block. It's commonly used to build simple enumerations, such as <code>const ( Sun = iota; Mon; Tue )</code>, without writing out each value.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What's the difference between ranging over a <code>string</code> byte-by-byte versus with <code>range</code>?</p>
+          <p class="interview-a"><code>for i, r := range s</code> decodes the string as UTF-8 and yields the byte index where each rune starts along with its decoded <code>rune</code> value, so multi-byte characters are handled correctly and the index can skip values. Indexing the string directly with <code>s[i]</code> instead gives you the raw <code>byte</code> at that position, which can split a multi-byte character.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. How do you pass an existing slice into a variadic function's <code>...T</code> parameter?</p>
+          <p class="interview-a">You append <code>...</code> after the slice at the call site, e.g. <code>nums := []int{1,2,3}; sum(nums...)</code>, which passes the slice directly instead of wrapping it in another one. Without the trailing <code>...</code>, a slice can't be passed where individual variadic arguments are expected &mdash; it's a compile error.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. Can a <code>switch</code> case match multiple values, and how does explicit <code>fallthrough</code> work?</p>
+          <p class="interview-a">Yes &mdash; a case can list several comma-separated values, like <code>case "a", "b":</code>, and it matches if any of them equal the switch expression. <code>fallthrough</code> as the last statement in a case unconditionally executes the next case's body regardless of whether its own condition matches.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. What's the difference between a typed and an untyped constant?</p>
+          <p class="interview-a">An untyped constant, like <code>const Pi = 3.14159</code>, has no fixed type and implicitly converts to whatever numeric type it's used with, as long as the value fits. A typed constant, like <code>const Pi float32 = 3.14159</code>, is locked to that type and requires explicit conversion to use with another numeric type.</p>
+        </div>
+      </div>
+      <div class="interview-qa-panel" data-level-panel="advanced" hidden>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q1. Go 1.22 changed how <code>for</code> loop variables work &mdash; what changed, and why did it matter?</p>
+          <p class="interview-a">Before Go 1.22, a <code>for</code> loop's index and range variables were single variables reused across every iteration; since 1.22, each iteration gets its own fresh copy. This mattered because a closure created inside the loop body &mdash; for example one launched as a goroutine or stored for later &mdash; used to capture the shared variable and could observe the loop's final value instead of the value at the iteration it was created for, a very common bug source that the language change eliminated at the source.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q2. What are "open-coded defers" and when do they not apply?</p>
+          <p class="interview-a">Since Go 1.14, the compiler can inline the execution of <code>defer</code> calls directly at the return points of a function instead of pushing a defer record onto a runtime-managed list, avoiding that allocation and bookkeeping overhead. This optimization only applies to functions with a bounded number of defers (at most 8) that aren't inside a loop; a <code>defer</code> called in a loop body always falls back to the slower, heap-tracked defer path since the compiler can't know the count ahead of time.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q3. Can a deferred function modify a named return value after <code>return</code> has already executed?</p>
+          <p class="interview-a">Yes &mdash; a <code>return</code> statement in a function with named results first assigns those results, then runs deferred calls, and only then actually returns to the caller. A deferred function that references the named return variable can therefore still change it, which is exactly how the common <code>defer func() { if r := recover(); r != nil { err = fmt.Errorf(...) } }()</code> pattern converts a panic into an error result.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q4. How can <code>iota</code> be used for bit-flag constants or with skipped values?</p>
+          <p class="interview-a"><code>iota</code> can be used in arbitrary expressions, so <code>const ( _ = iota; KB = 1 &lt;&lt; (10 * iota); MB; GB )</code> skips the first value with <code>_</code> and produces power-of-two byte sizes by shifting per iteration. The same trick, <code>1 &lt;&lt; iota</code>, is the standard idiom for generating a set of distinct bit-flag constants (<code>1, 2, 4, 8, ...</code>) that can be combined with bitwise OR.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q5. When you <code>range</code> over a slice of structs, does modifying the loop variable change the underlying slice?</p>
+          <p class="interview-a">No &mdash; <code>for _, v := range structs</code> copies each element by value into <code>v</code>, so mutating fields on <code>v</code> has no effect on the original slice. To mutate in place you need to index the slice directly, <code>structs[i].Field = ...</code>, or range over a slice of pointers.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q6. What's the tradeoff in choosing named returns over ordinary returns?</p>
+          <p class="interview-a">Named returns can improve readability at the call-signature level (documenting what each return value means) and are required if a deferred function needs to modify the result before it's returned to the caller. The tradeoff is the shadowing risk when a nested block reassigns the name with <code>:=</code> instead of <code>=</code>, silently discarding the intended update &mdash; for short functions, explicit <code>return x, err</code> is usually clearer.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q7. Why can an untyped constant expression represent a value that would overflow any of Go's runtime numeric types?</p>
+          <p class="interview-a">Untyped constants are evaluated by the compiler with arbitrary precision arithmetic, not with the fixed bit width of a concrete type, so intermediate expressions can temporarily exceed what any real numeric type could hold. The value only has to fit once it's actually assigned to a typed variable or used in a typed context &mdash; if it doesn't fit at that point, it's a compile-time error, not a runtime overflow.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q8. What's the aliasing risk when passing a slice into a variadic parameter with <code>...</code>?</p>
+          <p class="interview-a">Passing <code>nums...</code> hands the callee a slice header that points at the same underlying array as the caller's slice, it is not copied. If the variadic function writes to elements of its parameter slice (rather than appending beyond its length), those writes are visible back in the caller's original slice.</p>
+        </div>
+        <div class="interview-qa-item">
+          <p class="interview-q">Q9. How does a tagless <code>switch { case cond1: ...; case cond2: ... }</code> behave compared to <code>switch true</code>?</p>
+          <p class="interview-a">A <code>switch</code> with no tag expression is exactly equivalent to <code>switch true</code> &mdash; each <code>case</code> holds a boolean expression, evaluated top-to-bottom, and the first one that evaluates to <code>true</code> runs. It's a common, more readable idiom for chains of conditions that would otherwise be a long <code>if / else if</code> ladder.</p>
+        </div>
+      </div>
     </div>
 
     <p style="margin-top:3rem;">
