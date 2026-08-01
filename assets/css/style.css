@@ -823,6 +823,53 @@ footer.site-footer {
 .interview-a { margin: 0; color: var(--text-dim); }
 .interview-a:last-child { margin-bottom: 0; }
 
+/* ---------------------------------------------------------------
+   Coding interview questions (category-tabbed problems + solutions)
+   --------------------------------------------------------------- */
+.coding-tabs {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  padding: 1.4rem;
+  margin: 1.6rem 0;
+  box-shadow: var(--shadow);
+}
+.coding-tab-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+.coding-tab-btn {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.5em 1.15em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.coding-tab-btn:hover { border-color: var(--accent); color: var(--text); }
+.coding-tab-btn.active {
+  background: var(--gopher-cyan);
+  border-color: var(--gopher-cyan);
+  color: #04262d;
+}
+.coding-category-panel { display: flex; flex-direction: column; gap: 1.6rem; }
+.coding-category-panel[hidden] { display: none; }
+.coding-q-item { }
+.coding-q-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.5em;
+  color: var(--text);
+}
+.coding-q-desc { margin: 0 0 0.9em; color: var(--text-dim); }
+.coding-q-desc:last-child { margin-bottom: 0; }
+
 @media (max-width: 640px) {
   h1 { font-size: 1.7rem; }
   .page, .page-wide { padding: 1.6rem 1.1rem 4rem; }
@@ -830,4 +877,5 @@ footer.site-footer {
   .hs-node { width: 60px; }
   .nav-links { gap: 0.7rem; }
   .interview-tab-btn { flex: 1 1 auto; text-align: center; }
+  .coding-tab-btn { flex: 1 1 auto; text-align: center; }
 }

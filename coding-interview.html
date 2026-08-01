@@ -1,0 +1,2265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coding Interview Questions &mdash; Learn Go, Visually</title>
+<meta name="description" content="Commonly asked Go coding interview questions with full solutions — data structures (linked lists, stacks, queues), concurrency patterns (channels, goroutines), and algorithms — each with a verified Go Playground link.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <a href="operators.html">Operators</a>
+    <a href="rest-api.html">REST APIs</a>
+    <a href="grpc-api.html">gRPC</a>
+    <a href="coding-interview.html" class="active">Coding Qs</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-wide">
+    <span class="eyebrow">Interview Prep</span>
+    <h1>Coding Interview Questions</h1>
+    <p class="lede">
+      The coding questions that come up most often in Go interviews &mdash; implementing
+      core data structures from scratch, concurrency patterns built on goroutines and
+      channels, and classic algorithm problems solved the idiomatic Go way. Every solution
+      below was compiled and run against a real Go 1.26 toolchain, and every
+      "Open in Go Playground" link was created through the real share API and verified to
+      return the exact code shown.
+    </p>
+
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
+      <a class="btn btn-sm" href="#data-structures">Jump to questions &darr;</a>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="data-structures">Coding Questions</h2>
+    <p>
+      Pick a category, then work through the problems &mdash; each has a full problem
+      statement, a complete runnable solution, and a link to run it yourself in the Go
+      Playground.
+    </p>
+
+    <div class="coding-tabs" data-viz="coding-qa">
+      <div class="coding-tab-buttons">
+        <button class="coding-tab-btn active" data-category="data-structures" type="button">Data Structures</button>
+        <button class="coding-tab-btn" data-category="concurrency" type="button">Concurrency</button>
+        <button class="coding-tab-btn" data-category="algorithms" type="button">Algorithms &amp; Strings</button>
+      </div>
+      <div class="coding-category-panel" data-category-panel="data-structures">
+        <div class="coding-q-item">
+  <h3 class="coding-q-title">1. Implement a singly linked list</h3>
+  <p class="coding-q-desc">Build a singly linked list supporting insertion at the head and tail, deletion by value, and forward traversal for printing.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/vykygQeuqTa" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">Node</span> <span class="tok-kw">struct</span> {
+	val  <span class="tok-type">int</span>
+	next *<span class="tok-type">Node</span>
+}
+
+<span class="tok-kw">type</span> <span class="tok-type">List</span> <span class="tok-kw">struct</span> {
+	head *<span class="tok-type">Node</span>
+	tail *<span class="tok-type">Node</span>
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) InsertHead(v <span class="tok-type">int</span>) {
+	n := &<span class="tok-type">Node</span>{val: v, next: l.head}
+	l.head = n
+	<span class="tok-kw">if</span> l.tail == <span class="tok-kw">nil</span> {
+		l.tail = n
+	}
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) InsertTail(v <span class="tok-type">int</span>) {
+	n := &<span class="tok-type">Node</span>{val: v}
+	<span class="tok-kw">if</span> l.tail == <span class="tok-kw">nil</span> {
+		l.head = n
+		l.tail = n
+		<span class="tok-kw">return</span>
+	}
+	l.tail.next = n
+	l.tail = n
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) Delete(v <span class="tok-type">int</span>) <span class="tok-type">bool</span> {
+	<span class="tok-kw">var</span> prev *<span class="tok-type">Node</span>
+	cur := l.head
+	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
+		<span class="tok-kw">if</span> cur.val == v {
+			<span class="tok-kw">if</span> prev == <span class="tok-kw">nil</span> {
+				l.head = cur.next
+			} <span class="tok-kw">else</span> {
+				prev.next = cur.next
+			}
+			<span class="tok-kw">if</span> cur == l.tail {
+				l.tail = prev
+			}
+			<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+		}
+		prev = cur
+		cur = cur.next
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">List</span>) String() <span class="tok-type">string</span> {
+	s := <span class="tok-str">""</span>
+	<span class="tok-kw">for</span> cur := l.head; cur != <span class="tok-kw">nil</span>; cur = cur.next {
+		<span class="tok-kw">if</span> s != <span class="tok-str">""</span> {
+			s += <span class="tok-str">" -&gt; "</span>
+		}
+		s += fmt.Sprintf(<span class="tok-str">"%d"</span>, cur.val)
+	}
+	<span class="tok-kw">return</span> s
+}
+
+<span class="tok-kw">func</span> main() {
+	l := &<span class="tok-type">List</span>{}
+	l.InsertTail(1)
+	l.InsertTail(2)
+	l.InsertTail(3)
+	l.InsertHead(0)
+	fmt.Println(<span class="tok-str">"After inserts:"</span>, l.String())
+
+	l.Delete(2)
+	fmt.Println(<span class="tok-str">"After deleting 2:"</span>, l.String())
+
+	l.Delete(0)
+	fmt.Println(<span class="tok-str">"After deleting head 0:"</span>, l.String())
+
+	l.InsertTail(4)
+	fmt.Println(<span class="tok-str">"After inserting tail 4:"</span>, l.String())
+}</code></pre>
+    <div class="code-output show">After inserts: 0 -&gt; 1 -&gt; 2 -&gt; 3
+After deleting 2: 0 -&gt; 1 -&gt; 3
+After deleting head 0: 1 -&gt; 3
+After inserting tail 4: 1 -&gt; 3 -&gt; 4</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">2. Reverse a singly linked list</h3>
+  <p class="coding-q-desc">Reverse the direction of every next pointer in a singly linked list using the standard three-pointer iterative technique, in a single O(n) pass.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/lSssCtdeW8s" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">Node</span> <span class="tok-kw">struct</span> {
+	val  <span class="tok-type">int</span>
+	next *<span class="tok-type">Node</span>
+}
+
+<span class="tok-kw">func</span> build(vals []<span class="tok-type">int</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-kw">var</span> head, tail *<span class="tok-type">Node</span>
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> vals {
+		n := &<span class="tok-type">Node</span>{val: v}
+		<span class="tok-kw">if</span> head == <span class="tok-kw">nil</span> {
+			head = n
+			tail = n
+		} <span class="tok-kw">else</span> {
+			tail.next = n
+			tail = n
+		}
+	}
+	<span class="tok-kw">return</span> head
+}
+
+<span class="tok-kw">func</span> reverse(head *<span class="tok-type">Node</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-kw">var</span> prev *<span class="tok-type">Node</span>
+	cur := head
+	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
+		next := cur.next
+		cur.next = prev
+		prev = cur
+		cur = next
+	}
+	<span class="tok-kw">return</span> prev
+}
+
+<span class="tok-kw">func</span> print(head *<span class="tok-type">Node</span>) <span class="tok-type">string</span> {
+	s := <span class="tok-str">""</span>
+	<span class="tok-kw">for</span> cur := head; cur != <span class="tok-kw">nil</span>; cur = cur.next {
+		<span class="tok-kw">if</span> s != <span class="tok-str">""</span> {
+			s += <span class="tok-str">" -&gt; "</span>
+		}
+		s += fmt.Sprintf(<span class="tok-str">"%d"</span>, cur.val)
+	}
+	<span class="tok-kw">return</span> s
+}
+
+<span class="tok-kw">func</span> main() {
+	head := build([]<span class="tok-type">int</span>{1, 2, 3, 4, 5})
+	fmt.Println(<span class="tok-str">"Original:"</span>, print(head))
+
+	reversed := reverse(head)
+	fmt.Println(<span class="tok-str">"Reversed:"</span>, print(reversed))
+
+	single := build([]<span class="tok-type">int</span>{42})
+	fmt.Println(<span class="tok-str">"Single node reversed:"</span>, print(reverse(single)))
+}</code></pre>
+    <div class="code-output show">Original: 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; 5
+Reversed: 5 -&gt; 4 -&gt; 3 -&gt; 2 -&gt; 1
+Single node reversed: 42</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">3. Detect a cycle in a linked list</h3>
+  <p class="coding-q-desc">Use Floyd's tortoise-and-hare algorithm &mdash; a slow pointer and a fast pointer &mdash; to detect whether a linked list contains a cycle, without extra memory.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/PuUGeOtZEEA" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">Node</span> <span class="tok-kw">struct</span> {
+	val  <span class="tok-type">int</span>
+	next *<span class="tok-type">Node</span>
+}
+
+<span class="tok-kw">func</span> hasCycle(head *<span class="tok-type">Node</span>) <span class="tok-type">bool</span> {
+	slow, fast := head, head
+	<span class="tok-kw">for</span> fast != <span class="tok-kw">nil</span> &amp;&amp; fast.next != <span class="tok-kw">nil</span> {
+		slow = slow.next
+		fast = fast.next.next
+		<span class="tok-kw">if</span> slow == fast {
+			<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+		}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-com">// Build a clean list: 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; nil</span>
+	n4 := &<span class="tok-type">Node</span>{val: 4}
+	n3 := &<span class="tok-type">Node</span>{val: 3, next: n4}
+	n2 := &<span class="tok-type">Node</span>{val: 2, next: n3}
+	n1 := &<span class="tok-type">Node</span>{val: 1, next: n2}
+	fmt.Println(<span class="tok-str">"List without cycle, hasCycle:"</span>, hasCycle(n1))
+
+	<span class="tok-com">// Introduce a cycle: n4 -&gt; n2 (loop back)</span>
+	n4.next = n2
+	fmt.Println(<span class="tok-str">"List with cycle (4 -&gt; 2), hasCycle:"</span>, hasCycle(n1))
+
+	<span class="tok-com">// Single node pointing to itself</span>
+	self := &<span class="tok-type">Node</span>{val: 99}
+	self.next = self
+	fmt.Println(<span class="tok-str">"Single self-looping node, hasCycle:"</span>, hasCycle(self))
+
+	<span class="tok-com">// Empty list</span>
+	fmt.Println(<span class="tok-str">"Empty list, hasCycle:"</span>, hasCycle(<span class="tok-kw">nil</span>))
+}</code></pre>
+    <div class="code-output show">List without cycle, hasCycle: false
+List with cycle (4 -&gt; 2), hasCycle: true
+Single self-looping node, hasCycle: true
+Empty list, hasCycle: false</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">4. Find the middle node of a linked list in one pass</h3>
+  <p class="coding-q-desc">Find the middle node of a singly linked list in a single traversal using two pointers, one advancing twice as fast as the other.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/jIA3Ycd8AWq" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">Node</span> <span class="tok-kw">struct</span> {
+	val  <span class="tok-type">int</span>
+	next *<span class="tok-type">Node</span>
+}
+
+<span class="tok-kw">func</span> build(vals []<span class="tok-type">int</span>) *<span class="tok-type">Node</span> {
+	<span class="tok-kw">var</span> head, tail *<span class="tok-type">Node</span>
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> vals {
+		n := &<span class="tok-type">Node</span>{val: v}
+		<span class="tok-kw">if</span> head == <span class="tok-kw">nil</span> {
+			head = n
+			tail = n
+		} <span class="tok-kw">else</span> {
+			tail.next = n
+			tail = n
+		}
+	}
+	<span class="tok-kw">return</span> head
+}
+
+<span class="tok-kw">func</span> middle(head *<span class="tok-type">Node</span>) *<span class="tok-type">Node</span> {
+	slow, fast := head, head
+	<span class="tok-kw">for</span> fast != <span class="tok-kw">nil</span> &amp;&amp; fast.next != <span class="tok-kw">nil</span> {
+		slow = slow.next
+		fast = fast.next.next
+	}
+	<span class="tok-kw">return</span> slow
+}
+
+<span class="tok-kw">func</span> main() {
+	odd := build([]<span class="tok-type">int</span>{1, 2, 3, 4, 5})
+	fmt.Println(<span class="tok-str">"Odd length [1..5], middle:"</span>, middle(odd).val)
+
+	even := build([]<span class="tok-type">int</span>{1, 2, 3, 4, 5, 6})
+	fmt.Println(<span class="tok-str">"Even length [1..6], middle:"</span>, middle(even).val)
+
+	single := build([]<span class="tok-type">int</span>{7})
+	fmt.Println(<span class="tok-str">"Single node [7], middle:"</span>, middle(single).val)
+
+	two := build([]<span class="tok-type">int</span>{10, 20})
+	fmt.Println(<span class="tok-str">"Two nodes [10,20], middle:"</span>, middle(two).val)
+}</code></pre>
+    <div class="code-output show">Odd length [1..5], middle: 3
+Even length [1..6], middle: 4
+Single node [7], middle: 7
+Two nodes [10,20], middle: 20</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">5. Implement a stack (push, pop, peek, isEmpty)</h3>
+  <p class="coding-q-desc">Implement a LIFO stack backed by a Go slice, with Push, Pop, Peek, and IsEmpty operations, returning an error when popping or peeking an empty stack.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/J4mmHvchz0T" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"errors"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-kw">type</span> <span class="tok-type">Stack</span> <span class="tok-kw">struct</span> {
+	items []<span class="tok-type">int</span>
+}
+
+<span class="tok-kw">func</span> (s *<span class="tok-type">Stack</span>) Push(v <span class="tok-type">int</span>) {
+	s.items = append(s.items, v)
+}
+
+<span class="tok-kw">func</span> (s *<span class="tok-type">Stack</span>) Pop() (<span class="tok-type">int</span>, <span class="tok-type">error</span>) {
+	<span class="tok-kw">if</span> s.IsEmpty() {
+		<span class="tok-kw">return</span> 0, errors.New(<span class="tok-str">"stack is empty"</span>)
+	}
+	n := len(s.items) - 1
+	v := s.items[n]
+	s.items = s.items[:n]
+	<span class="tok-kw">return</span> v, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (s *<span class="tok-type">Stack</span>) Peek() (<span class="tok-type">int</span>, <span class="tok-type">error</span>) {
+	<span class="tok-kw">if</span> s.IsEmpty() {
+		<span class="tok-kw">return</span> 0, errors.New(<span class="tok-str">"stack is empty"</span>)
+	}
+	<span class="tok-kw">return</span> s.items[len(s.items)-1], <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (s *<span class="tok-type">Stack</span>) IsEmpty() <span class="tok-type">bool</span> {
+	<span class="tok-kw">return</span> len(s.items) == 0
+}
+
+<span class="tok-kw">func</span> main() {
+	s := &<span class="tok-type">Stack</span>{}
+	s.Push(1)
+	s.Push(2)
+	s.Push(3)
+
+	top, _ := s.Peek()
+	fmt.Println(<span class="tok-str">"Peek:"</span>, top)
+
+	v, _ := s.Pop()
+	fmt.Println(<span class="tok-str">"Pop:"</span>, v)
+
+	v, _ = s.Pop()
+	fmt.Println(<span class="tok-str">"Pop:"</span>, v)
+
+	fmt.Println(<span class="tok-str">"IsEmpty:"</span>, s.IsEmpty())
+
+	v, _ = s.Pop()
+	fmt.Println(<span class="tok-str">"Pop:"</span>, v)
+
+	fmt.Println(<span class="tok-str">"IsEmpty:"</span>, s.IsEmpty())
+
+	_, err := s.Pop()
+	fmt.Println(<span class="tok-str">"Pop on empty, error:"</span>, err)
+}</code></pre>
+    <div class="code-output show">Peek: 3
+Pop: 3
+Pop: 2
+IsEmpty: false
+Pop: 1
+IsEmpty: true
+Pop on empty, error: stack is empty</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">6. Implement a queue (enqueue, dequeue, front, isEmpty)</h3>
+  <p class="coding-q-desc">Implement a FIFO queue backed by a Go slice, with Enqueue, Dequeue, Front, and IsEmpty operations, returning an error when dequeuing from an empty queue.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/8om27VYlwkV" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"errors"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-kw">type</span> <span class="tok-type">Queue</span> <span class="tok-kw">struct</span> {
+	items []<span class="tok-type">int</span>
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">Queue</span>) Enqueue(v <span class="tok-type">int</span>) {
+	q.items = append(q.items, v)
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">Queue</span>) Dequeue() (<span class="tok-type">int</span>, <span class="tok-type">error</span>) {
+	<span class="tok-kw">if</span> q.IsEmpty() {
+		<span class="tok-kw">return</span> 0, errors.New(<span class="tok-str">"queue is empty"</span>)
+	}
+	v := q.items[0]
+	q.items = q.items[1:]
+	<span class="tok-kw">return</span> v, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">Queue</span>) Front() (<span class="tok-type">int</span>, <span class="tok-type">error</span>) {
+	<span class="tok-kw">if</span> q.IsEmpty() {
+		<span class="tok-kw">return</span> 0, errors.New(<span class="tok-str">"queue is empty"</span>)
+	}
+	<span class="tok-kw">return</span> q.items[0], <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">Queue</span>) IsEmpty() <span class="tok-type">bool</span> {
+	<span class="tok-kw">return</span> len(q.items) == 0
+}
+
+<span class="tok-kw">func</span> main() {
+	q := &<span class="tok-type">Queue</span>{}
+	q.Enqueue(1)
+	q.Enqueue(2)
+	q.Enqueue(3)
+
+	front, _ := q.Front()
+	fmt.Println(<span class="tok-str">"Front:"</span>, front)
+
+	v, _ := q.Dequeue()
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, v)
+
+	v, _ = q.Dequeue()
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, v)
+
+	fmt.Println(<span class="tok-str">"IsEmpty:"</span>, q.IsEmpty())
+
+	v, _ = q.Dequeue()
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, v)
+
+	fmt.Println(<span class="tok-str">"IsEmpty:"</span>, q.IsEmpty())
+
+	_, err := q.Dequeue()
+	fmt.Println(<span class="tok-str">"Dequeue on empty, error:"</span>, err)
+}</code></pre>
+    <div class="code-output show">Front: 1
+Dequeue: 1
+Dequeue: 2
+IsEmpty: false
+Dequeue: 3
+IsEmpty: true
+Dequeue on empty, error: queue is empty</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">7. Implement a stack using two queues</h3>
+  <p class="coding-q-desc">Implement a LIFO stack using only two FIFO queues as the underlying storage, making Push do the extra work of re-ordering elements so Pop always removes the most recently pushed item.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/1mcA9auroUE" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// StackTwoQueues implements a LIFO stack using two FIFO queues.</span>
+<span class="tok-kw">type</span> <span class="tok-type">StackTwoQueues</span> <span class="tok-kw">struct</span> {
+	q1 []<span class="tok-type">int</span>
+	q2 []<span class="tok-type">int</span>
+}
+
+<span class="tok-kw">func</span> dequeue(q *[]<span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	v := (*q)[0]
+	*q = (*q)[1:]
+	<span class="tok-kw">return</span> v
+}
+
+<span class="tok-com">// Push makes the new element the front of q1 by rotating existing</span>
+<span class="tok-com">// elements through q2, keeping the most recently pushed item first.</span>
+<span class="tok-kw">func</span> (s *<span class="tok-type">StackTwoQueues</span>) Push(v <span class="tok-type">int</span>) {
+	s.q2 = append(s.q2, v)
+	<span class="tok-kw">for</span> len(s.q1) &gt; 0 {
+		s.q2 = append(s.q2, dequeue(&s.q1))
+	}
+	s.q1, s.q2 = s.q2, s.q1
+}
+
+<span class="tok-kw">func</span> (s *<span class="tok-type">StackTwoQueues</span>) Pop() <span class="tok-type">int</span> {
+	<span class="tok-kw">return</span> dequeue(&s.q1)
+}
+
+<span class="tok-kw">func</span> (s *<span class="tok-type">StackTwoQueues</span>) IsEmpty() <span class="tok-type">bool</span> {
+	<span class="tok-kw">return</span> len(s.q1) == 0
+}
+
+<span class="tok-kw">func</span> main() {
+	s := &<span class="tok-type">StackTwoQueues</span>{}
+	s.Push(1)
+	s.Push(2)
+	s.Push(3)
+
+	fmt.Println(<span class="tok-str">"Pop:"</span>, s.Pop())
+	fmt.Println(<span class="tok-str">"Pop:"</span>, s.Pop())
+
+	s.Push(4)
+	fmt.Println(<span class="tok-str">"Pop:"</span>, s.Pop())
+	fmt.Println(<span class="tok-str">"Pop:"</span>, s.Pop())
+
+	fmt.Println(<span class="tok-str">"IsEmpty:"</span>, s.IsEmpty())
+}</code></pre>
+    <div class="code-output show">Pop: 3
+Pop: 2
+Pop: 4
+Pop: 1
+IsEmpty: true</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">8. Implement a queue using two stacks</h3>
+  <p class="coding-q-desc">Implement a FIFO queue using only two LIFO stacks: an input stack for enqueuing and an output stack that lazily reverses elements so Dequeue always removes the oldest item.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/hcWgf5ewnDY" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// QueueTwoStacks implements a FIFO queue using two LIFO stacks.</span>
+<span class="tok-kw">type</span> <span class="tok-type">QueueTwoStacks</span> <span class="tok-kw">struct</span> {
+	in  []<span class="tok-type">int</span>
+	out []<span class="tok-type">int</span>
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">QueueTwoStacks</span>) Enqueue(v <span class="tok-type">int</span>) {
+	q.in = append(q.in, v)
+}
+
+<span class="tok-com">// shift moves all elements from in to out (reversing order) only when</span>
+<span class="tok-com">// out is empty, so dequeue returns them in original insertion order.</span>
+<span class="tok-kw">func</span> (q *<span class="tok-type">QueueTwoStacks</span>) shift() {
+	<span class="tok-kw">if</span> len(q.out) == 0 {
+		<span class="tok-kw">for</span> len(q.in) &gt; 0 {
+			n := len(q.in) - 1
+			q.out = append(q.out, q.in[n])
+			q.in = q.in[:n]
+		}
+	}
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">QueueTwoStacks</span>) Dequeue() <span class="tok-type">int</span> {
+	q.shift()
+	n := len(q.out) - 1
+	v := q.out[n]
+	q.out = q.out[:n]
+	<span class="tok-kw">return</span> v
+}
+
+<span class="tok-kw">func</span> (q *<span class="tok-type">QueueTwoStacks</span>) IsEmpty() <span class="tok-type">bool</span> {
+	<span class="tok-kw">return</span> len(q.in) == 0 &amp;&amp; len(q.out) == 0
+}
+
+<span class="tok-kw">func</span> main() {
+	q := &<span class="tok-type">QueueTwoStacks</span>{}
+	q.Enqueue(1)
+	q.Enqueue(2)
+	q.Enqueue(3)
+
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, q.Dequeue())
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, q.Dequeue())
+
+	q.Enqueue(4)
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, q.Dequeue())
+	fmt.Println(<span class="tok-str">"Dequeue:"</span>, q.Dequeue())
+
+	fmt.Println(<span class="tok-str">"IsEmpty:"</span>, q.IsEmpty())
+}</code></pre>
+    <div class="code-output show">Dequeue: 1
+Dequeue: 2
+Dequeue: 3
+Dequeue: 4
+IsEmpty: true</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">9. Implement a doubly linked list</h3>
+  <p class="coding-q-desc">Build a doubly linked list with PushFront, PushBack, and O(1) Remove of an arbitrary node, supporting traversal in both directions via prev and next pointers.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/v8NOOSHa8__r" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">DNode</span> <span class="tok-kw">struct</span> {
+	val  <span class="tok-type">int</span>
+	prev *<span class="tok-type">DNode</span>
+	next *<span class="tok-type">DNode</span>
+}
+
+<span class="tok-kw">type</span> <span class="tok-type">DoublyList</span> <span class="tok-kw">struct</span> {
+	head *<span class="tok-type">DNode</span>
+	tail *<span class="tok-type">DNode</span>
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) PushBack(v <span class="tok-type">int</span>) *<span class="tok-type">DNode</span> {
+	n := &<span class="tok-type">DNode</span>{val: v, prev: l.tail}
+	<span class="tok-kw">if</span> l.tail != <span class="tok-kw">nil</span> {
+		l.tail.next = n
+	} <span class="tok-kw">else</span> {
+		l.head = n
+	}
+	l.tail = n
+	<span class="tok-kw">return</span> n
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) PushFront(v <span class="tok-type">int</span>) *<span class="tok-type">DNode</span> {
+	n := &<span class="tok-type">DNode</span>{val: v, next: l.head}
+	<span class="tok-kw">if</span> l.head != <span class="tok-kw">nil</span> {
+		l.head.prev = n
+	} <span class="tok-kw">else</span> {
+		l.tail = n
+	}
+	l.head = n
+	<span class="tok-kw">return</span> n
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) Remove(n *<span class="tok-type">DNode</span>) {
+	<span class="tok-kw">if</span> n.prev != <span class="tok-kw">nil</span> {
+		n.prev.next = n.next
+	} <span class="tok-kw">else</span> {
+		l.head = n.next
+	}
+	<span class="tok-kw">if</span> n.next != <span class="tok-kw">nil</span> {
+		n.next.prev = n.prev
+	} <span class="tok-kw">else</span> {
+		l.tail = n.prev
+	}
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) Forward() <span class="tok-type">string</span> {
+	s := <span class="tok-str">""</span>
+	<span class="tok-kw">for</span> cur := l.head; cur != <span class="tok-kw">nil</span>; cur = cur.next {
+		<span class="tok-kw">if</span> s != <span class="tok-str">""</span> {
+			s += <span class="tok-str">" &lt;-&gt; "</span>
+		}
+		s += fmt.Sprintf(<span class="tok-str">"%d"</span>, cur.val)
+	}
+	<span class="tok-kw">return</span> s
+}
+
+<span class="tok-kw">func</span> (l *<span class="tok-type">DoublyList</span>) Backward() <span class="tok-type">string</span> {
+	s := <span class="tok-str">""</span>
+	<span class="tok-kw">for</span> cur := l.tail; cur != <span class="tok-kw">nil</span>; cur = cur.prev {
+		<span class="tok-kw">if</span> s != <span class="tok-str">""</span> {
+			s += <span class="tok-str">" &lt;-&gt; "</span>
+		}
+		s += fmt.Sprintf(<span class="tok-str">"%d"</span>, cur.val)
+	}
+	<span class="tok-kw">return</span> s
+}
+
+<span class="tok-kw">func</span> main() {
+	l := &<span class="tok-type">DoublyList</span>{}
+	l.PushBack(2)
+	l.PushBack(3)
+	mid := l.PushFront(1)
+	l.PushBack(4)
+	fmt.Println(<span class="tok-str">"Forward: "</span>, l.Forward())
+	fmt.Println(<span class="tok-str">"Backward:"</span>, l.Backward())
+
+	l.Remove(mid)
+	fmt.Println(<span class="tok-str">"After removing 1:"</span>)
+	fmt.Println(<span class="tok-str">"Forward: "</span>, l.Forward())
+	fmt.Println(<span class="tok-str">"Backward:"</span>, l.Backward())
+}</code></pre>
+    <div class="code-output show">Forward:  1 &lt;-&gt; 2 &lt;-&gt; 3 &lt;-&gt; 4
+Backward: 4 &lt;-&gt; 3 &lt;-&gt; 2 &lt;-&gt; 1
+After removing 1:
+Forward:  2 &lt;-&gt; 3 &lt;-&gt; 4
+Backward: 4 &lt;-&gt; 3 &lt;-&gt; 2</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">10. Implement a binary search tree</h3>
+  <p class="coding-q-desc">Implement a binary search tree supporting Insert, Search, and an in-order traversal that returns the stored values in sorted order.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/_XuSaHSPtI_2" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">TreeNode</span> <span class="tok-kw">struct</span> {
+	val   <span class="tok-type">int</span>
+	left  *<span class="tok-type">TreeNode</span>
+	right *<span class="tok-type">TreeNode</span>
+}
+
+<span class="tok-kw">type</span> <span class="tok-type">BST</span> <span class="tok-kw">struct</span> {
+	root *<span class="tok-type">TreeNode</span>
+}
+
+<span class="tok-kw">func</span> (t *<span class="tok-type">BST</span>) Insert(v <span class="tok-type">int</span>) {
+	t.root = insertNode(t.root, v)
+}
+
+<span class="tok-kw">func</span> insertNode(n *<span class="tok-type">TreeNode</span>, v <span class="tok-type">int</span>) *<span class="tok-type">TreeNode</span> {
+	<span class="tok-kw">if</span> n == <span class="tok-kw">nil</span> {
+		<span class="tok-kw">return</span> &<span class="tok-type">TreeNode</span>{val: v}
+	}
+	<span class="tok-kw">if</span> v &lt; n.val {
+		n.left = insertNode(n.left, v)
+	} <span class="tok-kw">else</span> <span class="tok-kw">if</span> v &gt; n.val {
+		n.right = insertNode(n.right, v)
+	}
+	<span class="tok-kw">return</span> n
+}
+
+<span class="tok-kw">func</span> (t *<span class="tok-type">BST</span>) Search(v <span class="tok-type">int</span>) <span class="tok-type">bool</span> {
+	cur := t.root
+	<span class="tok-kw">for</span> cur != <span class="tok-kw">nil</span> {
+		<span class="tok-kw">if</span> v == cur.val {
+			<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+		} <span class="tok-kw">else</span> <span class="tok-kw">if</span> v &lt; cur.val {
+			cur = cur.left
+		} <span class="tok-kw">else</span> {
+			cur = cur.right
+		}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+}
+
+<span class="tok-kw">func</span> (t *<span class="tok-type">BST</span>) InOrder() []<span class="tok-type">int</span> {
+	<span class="tok-kw">var</span> result []<span class="tok-type">int</span>
+	<span class="tok-kw">var</span> walk <span class="tok-kw">func</span>(n *<span class="tok-type">TreeNode</span>)
+	walk = <span class="tok-kw">func</span>(n *<span class="tok-type">TreeNode</span>) {
+		<span class="tok-kw">if</span> n == <span class="tok-kw">nil</span> {
+			<span class="tok-kw">return</span>
+		}
+		walk(n.left)
+		result = append(result, n.val)
+		walk(n.right)
+	}
+	walk(t.root)
+	<span class="tok-kw">return</span> result
+}
+
+<span class="tok-kw">func</span> main() {
+	t := &<span class="tok-type">BST</span>{}
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> []<span class="tok-type">int</span>{8, 3, 10, 1, 6, 14, 4, 7, 13} {
+		t.Insert(v)
+	}
+
+	fmt.Println(<span class="tok-str">"In-order traversal:"</span>, t.InOrder())
+	fmt.Println(<span class="tok-str">"Search 6:"</span>, t.Search(6))
+	fmt.Println(<span class="tok-str">"Search 9:"</span>, t.Search(9))
+	fmt.Println(<span class="tok-str">"Search 13:"</span>, t.Search(13))
+}</code></pre>
+    <div class="code-output show">In-order traversal: [1 3 4 6 7 8 10 13 14]
+Search 6: true
+Search 9: false
+Search 13: true</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">11. Implement a min-heap / priority queue</h3>
+  <p class="coding-q-desc">Implement a min-heap priority queue for ints by satisfying container/heap.Interface, then use heap.Push and heap.Pop to always retrieve the smallest remaining element.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/CP5hBu7Xv0M" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"container/heap"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-com">// MinHeap is a min-heap of ints implementing container/heap.Interface.</span>
+<span class="tok-kw">type</span> <span class="tok-type">MinHeap</span> []<span class="tok-type">int</span>
+
+<span class="tok-kw">func</span> (h <span class="tok-type">MinHeap</span>) Len() <span class="tok-type">int</span>            { <span class="tok-kw">return</span> len(h) }
+<span class="tok-kw">func</span> (h <span class="tok-type">MinHeap</span>) Less(i, j <span class="tok-type">int</span>) <span class="tok-type">bool</span>  { <span class="tok-kw">return</span> h[i] &lt; h[j] }
+<span class="tok-kw">func</span> (h <span class="tok-type">MinHeap</span>) Swap(i, j <span class="tok-type">int</span>)       { h[i], h[j] = h[j], h[i] }
+<span class="tok-kw">func</span> (h *<span class="tok-type">MinHeap</span>) Push(x <span class="tok-kw">interface</span>{}) { *h = append(*h, x.(<span class="tok-type">int</span>)) }
+<span class="tok-kw">func</span> (h *<span class="tok-type">MinHeap</span>) Pop() <span class="tok-kw">interface</span>{} {
+	old := *h
+	n := len(old)
+	v := old[n-1]
+	*h = old[:n-1]
+	<span class="tok-kw">return</span> v
+}
+
+<span class="tok-kw">func</span> main() {
+	h := &<span class="tok-type">MinHeap</span>{}
+	heap.Init(h)
+
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> []<span class="tok-type">int</span>{5, 2, 9, 1, 7, 3} {
+		heap.Push(h, v)
+	}
+	fmt.Println(<span class="tok-str">"Heap size after pushes:"</span>, h.Len())
+
+	fmt.Print(<span class="tok-str">"Popped in order: "</span>)
+	<span class="tok-kw">for</span> h.Len() &gt; 0 {
+		fmt.Print(heap.Pop(h), <span class="tok-str">" "</span>)
+	}
+	fmt.Println()
+
+	heap.Push(h, 42)
+	heap.Push(h, 10)
+	fmt.Println(<span class="tok-str">"Min after two pushes:"</span>, (*h)[0])
+}</code></pre>
+    <div class="code-output show">Heap size after pushes: 6
+Popped in order: 1 2 3 5 7 9 
+Min after two pushes: 10</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">12. Implement an LRU cache</h3>
+  <p class="coding-q-desc">Implement an LRU cache with O(1) Get and Put by combining a map for key lookup with a doubly linked list that tracks recency, evicting the least-recently-used entry when the cache is full.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/TGrJg3SGqZj" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">type</span> <span class="tok-type">lruNode</span> <span class="tok-kw">struct</span> {
+	key, val   <span class="tok-type">int</span>
+	prev, next *<span class="tok-type">lruNode</span>
+}
+
+<span class="tok-com">// LRUCache gives O(1) Get/Put using a map for lookup plus a doubly</span>
+<span class="tok-com">// linked list to track recency: front is most-recently-used, back is</span>
+<span class="tok-com">// least-recently-used and the first to be evicted.</span>
+<span class="tok-kw">type</span> <span class="tok-type">LRUCache</span> <span class="tok-kw">struct</span> {
+	capacity   <span class="tok-type">int</span>
+	items      <span class="tok-kw">map</span>[<span class="tok-type">int</span>]*<span class="tok-type">lruNode</span>
+	head, tail *<span class="tok-type">lruNode</span> <span class="tok-com">// head = most recent, tail = least recent</span>
+}
+
+<span class="tok-kw">func</span> NewLRUCache(capacity <span class="tok-type">int</span>) *<span class="tok-type">LRUCache</span> {
+	<span class="tok-kw">return</span> &<span class="tok-type">LRUCache</span>{capacity: capacity, items: <span class="tok-kw">make</span>(<span class="tok-kw">map</span>[<span class="tok-type">int</span>]*<span class="tok-type">lruNode</span>)}
+}
+
+<span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) remove(n *<span class="tok-type">lruNode</span>) {
+	<span class="tok-kw">if</span> n.prev != <span class="tok-kw">nil</span> {
+		n.prev.next = n.next
+	} <span class="tok-kw">else</span> {
+		c.head = n.next
+	}
+	<span class="tok-kw">if</span> n.next != <span class="tok-kw">nil</span> {
+		n.next.prev = n.prev
+	} <span class="tok-kw">else</span> {
+		c.tail = n.prev
+	}
+	n.prev, n.next = <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) pushFront(n *<span class="tok-type">lruNode</span>) {
+	n.next = c.head
+	n.prev = <span class="tok-kw">nil</span>
+	<span class="tok-kw">if</span> c.head != <span class="tok-kw">nil</span> {
+		c.head.prev = n
+	}
+	c.head = n
+	<span class="tok-kw">if</span> c.tail == <span class="tok-kw">nil</span> {
+		c.tail = n
+	}
+}
+
+<span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) Get(key <span class="tok-type">int</span>) (<span class="tok-type">int</span>, <span class="tok-type">bool</span>) {
+	n, ok := c.items[key]
+	<span class="tok-kw">if</span> !ok {
+		<span class="tok-kw">return</span> 0, <span class="tok-kw">false</span>
+	}
+	c.remove(n)
+	c.pushFront(n)
+	<span class="tok-kw">return</span> n.val, <span class="tok-kw">true</span>
+}
+
+<span class="tok-kw">func</span> (c *<span class="tok-type">LRUCache</span>) Put(key, val <span class="tok-type">int</span>) {
+	<span class="tok-kw">if</span> n, ok := c.items[key]; ok {
+		n.val = val
+		c.remove(n)
+		c.pushFront(n)
+		<span class="tok-kw">return</span>
+	}
+	<span class="tok-kw">if</span> len(c.items) &gt;= c.capacity {
+		lru := c.tail
+		c.remove(lru)
+		delete(c.items, lru.key)
+	}
+	n := &<span class="tok-type">lruNode</span>{key: key, val: val}
+	c.items[key] = n
+	c.pushFront(n)
+}
+
+<span class="tok-kw">func</span> main() {
+	c := NewLRUCache(2)
+	c.Put(1, 100)
+	c.Put(2, 200)
+	v, ok := c.Get(1)
+	fmt.Println(<span class="tok-str">"Get(1):"</span>, v, ok)
+
+	c.Put(3, 300) <span class="tok-com">// evicts key 2 (least recently used)</span>
+	_, ok = c.Get(2)
+	fmt.Println(<span class="tok-str">"Get(2) after eviction:"</span>, ok)
+
+	v, ok = c.Get(3)
+	fmt.Println(<span class="tok-str">"Get(3):"</span>, v, ok)
+
+	c.Put(4, 400) <span class="tok-com">// evicts key 1 (least recently used now)</span>
+	_, ok = c.Get(1)
+	fmt.Println(<span class="tok-str">"Get(1) after eviction:"</span>, ok)
+
+	v, ok = c.Get(4)
+	fmt.Println(<span class="tok-str">"Get(4):"</span>, v, ok)
+}</code></pre>
+    <div class="code-output show">Get(1): 100 true
+Get(2) after eviction: false
+Get(3): 300 true
+Get(1) after eviction: false
+Get(4): 400 true</div>
+  </div>
+</div>
+      </div>
+      <div class="coding-category-panel" data-category-panel="concurrency" hidden>
+        <div class="coding-q-item">
+  <h3 class="coding-q-title">1. Print odd and even numbers alternately using one channel</h3>
+  <p class="coding-q-desc">Two goroutines take turns printing 1..N, handing off control with a single unbuffered channel used as a strict ping-pong baton.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/B4N5GHXBtD7" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> n = 10
+	ch := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+	wg.Add(2)
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// prints odd numbers</span>
+		<span class="tok-kw">defer</span> wg.Done()
+		<span class="tok-kw">for</span> i := 1; i &lt;= n; i += 2 {
+			fmt.Println(i)
+			ch &lt;- <span class="tok-kw">struct</span>{}{}
+			<span class="tok-kw">if</span> i+2 &lt;= n {
+				&lt;-ch
+			}
+		}
+	}()
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// prints even numbers</span>
+		<span class="tok-kw">defer</span> wg.Done()
+		<span class="tok-kw">for</span> i := 2; i &lt;= n; i += 2 {
+			&lt;-ch
+			fmt.Println(i)
+			<span class="tok-kw">if</span> i+2 &lt;= n {
+				ch &lt;- <span class="tok-kw">struct</span>{}{}
+			}
+		}
+	}()
+
+	wg.Wait()
+}</code></pre>
+    <div class="code-output show">1
+2
+3
+4
+5
+6
+7
+8
+9
+10</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">2. Print odd and even numbers alternately using two channels</h3>
+  <p class="coding-q-desc">The same alternating-print problem, but each goroutine gets its own "your turn" channel instead of sharing one &mdash; one channel signals the odd goroutine, the other signals the even goroutine.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Nef_k0A0iv_I" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> n = 10
+	oddTurn := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	evenTurn := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	done := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// waits for oddTurn, prints, signals evenTurn</span>
+		<span class="tok-kw">for</span> i := 1; i &lt;= n; i += 2 {
+			&lt;-oddTurn
+			fmt.Println(i)
+			evenTurn &lt;- <span class="tok-kw">struct</span>{}{}
+		}
+	}()
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// waits for evenTurn, prints, signals oddTurn (or done)</span>
+		<span class="tok-kw">for</span> i := 2; i &lt;= n; i += 2 {
+			&lt;-evenTurn
+			fmt.Println(i)
+			<span class="tok-kw">if</span> i &lt; n {
+				oddTurn &lt;- <span class="tok-kw">struct</span>{}{}
+			} <span class="tok-kw">else</span> {
+				done &lt;- <span class="tok-kw">struct</span>{}{}
+			}
+		}
+	}()
+
+	oddTurn &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// kick off the first turn</span>
+	&lt;-done
+}</code></pre>
+    <div class="code-output show">1
+2
+3
+4
+5
+6
+7
+8
+9
+10</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">3. Producer-consumer with a buffered channel</h3>
+  <p class="coding-q-desc">One producer goroutine fills a buffered channel; a consumer drains it in FIFO order. Only the consumer prints, so channel ordering &mdash; not goroutine scheduling &mdash; fully determines the output.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/lh35QqqbXmN" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> items = 6
+	buf := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 3) <span class="tok-com">// buffered: producer can run ahead of consumer</span>
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() { <span class="tok-com">// producer: only sends, never prints (avoids racing consumer's prints)</span>
+		<span class="tok-kw">for</span> i := 1; i &lt;= items; i++ {
+			buf &lt;- i
+		}
+		close(buf)
+	}()
+
+	<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> buf { <span class="tok-com">// consumer: sole printer, drains in FIFO order</span>
+		fmt.Println(<span class="tok-str">"consumed:"</span>, v)
+	}
+	fmt.Println(<span class="tok-str">"done"</span>)
+}</code></pre>
+    <div class="code-output show">consumed: 1
+consumed: 2
+consumed: 3
+consumed: 4
+consumed: 5
+consumed: 6
+done</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">4. Worker pool: process jobs concurrently, collect results in order</h3>
+  <p class="coding-q-desc">Three worker goroutines pull jobs from a shared channel and compute squares concurrently. Workers never print &mdash; they write results into a job-indexed slot, which the main goroutine prints back in strict job order.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/rBeRPkim3ui" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> worker(id <span class="tok-type">int</span>, jobs &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>, results <span class="tok-kw">chan</span>&lt;- [2]<span class="tok-type">int</span>, wg *sync.WaitGroup) {
+	<span class="tok-kw">defer</span> wg.Done()
+	<span class="tok-kw">for</span> j := <span class="tok-kw">range</span> jobs {
+		results &lt;- [2]<span class="tok-type">int</span>{j, j * j} <span class="tok-com">// [job, result] pair, no printing here</span>
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> numJobs = 9
+	<span class="tok-kw">const</span> numWorkers = 3
+
+	jobs := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, numJobs)
+	results := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> [2]<span class="tok-type">int</span>, numJobs)
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+
+	<span class="tok-kw">for</span> w := 1; w &lt;= numWorkers; w++ {
+		wg.Add(1)
+		<span class="tok-kw">go</span> worker(w, jobs, results, &amp;wg)
+	}
+
+	<span class="tok-kw">for</span> j := 1; j &lt;= numJobs; j++ {
+		jobs &lt;- j
+	}
+	close(jobs)
+
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		wg.Wait()
+		close(results)
+	}()
+
+	out := <span class="tok-kw">make</span>([]<span class="tok-type">int</span>, numJobs+1) <span class="tok-com">// index by job number</span>
+	<span class="tok-kw">for</span> r := <span class="tok-kw">range</span> results {
+		out[r[0]] = r[1]
+	}
+
+	<span class="tok-kw">for</span> j := 1; j &lt;= numJobs; j++ { <span class="tok-com">// single printer, strict order</span>
+		fmt.Printf(<span class="tok-str">"job %d -&gt; %d\n"</span>, j, out[j])
+	}
+}</code></pre>
+    <div class="code-output show">job 1 -> 1
+job 2 -> 4
+job 3 -> 9
+job 4 -> 16
+job 5 -> 25
+job 6 -> 36
+job 7 -> 49
+job 8 -> 64
+job 9 -> 81</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">5. Fan-in: merge multiple channels into one</h3>
+  <p class="coding-q-desc">Three source goroutines each emit three numbers into their own channel; a fan-in stage merges all of them into a single channel. Since arrival order across channels is inherently non-deterministic, the merged values are sorted before printing.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/YPUQkL0PByi" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sort"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> source(base <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
+	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-kw">defer</span> close(out)
+		<span class="tok-kw">for</span> i := 1; i &lt;= 3; i++ {
+			out &lt;- base + i
+		}
+	}()
+	<span class="tok-kw">return</span> out
+}
+
+<span class="tok-kw">func</span> fanIn(chans ...&lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
+	merged := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+	wg.Add(len(chans))
+	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> chans {
+		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(c &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) {
+			<span class="tok-kw">defer</span> wg.Done()
+			<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> c {
+				merged &lt;- v
+			}
+		}(c)
+	}
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		wg.Wait()
+		close(merged)
+	}()
+	<span class="tok-kw">return</span> merged
+}
+
+<span class="tok-kw">func</span> main() {
+	a := source(0)
+	b := source(10)
+	c := source(20)
+
+	<span class="tok-kw">var</span> all []<span class="tok-type">int</span>
+	<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> fanIn(a, b, c) { <span class="tok-com">// arrival order is non-deterministic</span>
+		all = append(all, v)
+	}
+
+	sort.Ints(all) <span class="tok-com">// sort before printing so output is stable every run</span>
+	fmt.Println(<span class="tok-str">"merged (sorted):"</span>, all)
+}</code></pre>
+    <div class="code-output show">merged (sorted): [1 2 3 11 12 13 21 22 23]</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">6. sync.WaitGroup: wait for goroutines to finish</h3>
+  <p class="coding-q-desc">Five goroutines each mark their own slot in a slice as complete; the main goroutine blocks on a WaitGroup until all five call Done, then reports the count.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/B93zpGxVAIz" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> numWorkers = 5
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+	done := <span class="tok-kw">make</span>([]<span class="tok-type">bool</span>, numWorkers)
+	<span class="tok-kw">var</span> mu sync.Mutex
+
+	<span class="tok-kw">for</span> i := 0; i &lt; numWorkers; i++ {
+		wg.Add(1)
+		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
+			<span class="tok-kw">defer</span> wg.Done()
+			mu.Lock()
+			done[id] = <span class="tok-kw">true</span>
+			mu.Unlock()
+		}(i)
+	}
+
+	wg.Wait() <span class="tok-com">// blocks until all workers call Done()</span>
+
+	count := 0
+	<span class="tok-kw">for</span> _, d := <span class="tok-kw">range</span> done {
+		<span class="tok-kw">if</span> d {
+			count++
+		}
+	}
+	fmt.Printf(<span class="tok-str">"%d/%d workers finished\n"</span>, count, numWorkers)
+	fmt.Println(<span class="tok-str">"done"</span>)
+}</code></pre>
+    <div class="code-output show">5/5 workers finished
+done</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">7. sync.Once: run an initializer exactly once</h3>
+  <p class="coding-q-desc">Five goroutines all call the same initializer through a shared sync.Once, guaranteeing it runs a single time no matter how many goroutines race to call it.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/4df8HyUrfCF" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> numGoroutines = 5
+	<span class="tok-kw">var</span> once sync.Once
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+	ran := <span class="tok-kw">make</span>([]<span class="tok-type">bool</span>, numGoroutines) <span class="tok-com">// per-goroutine slot, no shared write races</span>
+
+	initialize := <span class="tok-kw">func</span>() {
+		fmt.Println(<span class="tok-str">"initializing shared resource..."</span>)
+	}
+
+	<span class="tok-kw">for</span> i := 0; i &lt; numGoroutines; i++ {
+		wg.Add(1)
+		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
+			<span class="tok-kw">defer</span> wg.Done()
+			once.Do(initialize) <span class="tok-com">// only the first caller actually runs initialize</span>
+			ran[id] = <span class="tok-kw">true</span>
+		}(i)
+	}
+
+	wg.Wait()
+
+	<span class="tok-kw">for</span> i, r := <span class="tok-kw">range</span> ran { <span class="tok-com">// single printer, strict order</span>
+		fmt.Printf(<span class="tok-str">"goroutine %d saw initialization complete: %v\n"</span>, i, r)
+	}
+}</code></pre>
+    <div class="code-output show">initializing shared resource...
+goroutine 0 saw initialization complete: true
+goroutine 1 saw initialization complete: true
+goroutine 2 saw initialization complete: true
+goroutine 3 saw initialization complete: true
+goroutine 4 saw initialization complete: true</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">8. Mutex vs atomic: safe concurrent counters</h3>
+  <p class="coding-q-desc">50 goroutines each increment a shared counter 1000 times, once using a sync.Mutex to guard the counter and once using sync/atomic &mdash; both approaches are race-free and land on the same correct final value.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/vecBASpRSOq" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+	<span class="tok-str">"sync/atomic"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> goroutines = 50
+	<span class="tok-kw">const</span> incrementsEach = 1000
+
+	<span class="tok-com">// Mutex-protected counter</span>
+	<span class="tok-kw">var</span> mu sync.Mutex
+	mutexCounter := 0
+	<span class="tok-kw">var</span> wg1 sync.WaitGroup
+	<span class="tok-kw">for</span> i := 0; i &lt; goroutines; i++ {
+		wg1.Add(1)
+		<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+			<span class="tok-kw">defer</span> wg1.Done()
+			<span class="tok-kw">for</span> j := 0; j &lt; incrementsEach; j++ {
+				mu.Lock()
+				mutexCounter++
+				mu.Unlock()
+			}
+		}()
+	}
+	wg1.Wait()
+
+	<span class="tok-com">// atomic counter</span>
+	<span class="tok-kw">var</span> atomicCounter <span class="tok-type">int64</span>
+	<span class="tok-kw">var</span> wg2 sync.WaitGroup
+	<span class="tok-kw">for</span> i := 0; i &lt; goroutines; i++ {
+		wg2.Add(1)
+		<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+			<span class="tok-kw">defer</span> wg2.Done()
+			<span class="tok-kw">for</span> j := 0; j &lt; incrementsEach; j++ {
+				atomic.AddInt64(&amp;atomicCounter, 1)
+			}
+		}()
+	}
+	wg2.Wait()
+
+	fmt.Println(<span class="tok-str">"mutex counter:"</span>, mutexCounter)
+	fmt.Println(<span class="tok-str">"atomic counter:"</span>, atomicCounter)
+}</code></pre>
+    <div class="code-output show">mutex counter: 50000
+atomic counter: 50000</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">9. Pipeline pattern: generate, square, sum</h3>
+  <p class="coding-q-desc">Three stages &mdash; a generator, a squaring stage, and a summing stage &mdash; are chained together with channels, each stage running in its own goroutine, producing a single deterministic result.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Zv9VKws6MdT" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> generate(n <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
+	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-kw">defer</span> close(out)
+		<span class="tok-kw">for</span> i := 1; i &lt;= n; i++ {
+			out &lt;- i
+		}
+	}()
+	<span class="tok-kw">return</span> out
+}
+
+<span class="tok-kw">func</span> square(in &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
+	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-kw">defer</span> close(out)
+		<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> in {
+			out &lt;- v * v
+		}
+	}()
+	<span class="tok-kw">return</span> out
+}
+
+<span class="tok-kw">func</span> sum(in &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>) &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span> {
+	out := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>)
+	<span class="tok-kw">go</span> <span class="tok-kw">func</span>() {
+		<span class="tok-kw">defer</span> close(out)
+		total := 0
+		<span class="tok-kw">for</span> v := <span class="tok-kw">range</span> in {
+			total += v
+		}
+		out &lt;- total
+	}()
+	<span class="tok-kw">return</span> out
+}
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> n = 5
+	<span class="tok-com">// pipeline: generate 1..n -&gt; square each -&gt; sum all</span>
+	result := &lt;-sum(square(generate(n)))
+	fmt.Printf(<span class="tok-str">"sum of squares 1..%d = %d\n"</span>, n, result)
+}</code></pre>
+    <div class="code-output show">sum of squares 1..5 = 55</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">10. context cancellation: stop a goroutine on demand</h3>
+  <p class="coding-q-desc">A worker goroutine blocks on ctx.Done() and only proceeds once the context is cancelled, then reports the exact reason it stopped via ctx.Err().</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/BIQ0Ie5r3QY" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"context"</span>
+	<span class="tok-str">"fmt"</span>
+)
+
+<span class="tok-kw">func</span> worker(ctx context.Context, stopped <span class="tok-kw">chan</span>&lt;- <span class="tok-type">string</span>) {
+	&lt;-ctx.Done() <span class="tok-com">// blocks until the context is cancelled</span>
+	stopped &lt;- fmt.Sprintf(<span class="tok-str">"worker stopped: %v"</span>, ctx.Err())
+}
+
+<span class="tok-kw">func</span> main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	stopped := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">string</span>)
+
+	<span class="tok-kw">go</span> worker(ctx, stopped)
+
+	fmt.Println(<span class="tok-str">"worker started"</span>)
+	cancel() <span class="tok-com">// cancel the context, signalling the worker to stop</span>
+	fmt.Println(&lt;-stopped)
+}</code></pre>
+    <div class="code-output show">worker started
+worker stopped: context canceled</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">11. Non-blocking channel check with select/default</h3>
+  <p class="coding-q-desc">A select statement with a default case checks whether a channel has a value ready without blocking, falling through immediately when nothing is available.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/M9M8MqZyka6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-kw">func</span> tryRecv(ch &lt;-<span class="tok-kw">chan</span> <span class="tok-type">int</span>, label <span class="tok-type">string</span>) {
+	<span class="tok-kw">select</span> {
+	<span class="tok-kw">case</span> v := &lt;-ch:
+		fmt.Printf(<span class="tok-str">"%s: got value %d\n"</span>, label, v)
+	<span class="tok-kw">default</span>:
+		fmt.Printf(<span class="tok-str">"%s: channel empty, moving on\n"</span>, label)
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	ch := <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-type">int</span>, 1)
+
+	tryRecv(ch, <span class="tok-str">"check 1"</span>) <span class="tok-com">// channel is empty</span>
+
+	ch &lt;- 42
+	tryRecv(ch, <span class="tok-str">"check 2"</span>) <span class="tok-com">// channel now has a value</span>
+
+	tryRecv(ch, <span class="tok-str">"check 3"</span>) <span class="tok-com">// value was drained by check 2, empty again</span>
+}</code></pre>
+    <div class="code-output show">check 1: channel empty, moving on
+check 2: got value 42
+check 3: channel empty, moving on</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">12. Print numbers 1..N in order using N goroutines</h3>
+  <p class="coding-q-desc">Eight goroutines each own exactly one number; a chain of per-step "baton" channels forces each goroutine to wait for the previous one before printing, guaranteeing strict numeric order.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/GiKZ8RlESNs" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"sync"</span>
+)
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">const</span> n = 8
+	batons := <span class="tok-kw">make</span>([]<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{}, n+1)
+	<span class="tok-kw">for</span> i := <span class="tok-kw">range</span> batons {
+		batons[i] = <span class="tok-kw">make</span>(<span class="tok-kw">chan</span> <span class="tok-kw">struct</span>{})
+	}
+
+	<span class="tok-kw">var</span> wg sync.WaitGroup
+	wg.Add(n)
+
+	<span class="tok-kw">for</span> i := 1; i &lt;= n; i++ {
+		<span class="tok-kw">go</span> <span class="tok-kw">func</span>(id <span class="tok-type">int</span>) {
+			<span class="tok-kw">defer</span> wg.Done()
+			&lt;-batons[id-1]  <span class="tok-com">// wait for the previous goroutine's turn</span>
+			fmt.Println(id) <span class="tok-com">// this goroutine's exclusive turn to print</span>
+			<span class="tok-kw">if</span> id &lt; n {
+				batons[id] &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// pass the baton to the next goroutine</span>
+			}
+		}(i)
+	}
+
+	batons[0] &lt;- <span class="tok-kw">struct</span>{}{} <span class="tok-com">// kick off goroutine 1</span>
+	wg.Wait()
+}</code></pre>
+    <div class="code-output show">1
+2
+3
+4
+5
+6
+7
+8</div>
+  </div>
+</div>
+      </div>
+      <div class="coding-category-panel" data-category-panel="algorithms" hidden>
+        <div class="coding-q-item">
+  <h3 class="coding-q-title">1. Two Sum</h3>
+  <p class="coding-q-desc">Given a slice of integers and a target, return the indices of the two numbers that add up to the target, in a single O(n) pass using a map.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/LsY-5J5b3DS" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// twoSum returns the indices of the two numbers in nums that add up to target.</span>
+<span class="tok-com">// It uses a map to record each value's index, giving O(n) time instead of O(n^2).</span>
+<span class="tok-kw">func</span> twoSum(nums []<span class="tok-type">int</span>, target <span class="tok-type">int</span>) (<span class="tok-type">int</span>, <span class="tok-type">int</span>, <span class="tok-type">bool</span>) {
+	seen := <span class="tok-kw">make</span>(map[<span class="tok-type">int</span>]<span class="tok-type">int</span>) <span class="tok-com">// value -&gt; index</span>
+	<span class="tok-kw">for</span> i, n := <span class="tok-kw">range</span> nums {
+		complement := target - n
+		<span class="tok-kw">if</span> j, ok := seen[complement]; ok {
+			<span class="tok-kw">return</span> j, i, <span class="tok-kw">true</span>
+		}
+		seen[n] = i
+	}
+	<span class="tok-kw">return</span> 0, 0, <span class="tok-kw">false</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	nums := []<span class="tok-type">int</span>{2, 7, 11, 15}
+	target := 9
+	i, j, ok := twoSum(nums, target)
+	fmt.Printf(<span class="tok-str">"nums=%v target=%d\n"</span>, nums, target)
+	<span class="tok-kw">if</span> ok {
+		fmt.Printf(<span class="tok-str">"indices: [%d, %d] -&gt; values %d + %d = %d\n"</span>, i, j, nums[i], nums[j], target)
+	}
+
+	nums2 := []<span class="tok-type">int</span>{3, 2, 4}
+	target2 := 6
+	i2, j2, ok2 := twoSum(nums2, target2)
+	fmt.Printf(<span class="tok-str">"\nnums=%v target=%d\n"</span>, nums2, target2)
+	<span class="tok-kw">if</span> ok2 {
+		fmt.Printf(<span class="tok-str">"indices: [%d, %d] -&gt; values %d + %d = %d\n"</span>, i2, j2, nums2[i2], nums2[j2], target2)
+	}
+
+	nums3 := []<span class="tok-type">int</span>{1, 2, 3}
+	target3 := 100
+	_, _, ok3 := twoSum(nums3, target3)
+	fmt.Printf(<span class="tok-str">"\nnums=%v target=%d\n"</span>, nums3, target3)
+	fmt.Printf(<span class="tok-str">"found pair: %v\n"</span>, ok3)
+}</code></pre>
+    <div class="code-output show">nums=[2 7 11 15] target=9
+indices: [0, 1] -&gt; values 2 + 7 = 9
+
+nums=[3 2 4] target=6
+indices: [1, 2] -&gt; values 2 + 4 = 6
+
+nums=[1 2 3] target=100
+found pair: false</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">2. Reverse a String (Unicode-safe)</h3>
+  <p class="coding-q-desc">Reverse a string by its runes rather than its bytes, so multi-byte UTF-8 characters like accented letters or CJK text aren't corrupted.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/6YaTfEj2kna" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// reverseString reverses a string rune by rune so multi-byte UTF-8</span>
+<span class="tok-com">// characters (like accented letters or emoji) are not corrupted.</span>
+<span class="tok-kw">func</span> reverseString(s <span class="tok-type">string</span>) <span class="tok-type">string</span> {
+	runes := []<span class="tok-type">rune</span>(s)
+	<span class="tok-kw">for</span> i, j := 0, len(runes)-1; i &lt; j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	<span class="tok-kw">return</span> <span class="tok-type">string</span>(runes)
+}
+
+<span class="tok-kw">func</span> main() {
+	inputs := []<span class="tok-type">string</span>{<span class="tok-str">"Hello, Go!"</span>, <span class="tok-str">"Golang"</span>, <span class="tok-str">"héllo wörld"</span>, <span class="tok-str">"日本語"</span>}
+	<span class="tok-kw">for</span> _, s := <span class="tok-kw">range</span> inputs {
+		fmt.Printf(<span class="tok-str">"input:  %q\n"</span>, s)
+		fmt.Printf(<span class="tok-str">"output: %q\n\n"</span>, reverseString(s))
+	}
+}</code></pre>
+    <div class="code-output show">input:  "Hello, Go!"
+output: "!oG ,olleH"
+
+input:  "Golang"
+output: "gnaloG"
+
+input:  "héllo wörld"
+output: "dlröw olléh"
+
+input:  "日本語"
+output: "語本日"
+</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">3. Valid Palindrome</h3>
+  <p class="coding-q-desc">Check whether a string is a palindrome, ignoring case and skipping any character that isn't a letter or digit (so punctuation and spaces don't break the check).</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/tbXKo3qg-_d" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"unicode"</span>
+)
+
+<span class="tok-com">// isPalindrome reports whether s reads the same forwards and backwards,</span>
+<span class="tok-com">// ignoring case and skipping any character that isn't a letter or digit.</span>
+<span class="tok-kw">func</span> isPalindrome(s <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
+	runes := []<span class="tok-type">rune</span>(s)
+	i, j := 0, len(runes)-1
+	<span class="tok-kw">for</span> i &lt; j {
+		<span class="tok-kw">if</span> !unicode.IsLetter(runes[i]) &amp;&amp; !unicode.IsDigit(runes[i]) {
+			i++
+			<span class="tok-kw">continue</span>
+		}
+		<span class="tok-kw">if</span> !unicode.IsLetter(runes[j]) &amp;&amp; !unicode.IsDigit(runes[j]) {
+			j--
+			<span class="tok-kw">continue</span>
+		}
+		<span class="tok-kw">if</span> unicode.ToLower(runes[i]) != unicode.ToLower(runes[j]) {
+			<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+		}
+		i++
+		j--
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	inputs := []<span class="tok-type">string</span>{
+		<span class="tok-str">"A man, a plan, a canal: Panama"</span>,
+		<span class="tok-str">"race a car"</span>,
+		<span class="tok-str">"Was it a car or a cat I saw?"</span>,
+		<span class="tok-str">"12321"</span>,
+	}
+	<span class="tok-kw">for</span> _, s := <span class="tok-kw">range</span> inputs {
+		fmt.Printf(<span class="tok-str">"input: %q -&gt; palindrome: %v\n"</span>, s, isPalindrome(s))
+	}
+}</code></pre>
+    <div class="code-output show">input: "A man, a plan, a canal: Panama" -&gt; palindrome: true
+input: "race a car" -&gt; palindrome: false
+input: "Was it a car or a cat I saw?" -&gt; palindrome: true
+input: "12321" -&gt; palindrome: true</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">4. Valid Anagram</h3>
+  <p class="coding-q-desc">Determine whether two strings are anagrams of each other &mdash; the same letters rearranged, ignoring case and spaces &mdash; by counting rune frequencies.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Am6jWH3pCBU" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> (
+	<span class="tok-str">"fmt"</span>
+	<span class="tok-str">"unicode"</span>
+)
+
+<span class="tok-com">// isAnagram reports whether a and b contain exactly the same letters</span>
+<span class="tok-com">// (case-insensitive), just rearranged, by counting rune frequencies.</span>
+<span class="tok-kw">func</span> isAnagram(a, b <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
+	counts := <span class="tok-kw">make</span>(map[<span class="tok-type">rune</span>]<span class="tok-type">int</span>)
+	<span class="tok-kw">for</span> _, r := <span class="tok-kw">range</span> a {
+		<span class="tok-kw">if</span> unicode.IsSpace(r) {
+			<span class="tok-kw">continue</span>
+		}
+		counts[unicode.ToLower(r)]++
+	}
+	<span class="tok-kw">for</span> _, r := <span class="tok-kw">range</span> b {
+		<span class="tok-kw">if</span> unicode.IsSpace(r) {
+			<span class="tok-kw">continue</span>
+		}
+		counts[unicode.ToLower(r)]--
+	}
+	<span class="tok-kw">for</span> _, c := <span class="tok-kw">range</span> counts {
+		<span class="tok-kw">if</span> c != 0 {
+			<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+		}
+	}
+	<span class="tok-kw">return</span> <span class="tok-kw">true</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	pairs := [][2]<span class="tok-type">string</span>{
+		{<span class="tok-str">"listen"</span>, <span class="tok-str">"silent"</span>},
+		{<span class="tok-str">"Astronomer"</span>, <span class="tok-str">"Moon starer"</span>},
+		{<span class="tok-str">"hello"</span>, <span class="tok-str">"world"</span>},
+	}
+	<span class="tok-kw">for</span> _, p := <span class="tok-kw">range</span> pairs {
+		fmt.Printf(<span class="tok-str">"%q vs %q -&gt; anagram: %v\n"</span>, p[0], p[1], isAnagram(p[0], p[1]))
+	}
+}</code></pre>
+    <div class="code-output show">"listen" vs "silent" -&gt; anagram: true
+"Astronomer" vs "Moon starer" -&gt; anagram: true
+"hello" vs "world" -&gt; anagram: false</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">5. FizzBuzz</h3>
+  <p class="coding-q-desc">The classic warm-up: print numbers 1 to 20, but "Fizz" for multiples of 3, "Buzz" for multiples of 5, and "FizzBuzz" for multiples of both &mdash; shown with idiomatic Go switch/case.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/aIaMVE8hmHX" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// fizzBuzz returns the classic FizzBuzz label for n:</span>
+<span class="tok-com">// "Fizz" for multiples of 3, "Buzz" for multiples of 5,</span>
+<span class="tok-com">// "FizzBuzz" for multiples of both, otherwise the number itself.</span>
+<span class="tok-kw">func</span> fizzBuzz(n <span class="tok-type">int</span>) <span class="tok-type">string</span> {
+	<span class="tok-kw">switch</span> {
+	<span class="tok-kw">case</span> n%15 == 0:
+		<span class="tok-kw">return</span> <span class="tok-str">"FizzBuzz"</span>
+	<span class="tok-kw">case</span> n%3 == 0:
+		<span class="tok-kw">return</span> <span class="tok-str">"Fizz"</span>
+	<span class="tok-kw">case</span> n%5 == 0:
+		<span class="tok-kw">return</span> <span class="tok-str">"Buzz"</span>
+	<span class="tok-kw">default</span>:
+		<span class="tok-kw">return</span> fmt.Sprintf(<span class="tok-str">"%d"</span>, n)
+	}
+}
+
+<span class="tok-kw">func</span> main() {
+	<span class="tok-kw">for</span> i := 1; i &lt;= 20; i++ {
+		fmt.Println(fizzBuzz(i))
+	}
+}</code></pre>
+    <div class="code-output show">1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">6. Binary Search</h3>
+  <p class="coding-q-desc">Find the index of a target value in a sorted slice in O(log n) time by repeatedly halving the search range.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/WDeXDe0bIOk" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// binarySearch returns the index of target in a sorted slice, or -1 if</span>
+<span class="tok-com">// it isn't present. It halves the search range each step: O(log n).</span>
+<span class="tok-kw">func</span> binarySearch(sorted []<span class="tok-type">int</span>, target <span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	lo, hi := 0, len(sorted)-1
+	<span class="tok-kw">for</span> lo &lt;= hi {
+		mid := lo + (hi-lo)/2
+		<span class="tok-kw">switch</span> {
+		<span class="tok-kw">case</span> sorted[mid] == target:
+			<span class="tok-kw">return</span> mid
+		<span class="tok-kw">case</span> sorted[mid] &lt; target:
+			lo = mid + 1
+		<span class="tok-kw">default</span>:
+			hi = mid - 1
+		}
+	}
+	<span class="tok-kw">return</span> -1
+}
+
+<span class="tok-kw">func</span> main() {
+	sorted := []<span class="tok-type">int</span>{1, 3, 5, 7, 9, 11, 13, 17, 19}
+	targets := []<span class="tok-type">int</span>{7, 19, 1, 4}
+
+	<span class="tok-kw">for</span> _, t := <span class="tok-kw">range</span> targets {
+		idx := binarySearch(sorted, t)
+		fmt.Printf(<span class="tok-str">"searching for %d in %v -&gt; index %d\n"</span>, t, sorted, idx)
+	}
+}</code></pre>
+    <div class="code-output show">searching for 7 in [1 3 5 7 9 11 13 17 19] -&gt; index 3
+searching for 19 in [1 3 5 7 9 11 13 17 19] -&gt; index 8
+searching for 1 in [1 3 5 7 9 11 13 17 19] -&gt; index 0
+searching for 4 in [1 3 5 7 9 11 13 17 19] -&gt; index -1</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">7. First Duplicate in a Slice</h3>
+  <p class="coding-q-desc">Scan a slice left to right and return the first value that has already appeared earlier, using a set for an O(n) solution.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Ypx7qbbn6Mj" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// firstDuplicate scans nums left to right and returns the first value</span>
+<span class="tok-com">// that has already been seen earlier in the slice, using a set for O(n).</span>
+<span class="tok-kw">func</span> firstDuplicate(nums []<span class="tok-type">int</span>) (<span class="tok-type">int</span>, <span class="tok-type">bool</span>) {
+	seen := <span class="tok-kw">make</span>(map[<span class="tok-type">int</span>]struct{})
+	<span class="tok-kw">for</span> _, n := <span class="tok-kw">range</span> nums {
+		<span class="tok-kw">if</span> _, ok := seen[n]; ok {
+			<span class="tok-kw">return</span> n, <span class="tok-kw">true</span>
+		}
+		seen[n] = struct{}{}
+	}
+	<span class="tok-kw">return</span> 0, <span class="tok-kw">false</span>
+}
+
+<span class="tok-kw">func</span> main() {
+	cases := [][]<span class="tok-type">int</span>{
+		{2, 1, 3, 5, 3, 2},
+		{1, 2, 3, 4},
+		{7, 7, 1, 2},
+	}
+	<span class="tok-kw">for</span> _, nums := <span class="tok-kw">range</span> cases {
+		dup, ok := firstDuplicate(nums)
+		fmt.Printf(<span class="tok-str">"nums=%v -&gt; "</span>, nums)
+		<span class="tok-kw">if</span> ok {
+			fmt.Printf(<span class="tok-str">"first duplicate: %d\n"</span>, dup)
+		} <span class="tok-kw">else</span> {
+			fmt.Println(<span class="tok-str">"no duplicate found"</span>)
+		}
+	}
+}</code></pre>
+    <div class="code-output show">nums=[2 1 3 5 3 2] -&gt; first duplicate: 3
+nums=[1 2 3 4] -&gt; no duplicate found
+nums=[7 7 1 2] -&gt; first duplicate: 7</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">8. Merge Two Sorted Slices</h3>
+  <p class="coding-q-desc">Merge two already-sorted integer slices into a single sorted slice in O(n+m) time using the two-pointer technique.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/7awXimdtnL6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// mergeSorted merges two already-sorted slices into one sorted slice</span>
+<span class="tok-com">// in O(n+m) time by walking both with two pointers.</span>
+<span class="tok-kw">func</span> mergeSorted(a, b []<span class="tok-type">int</span>) []<span class="tok-type">int</span> {
+	merged := <span class="tok-kw">make</span>([]<span class="tok-type">int</span>, 0, len(a)+len(b))
+	i, j := 0, 0
+	<span class="tok-kw">for</span> i &lt; len(a) &amp;&amp; j &lt; len(b) {
+		<span class="tok-kw">if</span> a[i] &lt;= b[j] {
+			merged = append(merged, a[i])
+			i++
+		} <span class="tok-kw">else</span> {
+			merged = append(merged, b[j])
+			j++
+		}
+	}
+	merged = append(merged, a[i:]...)
+	merged = append(merged, b[j:]...)
+	<span class="tok-kw">return</span> merged
+}
+
+<span class="tok-kw">func</span> main() {
+	a := []<span class="tok-type">int</span>{1, 3, 5, 7}
+	b := []<span class="tok-type">int</span>{2, 4, 6, 8, 10}
+	fmt.Printf(<span class="tok-str">"a=%v\nb=%v\nmerged=%v\n\n"</span>, a, b, mergeSorted(a, b))
+
+	c := []<span class="tok-type">int</span>{}
+	d := []<span class="tok-type">int</span>{-3, -1, 0, 2}
+	fmt.Printf(<span class="tok-str">"a=%v\nb=%v\nmerged=%v\n"</span>, c, d, mergeSorted(c, d))
+}</code></pre>
+    <div class="code-output show">a=[1 3 5 7]
+b=[2 4 6 8 10]
+merged=[1 2 3 4 5 6 7 8 10]
+
+a=[]
+b=[-3 -1 0 2]
+merged=[-3 -1 0 2]</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">9. Longest Substring Without Repeating Characters</h3>
+  <p class="coding-q-desc">Find the length and text of the longest run of characters in a string with no repeats, using a sliding window and a map of each rune's last-seen index.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/8TAsR8FiV0H" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// longestUniqueSubstring returns the length and text of the longest run</span>
+<span class="tok-com">// of characters in s with no repeats, using a sliding window plus a map</span>
+<span class="tok-com">// of each rune's most recent index to jump the window start forward.</span>
+<span class="tok-kw">func</span> longestUniqueSubstring(s <span class="tok-type">string</span>) (<span class="tok-type">int</span>, <span class="tok-type">string</span>) {
+	runes := []<span class="tok-type">rune</span>(s)
+	lastSeen := <span class="tok-kw">make</span>(map[<span class="tok-type">rune</span>]<span class="tok-type">int</span>)
+	best, bestStart := 0, 0
+	start := 0
+	<span class="tok-kw">for</span> i, r := <span class="tok-kw">range</span> runes {
+		<span class="tok-kw">if</span> idx, ok := lastSeen[r]; ok &amp;&amp; idx &gt;= start {
+			start = idx + 1
+		}
+		lastSeen[r] = i
+		<span class="tok-kw">if</span> length := i - start + 1; length &gt; best {
+			best = length
+			bestStart = start
+		}
+	}
+	<span class="tok-kw">return</span> best, <span class="tok-type">string</span>(runes[bestStart : bestStart+best])
+}
+
+<span class="tok-kw">func</span> main() {
+	inputs := []<span class="tok-type">string</span>{<span class="tok-str">"abcabcbb"</span>, <span class="tok-str">"bbbbb"</span>, <span class="tok-str">"pwwkew"</span>, <span class="tok-str">"go gopher"</span>}
+	<span class="tok-kw">for</span> _, s := <span class="tok-kw">range</span> inputs {
+		n, sub := longestUniqueSubstring(s)
+		fmt.Printf(<span class="tok-str">"input: %q -&gt; longest unique substring: %q (length %d)\n"</span>, s, sub, n)
+	}
+}</code></pre>
+    <div class="code-output show">input: "abcabcbb" -&gt; longest unique substring: "abc" (length 3)
+input: "bbbbb" -&gt; longest unique substring: "b" (length 1)
+input: "pwwkew" -&gt; longest unique substring: "wke" (length 3)
+input: "go gopher" -&gt; longest unique substring: " gopher" (length 7)</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">10. Valid Parentheses</h3>
+  <p class="coding-q-desc">Check whether every bracket in a string is properly opened and closed in the right order &mdash; the classic stack-based balanced-brackets problem.</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/oiCE6nUiYb6" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// isBalanced reports whether every bracket in s is properly opened and</span>
+<span class="tok-com">// closed in the right order, using a stack to track open brackets.</span>
+<span class="tok-kw">func</span> isBalanced(s <span class="tok-type">string</span>) <span class="tok-type">bool</span> {
+	pairs := map[<span class="tok-type">rune</span>]<span class="tok-type">rune</span>{<span class="tok-str">')'</span>: <span class="tok-str">'('</span>, <span class="tok-str">']'</span>: <span class="tok-str">'['</span>, <span class="tok-str">'}'</span>: <span class="tok-str">'{'</span>}
+	<span class="tok-kw">var</span> stack []<span class="tok-type">rune</span>
+	<span class="tok-kw">for</span> _, r := <span class="tok-kw">range</span> s {
+		<span class="tok-kw">switch</span> r {
+		<span class="tok-kw">case</span> <span class="tok-str">'('</span>, <span class="tok-str">'['</span>, <span class="tok-str">'{'</span>:
+			stack = append(stack, r)
+		<span class="tok-kw">case</span> <span class="tok-str">')'</span>, <span class="tok-str">']'</span>, <span class="tok-str">'}'</span>:
+			<span class="tok-kw">if</span> len(stack) == 0 || stack[len(stack)-1] != pairs[r] {
+				<span class="tok-kw">return</span> <span class="tok-kw">false</span>
+			}
+			stack = stack[:len(stack)-1]
+		}
+	}
+	<span class="tok-kw">return</span> len(stack) == 0
+}
+
+<span class="tok-kw">func</span> main() {
+	inputs := []<span class="tok-type">string</span>{<span class="tok-str">"()[]{}"</span>, <span class="tok-str">"([{}])"</span>, <span class="tok-str">"(]"</span>, <span class="tok-str">"([)]"</span>, <span class="tok-str">"{[()()]}"</span>}
+	<span class="tok-kw">for</span> _, s := <span class="tok-kw">range</span> inputs {
+		fmt.Printf(<span class="tok-str">"input: %-10q -&gt; balanced: %v\n"</span>, s, isBalanced(s))
+	}
+}</code></pre>
+    <div class="code-output show">input: "()[]{}"   -&gt; balanced: true
+input: "([{}])"   -&gt; balanced: true
+input: "(]"       -&gt; balanced: false
+input: "([)]"     -&gt; balanced: false
+input: "{[()()]}" -&gt; balanced: true</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">11. Fibonacci: Naive Recursion vs. Memoization</h3>
+  <p class="coding-q-desc">Compute Fibonacci numbers two ways &mdash; plain recursion, which recomputes the same subproblems exponentially (O(2^n)), and a memoized version that caches results for O(n).</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/Z4_kvKzVLXe" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// fibRecursive computes the n-th Fibonacci number the naive way, recursing</span>
+<span class="tok-com">// on both smaller subproblems. It recomputes the same values many times,</span>
+<span class="tok-com">// so it's exponential time: O(2^n).</span>
+<span class="tok-kw">func</span> fibRecursive(n <span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	<span class="tok-kw">if</span> n &lt; 2 {
+		<span class="tok-kw">return</span> n
+	}
+	<span class="tok-kw">return</span> fibRecursive(n-1) + fibRecursive(n-2)
+}
+
+<span class="tok-com">// fibMemo computes the n-th Fibonacci number using a cache of already</span>
+<span class="tok-com">// solved subproblems, so each value is computed only once: O(n) time.</span>
+<span class="tok-kw">func</span> fibMemo(n <span class="tok-type">int</span>, cache map[<span class="tok-type">int</span>]<span class="tok-type">int</span>) <span class="tok-type">int</span> {
+	<span class="tok-kw">if</span> n &lt; 2 {
+		<span class="tok-kw">return</span> n
+	}
+	<span class="tok-kw">if</span> v, ok := cache[n]; ok {
+		<span class="tok-kw">return</span> v
+	}
+	result := fibMemo(n-1, cache) + fibMemo(n-2, cache)
+	cache[n] = result
+	<span class="tok-kw">return</span> result
+}
+
+<span class="tok-kw">func</span> main() {
+	fmt.Println(<span class="tok-str">"naive recursive fibonacci:"</span>)
+	<span class="tok-kw">for</span> i := 0; i &lt;= 10; i++ {
+		fmt.Printf(<span class="tok-str">"fib(%d) = %d\n"</span>, i, fibRecursive(i))
+	}
+
+	fmt.Println(<span class="tok-str">"\nmemoized fibonacci:"</span>)
+	cache := <span class="tok-kw">make</span>(map[<span class="tok-type">int</span>]<span class="tok-type">int</span>)
+	<span class="tok-kw">for</span> i := 0; i &lt;= 10; i++ {
+		fmt.Printf(<span class="tok-str">"fib(%d) = %d\n"</span>, i, fibMemo(i, cache))
+	}
+
+	fmt.Println(<span class="tok-str">"\nmemoization makes larger values practical, e.g.:"</span>)
+	fmt.Printf(<span class="tok-str">"fib(40) = %d\n"</span>, fibMemo(40, cache))
+}</code></pre>
+    <div class="code-output show">naive recursive fibonacci:
+fib(0) = 0
+fib(1) = 1
+fib(2) = 1
+fib(3) = 2
+fib(4) = 3
+fib(5) = 5
+fib(6) = 8
+fib(7) = 13
+fib(8) = 21
+fib(9) = 34
+fib(10) = 55
+
+memoized fibonacci:
+fib(0) = 0
+fib(1) = 1
+fib(2) = 1
+fib(3) = 2
+fib(4) = 3
+fib(5) = 5
+fib(6) = 8
+fib(7) = 13
+fib(8) = 21
+fib(9) = 34
+fib(10) = 55
+
+memoization makes larger values practical, e.g.:
+fib(40) = 102334155</div>
+  </div>
+</div>
+
+<div class="coding-q-item">
+  <h3 class="coding-q-title">12. Quicksort</h3>
+  <p class="coding-q-desc">Implement quicksort from scratch on a slice of ints: pick a pivot, partition around it with two pointers, then recursively sort each side for average O(n log n).</p>
+  <div class="code-panel">
+    <div class="code-panel-head">
+      <span class="code-panel-title">main.go</span>
+      <a class="btn btn-sm" href="https://go.dev/play/p/LzlKOOb8LGp" target="_blank" rel="noopener">Open in Go Playground &rarr;</a>
+    </div>
+    <pre><code><span class="tok-kw">package</span> main
+
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
+
+<span class="tok-com">// quicksort sorts nums in place by picking a pivot, partitioning the</span>
+<span class="tok-com">// slice around it, then recursively sorting each side: average O(n log n).</span>
+<span class="tok-kw">func</span> quicksort(nums []<span class="tok-type">int</span>) {
+	<span class="tok-kw">if</span> len(nums) &lt; 2 {
+		<span class="tok-kw">return</span>
+	}
+	pivot := nums[len(nums)/2]
+	left, right := 0, len(nums)-1
+	<span class="tok-kw">for</span> left &lt;= right {
+		<span class="tok-kw">for</span> nums[left] &lt; pivot {
+			left++
+		}
+		<span class="tok-kw">for</span> nums[right] &gt; pivot {
+			right--
+		}
+		<span class="tok-kw">if</span> left &lt;= right {
+			nums[left], nums[right] = nums[right], nums[left]
+			left++
+			right--
+		}
+	}
+	quicksort(nums[:right+1])
+	quicksort(nums[left:])
+}
+
+<span class="tok-kw">func</span> main() {
+	nums := []<span class="tok-type">int</span>{8, 3, 1, 7, 0, 10, 2}
+	fmt.Printf(<span class="tok-str">"before: %v\n"</span>, nums)
+	quicksort(nums)
+	fmt.Printf(<span class="tok-str">"after:  %v\n"</span>, nums)
+
+	nums2 := []<span class="tok-type">int</span>{5, 5, 5, -1, 3}
+	fmt.Printf(<span class="tok-str">"\nbefore: %v\n"</span>, nums2)
+	quicksort(nums2)
+	fmt.Printf(<span class="tok-str">"after:  %v\n"</span>, nums2)
+}</code></pre>
+    <div class="code-output show">before: [8 3 1 7 0 10 2]
+after:  [0 1 2 3 7 8 10]
+
+before: [5 5 5 -1 3]
+after:  [-1 3 5 5 5]</div>
+  </div>
+</div>
+      </div>
+    </div>
+
+    <p style="margin-top:3rem;">
+      <a class="btn" href="index.html">&larr; Back to the roadmap</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Every code example on this page was compiled and run against a real Go 1.26 toolchain
+  before publishing.
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/coding-interview.js"></script>
+</body>
+</html>
