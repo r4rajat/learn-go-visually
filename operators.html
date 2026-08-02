@@ -47,6 +47,7 @@
         <a class="btn btn-sm" href="#finalizers">Finalizers</a>
         <a class="btn btn-sm" href="#testing">Testing with envtest</a>
         <a class="btn btn-sm" href="#deploying">Deploying for real</a>
+        <a class="btn btn-sm" href="#client-go">Building with client-go directly</a>
         <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
       </div>
       
@@ -691,7 +692,265 @@ No resources found in default namespace.</div>
           enough, that an interrupted reconcile leaves no inconsistent state.
         </p>
       </div>
-      
+
+      <!-- ============================================================ -->
+      <h2 id="client-go">Building an operator with client-go directly</h2>
+      <p>
+        Everything above uses <strong>controller-runtime</strong> (via Kubebuilder), which is
+        the standard choice for a new operator today. But controller-runtime isn't a
+        separate technology from what you've already seen &mdash; it's a framework built
+        <em>on top of</em> <a href="https://github.com/kubernetes/client-go" target="_blank" rel="noopener"><code>client-go</code></a>,
+        the same lower-level library every Kubernetes client, including <code>kubectl</code>
+        itself, is built on. This section builds the same <code>Website</code> reconciler
+        using <code>client-go</code> directly, with no controller-runtime and no Kubebuilder
+        scaffolding, so you can see exactly what the framework was doing for you.
+      </p>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">When you'd actually reach for this</div>
+        <p>
+          Most new operators should still use controller-runtime &mdash; it gives you
+          predicates, owner-reference helpers, leader election, health endpoints, and
+          webhook wiring for free. Go straight to <code>client-go</code> when you're
+          embedding a single watcher inside an existing service rather than shipping a
+          dedicated operator binary, when you need control over caching or backoff behavior
+          that controller-runtime doesn't expose, or simply to understand what's actually
+          happening underneath any Kubernetes controller you'll ever debug.
+        </p>
+      </div>
+
+      <h3 style="margin-top:2em;">The four pieces: informer, lister, workqueue, worker</h3>
+      <p>
+        Every client-go controller (and, underneath, every controller-runtime controller)
+        is built from the same four pieces:
+      </p>
+      <ul style="margin-top:0.6rem; line-height:1.9;">
+        <li><strong>Informer</strong> &mdash; watches the API server and keeps a local, in-memory cache of objects in sync with the cluster.</li>
+        <li><strong>Lister</strong> &mdash; a read-only view over that local cache. Reads are free (no API server round trip); writes still have to go to the real API server.</li>
+        <li><strong>Workqueue</strong> &mdash; a rate-limited, de-duplicating queue. Event handlers enqueue a <em>key</em> (<code>namespace/name</code>), never the object itself &mdash; by the time a worker gets around to processing it, the object may have changed again, so the key is just a pointer to "go look this up fresh."</li>
+        <li><strong>Worker loop</strong> &mdash; pulls keys off the queue and runs your sync logic, one key at a time, retrying with backoff on error.</li>
+      </ul>
+
+      <div class="callout callout-mistake">
+        <div class="callout-title">Why enqueue a key, not the object</div>
+        <p>
+          It's tempting to hand the object straight to the queue in the event handler, since
+          you already have it. The problem: the object can be updated again &mdash; possibly
+          several times &mdash; before a worker gets around to processing that queue entry,
+          which is de-duplicated by key. If you queued the stale object, you'd reconcile
+          against out-of-date state. Enqueueing <code>namespace/name</code> and re-reading
+          from the lister at process time guarantees the worker always acts on the freshest
+          cached version, no matter how many updates were coalesced into that one queue entry.
+        </p>
+      </div>
+
+      <p>
+        Setting up the informer and wiring its events to the queue, using the same
+        <code>Website</code> CRD from earlier. Since the CRD's generated typed client isn't
+        being used here, this reads and writes <code>Website</code> objects as
+        <code>unstructured.Unstructured</code> &mdash; plain <code>map[string]interface{}</code>
+        underneath &mdash; via <code>client-go</code>'s dynamic client:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">controller.go</span></div>
+        <pre><code><span class="tok-kw">var</span> websiteGVR = schema.GroupVersionResource{Group: <span class="tok-str">"web.example.com"</span>, Version: <span class="tok-str">"v1"</span>, Resource: <span class="tok-str">"websites"</span>}
+
+<span class="tok-kw">type</span> controller <span class="tok-kw">struct</span> {
+  lister cache.GenericLister
+  queue  workqueue.TypedRateLimitingInterface[<span class="tok-type">string</span>]
+}
+
+<span class="tok-com">// enqueue derives a "namespace/name" key from whatever object the informer</span>
+<span class="tok-com">// just observed and adds only that key to the queue &mdash; never the object.</span>
+<span class="tok-kw">func</span> (c *controller) enqueue(obj <span class="tok-type">interface{}</span>) {
+  key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span>
+  }
+  c.queue.Add(key)
+}
+
+<span class="tok-kw">func</span> main() {
+  dynClient := dynamic.NewForConfigOrDie(restConfig)
+
+  <span class="tok-com">// Like controller-runtime's Manager, the informer factory is shared: one</span>
+  <span class="tok-com">// underlying watch per resource type, no matter how many handlers attach.</span>
+  factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynClient, <span class="tok-type">0</span>, <span class="tok-str">"default"</span>, <span class="tok-kw">nil</span>)
+  genericInformer := factory.ForResource(websiteGVR)
+
+  ctrl := &amp;controller{
+    lister: genericInformer.Lister(),
+    <span class="tok-com">// The default rate limiter combines per-item exponential backoff with an</span>
+    <span class="tok-com">// overall token-bucket limit &mdash; the exact rate limiter controller-runtime</span>
+    <span class="tok-com">// itself uses under the hood.</span>
+    queue: workqueue.NewTypedRateLimitingQueue[<span class="tok-type">string</span>](workqueue.DefaultTypedControllerRateLimiter[<span class="tok-type">string</span>]()),
+  }
+
+  genericInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+    AddFunc:    ctrl.enqueue,
+    UpdateFunc: <span class="tok-kw">func</span>(_, newObj <span class="tok-type">interface{}</span>) { ctrl.enqueue(newObj) },
+    DeleteFunc: ctrl.enqueue,
+  })
+
+  ctx, cancel := context.WithCancel(context.Background())
+  <span class="tok-kw">defer</span> cancel()
+
+  factory.Start(ctx.Done())
+  cache.WaitForCacheSync(ctx.Done(), genericInformer.Informer().HasSynced)
+
+  <span class="tok-com">// ... run workers; see below ...</span>
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top:2em;">The sync function: read from the lister, write to the API server</h3>
+      <p>
+        This is the direct equivalent of <code>Reconcile</code>. It re-derives the object's
+        current state from the local cache (never trusting whatever triggered the event),
+        computes the desired status, and writes that status straight to the real API server
+        &mdash; the local cache is a read path only, it's never written to directly:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">controller.go</span></div>
+        <pre><code><span class="tok-kw">func</span> (c *controller) sync(ctx context.Context, dyn dynamic.NamespaceableResourceInterface, key <span class="tok-type">string</span>) <span class="tok-kw">error</span> {
+  namespace, name, err := cache.SplitMetaNamespaceKey(key)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> err
+  }
+
+  <span class="tok-com">// Read comes from the informer's local cache: no network call at all.</span>
+  obj, err := c.lister.ByNamespace(namespace).Get(name)
+  <span class="tok-kw">if</span> apierrors.IsNotFound(err) {
+    <span class="tok-com">// Deleted since the key was enqueued &mdash; nothing to reconcile.</span>
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+  }
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> err
+  }
+  u := obj.(*unstructured.Unstructured)
+
+  replicas, _, _ := unstructured.NestedInt64(u.Object, <span class="tok-str">"spec"</span>, <span class="tok-str">"replicas"</span>)
+  message, _, _ := unstructured.NestedString(u.Object, <span class="tok-str">"spec"</span>, <span class="tok-str">"message"</span>)
+  fmt.Printf(<span class="tok-str">"reconciling %s: desired replicas=%d message=%q\n"</span>, key, replicas, message)
+
+  <span class="tok-com">// A real controller would look up the owned Deployment here and copy its</span>
+  <span class="tok-com">// actual ReadyReplicas across, exactly like reconcileDeployment does above.</span>
+  updated := u.DeepCopy()
+  <span class="tok-kw">if</span> err := unstructured.SetNestedField(updated.Object, replicas, <span class="tok-str">"status"</span>, <span class="tok-str">"readyReplicas"</span>); err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> err
+  }
+
+  <span class="tok-com">// Writes always go to the real API server via the dynamic client &mdash;</span>
+  <span class="tok-com">// UpdateStatus targets the /status subresource, same split as the CRD earlier.</span>
+  _, err = dyn.Namespace(namespace).UpdateStatus(ctx, updated, metav1.UpdateOptions{})
+  <span class="tok-kw">return</span> err
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top:2em;">The worker loop: rate limiting and requeuing, by hand</h3>
+      <p>
+        This is the piece controller-runtime's <code>Reconcile</code> contract hides
+        completely: whether to retry, and how fast. <code>ctrl.Result{}, err</code> versus
+        <code>ctrl.Result{Requeue: true}, nil</code> versus <code>ctrl.Result{RequeueAfter:
+        ...}, nil</code> from the reconcile-loop section earlier are just thin wrappers
+        around exactly these three workqueue calls:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">controller.go</span></div>
+        <pre><code><span class="tok-kw">func</span> (c *controller) processNextItem(ctx context.Context, dyn dynamic.NamespaceableResourceInterface) <span class="tok-type">bool</span> {
+  key, shutdown := c.queue.Get()
+  <span class="tok-kw">if</span> shutdown {
+    <span class="tok-kw">return</span> <span class="tok-kw">false</span>
+  }
+  <span class="tok-com">// Done marks the key as no longer "in flight" &mdash; without it, an update</span>
+  <span class="tok-com">// that arrives while this key is being processed would be silently dropped</span>
+  <span class="tok-com">// instead of queued for a follow-up run.</span>
+  <span class="tok-kw">defer</span> c.queue.Done(key)
+
+  <span class="tok-kw">if</span> err := c.sync(ctx, dyn, key); err != <span class="tok-kw">nil</span> {
+    <span class="tok-com">// Equivalent to returning ctrl.Result{}, err &mdash; requeue with</span>
+    <span class="tok-com">// exponential backoff instead of hammering a failing sync in a tight loop.</span>
+    c.queue.AddRateLimited(key)
+    fmt.Printf(<span class="tok-str">"sync %q failed, requeuing: %v\n"</span>, key, err)
+    <span class="tok-kw">return</span> <span class="tok-kw">true</span>
+  }
+  <span class="tok-com">// Forget resets this key's backoff counter. Skipping this on success is a</span>
+  <span class="tok-com">// classic bug: a key that failed once and later succeeds would still carry</span>
+  <span class="tok-com">// its old backoff into the next unrelated failure.</span>
+  c.queue.Forget(key)
+  <span class="tok-kw">return</span> <span class="tok-kw">true</span>
+}</code></pre>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">Testing this without envtest &mdash; or a cluster at all</div>
+        <p>
+          The <code>envtest</code> section earlier runs a real (embedded)
+          <code>kube-apiserver</code>. A <code>client-go</code> controller built against the
+          dynamic client can be tested one level lighter than that:
+          <code>k8s.io/client-go/dynamic/fake</code> provides an in-memory fake dynamic
+          client with no real API server involved at all. It's faster and has zero external
+          binaries to install, at the cost of not validating anything a real API server
+          would enforce (the CRD's <code>minimum</code>/<code>minLength</code> rules from
+          earlier, for instance, are never checked by the fake client). To actually run the
+          code above, <code>dynamic.NewForConfigOrDie(restConfig)</code> is swapped for a
+          fake client seeded with one existing <code>Website</code> object &mdash; the
+          controller code itself (<code>enqueue</code>, <code>sync</code>,
+          <code>processNextItem</code>) is completely unaware of the difference, exactly
+          like <code>envtest</code> standing in for a real cluster earlier:
+        </p>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">main_test.go (excerpt) &mdash; swapping in the fake client</span></div>
+        <pre><code>scheme := runtime.NewScheme()
+client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(scheme,
+  <span class="tok-type">map</span>[schema.GroupVersionResource]<span class="tok-type">string</span>{websiteGVR: <span class="tok-str">"WebsiteList"</span>},
+  newWebsite(<span class="tok-str">"homepage"</span>, <span class="tok-type">2</span>, <span class="tok-str">"Hello from client-go!"</span>),
+)
+
+<span class="tok-com">// From here on it's the exact same factory/controller wiring as main() above,</span>
+<span class="tok-com">// just constructed with `client` in place of dynamic.NewForConfigOrDie(restConfig).</span>
+factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(client, <span class="tok-type">0</span>, <span class="tok-str">"default"</span>, <span class="tok-kw">nil</span>)</code></pre>
+      </div>
+
+      <p>The full harness, run for real:</p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ go run main.go</span></div>
+        <div class="code-output show">informer cache synced; queue length: 1
+reconciling default/homepage: desired replicas=2 message="Hello from client-go!"
+final status.readyReplicas = 2</div>
+      </div>
+
+      <p>
+        The queue already holds one key the moment the cache finishes its initial sync:
+        the informer's first List populates the local cache and fires an
+        <code>AddFunc</code> for every object already in it, exactly like a real cluster's
+        watch does on startup &mdash; there's no meaningful difference between "the object
+        existed before my controller started" and "the object was just created."
+      </p>
+
+      <h3 style="margin-top:2em;">client-go vs controller-runtime: which to reach for</h3>
+      <div class="callout callout-tip">
+        <div class="callout-title">What controller-runtime gives you for free</div>
+        <p>
+          Comparing the code above to the earlier <code>Reconcile</code>/<code>SetupWithManager</code>
+          sections makes the trade concrete. controller-runtime replaces all of the informer
+          wiring, key-enqueueing, and worker loop above with a single
+          <code>ctrl.NewControllerManagedBy(mgr).For(...).Owns(...).Complete(r)</code> call,
+          and adds things client-go has no opinion on at all: owner-reference-aware watches
+          (<code>Owns</code>), event filtering (<code>WithEventFilter</code>), leader
+          election, <code>/healthz</code>/<code>/readyz</code> endpoints, and webhook
+          serving. None of that is missing from client-go &mdash; it's just your
+          responsibility to build it, which is exactly why almost nobody hand-rolls a new
+          operator with client-go directly today, even though it's what every operator
+          ultimately runs on.
+        </p>
+      </div>
+
       <!-- ============================================================ -->
       <h2 id="interview-questions">Interview Questions</h2>
       <p>
