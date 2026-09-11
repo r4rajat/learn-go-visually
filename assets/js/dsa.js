@@ -487,6 +487,658 @@ function initStackQueueViz(root) {
   renderQueue();
 }
 
+/* ---------- 5. Interactive Linked List Visualizer (Day 3) ---------- */
+function initDSALinkedList(root) {
+  var list = [10, 20, 30, 40];
+  var highlighted = -1;
+  var isNew = -1;
+
+  var container = root.querySelector('[data-role="ll-container"]');
+  var msgBox = root.querySelector('[data-role="ll-msg"]');
+  var valInput = root.querySelector('[data-role="ll-input"]');
+  var btnInsertFront = root.querySelector('[data-role="btn-ll-insert-front"]');
+  var btnInsertEnd = root.querySelector('[data-role="btn-ll-insert-end"]');
+  var btnDeleteFront = root.querySelector('[data-role="btn-ll-delete-front"]');
+  var btnReverse = root.querySelector('[data-role="btn-ll-reverse"]');
+  var btnReset = root.querySelector('[data-role="btn-ll-reset"]');
+
+  function flash(msg, isErr) {
+    if (!msgBox) return;
+    msgBox.style.display = 'block';
+    msgBox.innerHTML = msg;
+    msgBox.style.color = isErr ? 'var(--danger)' : 'var(--ok)';
+  }
+
+  function render() {
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Head indicator
+    var headWrap = document.createElement('div');
+    headWrap.className = 'll-head-indicator';
+    headWrap.innerHTML = '<span>HEAD</span><span style="font-size:1.1rem;">&darr;</span>';
+    container.appendChild(headWrap);
+
+    list.forEach(function(val, idx) {
+      var isLast = idx === list.length - 1;
+      var nodeBox = document.createElement('div');
+      nodeBox.className = 'll-node-box' + (idx === highlighted ? ' highlight' : '') + (idx === isNew ? ' new-node' : '');
+
+      var dataField = document.createElement('div');
+      dataField.className = 'll-data-field';
+      dataField.textContent = val;
+
+      var nextField = document.createElement('div');
+      nextField.className = 'll-next-field';
+      nextField.textContent = isLast ? 'nil' : '&bull;';
+
+      nodeBox.appendChild(dataField);
+      nodeBox.appendChild(nextField);
+      container.appendChild(nodeBox);
+
+      // Arrow
+      var arrow = document.createElement('div');
+      arrow.className = 'll-arrow';
+      arrow.innerHTML = '&rarr;';
+      container.appendChild(arrow);
+    });
+
+    var nullBadge = document.createElement('div');
+    nullBadge.className = 'll-null-badge';
+    nullBadge.textContent = 'nil (0x0)';
+    container.appendChild(nullBadge);
+  }
+
+  if (btnInsertFront) {
+    btnInsertFront.addEventListener('click', function() {
+      var val = parseInt(valInput ? valInput.value : '5', 10);
+      if (isNaN(val)) val = Math.floor(Math.random() * 90) + 10;
+      list.unshift(val);
+      isNew = 0;
+      flash('✓ Inserted <code>' + val + '</code> at front in <strong>O(1)</strong>! In Go: <code>newNode.Next = head; head = newNode</code>');
+      render();
+      setTimeout(function() { isNew = -1; render(); }, 1200);
+    });
+  }
+
+  if (btnInsertEnd) {
+    btnInsertEnd.addEventListener('click', function() {
+      var val = parseInt(valInput ? valInput.value : '50', 10);
+      if (isNaN(val)) val = Math.floor(Math.random() * 90) + 10;
+      list.push(val);
+      isNew = list.length - 1;
+      flash('✓ Inserted <code>' + val + '</code> at tail in <strong>O(n)</strong> (or O(1) with tail pointer).');
+      render();
+      setTimeout(function() { isNew = -1; render(); }, 1200);
+    });
+  }
+
+  if (btnDeleteFront) {
+    btnDeleteFront.addEventListener('click', function() {
+      if (list.length === 0) { flash('List is empty!', true); return; }
+      var removed = list.shift();
+      flash('✓ Deleted head node <code>' + removed + '</code> in <strong>O(1)</strong>: <code>head = head.Next</code>');
+      render();
+    });
+  }
+
+  if (btnReverse) {
+    btnReverse.addEventListener('click', function() {
+      list.reverse();
+      flash('✓ Reversed in-place in <strong>O(n)</strong> time and <strong>O(1)</strong> space using 3 pointers (prev, curr, next).');
+      render();
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      list = [10, 20, 30, 40];
+      highlighted = -1;
+      isNew = -1;
+      if (msgBox) msgBox.style.display = 'none';
+      render();
+    });
+  }
+
+  render();
+}
+
+/* ---------- 6. Interactive Binary Tree Visualizer (Day 6) ---------- */
+function initDSABinaryTree(root) {
+  var nodes = [
+    { id: 50, x: 180, y: 35, left: 30, right: 70 },
+    { id: 30, x: 90,  y: 95, left: 20, right: 40 },
+    { id: 70, x: 270, y: 95, left: 60, right: 80 },
+    { id: 20, x: 50,  y: 155 },
+    { id: 40, x: 130, y: 155 },
+    { id: 60, x: 230, y: 155 },
+    { id: 80, x: 310, y: 155 }
+  ];
+
+  var msgBox = root.querySelector('[data-role="tree-msg"]');
+  var svgEl = root.querySelector('svg.tree-svg');
+  var btnInorder = root.querySelector('[data-role="btn-tree-inorder"]');
+  var btnPreorder = root.querySelector('[data-role="btn-tree-preorder"]');
+  var btnPostorder = root.querySelector('[data-role="btn-tree-postorder"]');
+  var btnReset = root.querySelector('[data-role="btn-tree-reset"]');
+
+  function clearHighlight() {
+    if (!svgEl) return;
+    svgEl.querySelectorAll('.tree-node-circle').forEach(function(c) {
+      c.classList.remove('active');
+    });
+  }
+
+  function highlightSequence(seq, label) {
+    clearHighlight();
+    if (msgBox) {
+      msgBox.style.display = 'block';
+      msgBox.innerHTML = '<strong>' + label + ':</strong> ';
+    }
+    seq.forEach(function(val, step) {
+      setTimeout(function() {
+        var circle = svgEl.querySelector('[data-node="' + val + '"]');
+        if (circle) circle.classList.add('active');
+        if (msgBox) {
+          msgBox.innerHTML += '<span class="badge-difficulty badge-easy" style="margin-right:4px;">' + val + '</span> ';
+        }
+      }, step * 400);
+    });
+  }
+
+  if (btnInorder) {
+    btnInorder.addEventListener('click', function() {
+      // Inorder for BST produces strictly sorted output
+      highlightSequence([20, 30, 40, 50, 60, 70, 80], 'In-Order Traversal (Sorted: Left → Root → Right)');
+    });
+  }
+
+  if (btnPreorder) {
+    btnPreorder.addEventListener('click', function() {
+      highlightSequence([50, 30, 20, 40, 70, 60, 80], 'Pre-Order Traversal (Root → Left → Right)');
+    });
+  }
+
+  if (btnPostorder) {
+    btnPostorder.addEventListener('click', function() {
+      highlightSequence([20, 40, 30, 60, 80, 70, 50], 'Post-Order Traversal (Left → Right → Root)');
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      clearHighlight();
+      if (msgBox) msgBox.style.display = 'none';
+    });
+  }
+}
+
+/* ---------- 7. Interactive Hash Table Visualizer (Day 8) ---------- */
+function initDSAHashTable(root) {
+  var buckets = [
+    [{ k: "apple", v: 5 }, { k: "avocado", v: 8 }],
+    [{ k: "banana", v: 3 }],
+    [],
+    [{ k: "cherry", v: 7 }]
+  ];
+
+  var container = root.querySelector('[data-role="ht-container"]');
+  var msgBox = root.querySelector('[data-role="ht-msg"]');
+  var keyInput = root.querySelector('[data-role="ht-key-input"]');
+  var btnInsert = root.querySelector('[data-role="btn-ht-insert"]');
+  var btnSearch = root.querySelector('[data-role="btn-ht-search"]');
+  var btnReset = root.querySelector('[data-role="btn-ht-reset"]');
+
+  function hashFn(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return h % 4;
+  }
+
+  function render(highBucket) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    buckets.forEach(function(chain, bIdx) {
+      var row = document.createElement('div');
+      row.className = 'ht-row';
+
+      var slot = document.createElement('div');
+      slot.className = 'ht-slot';
+      if (bIdx === highBucket) slot.style.borderColor = 'var(--ok)';
+      slot.textContent = 'Bucket [' + bIdx + ']';
+
+      var arrow = document.createElement('div');
+      arrow.className = 'ht-slot-arrow';
+      arrow.innerHTML = '&rarr;';
+
+      var chainItems = document.createElement('div');
+      chainItems.className = 'ht-chain-items';
+
+      if (chain.length === 0) {
+        var empty = document.createElement('span');
+        empty.style.color = 'var(--text-muted)';
+        empty.style.fontFamily = 'var(--font-mono)';
+        empty.style.fontSize = '0.8rem';
+        empty.textContent = 'nil (empty)';
+        chainItems.appendChild(empty);
+      } else {
+        chain.forEach(function(item) {
+          var badge = document.createElement('span');
+          badge.className = 'ht-entry-badge';
+          badge.innerHTML = '<span class="ht-entry-key">"' + item.k + '"</span>:<span class="ht-entry-val">' + item.v + '</span>';
+          chainItems.appendChild(badge);
+        });
+      }
+
+      row.appendChild(slot);
+      row.appendChild(arrow);
+      row.appendChild(chainItems);
+      container.appendChild(row);
+    });
+  }
+
+  if (btnInsert) {
+    btnInsert.addEventListener('click', function() {
+      var k = keyInput ? keyInput.value.trim() : '';
+      if (!k) k = 'fruit_' + Math.floor(Math.random() * 50);
+      var b = hashFn(k);
+      buckets[b].push({ k: k, v: Math.floor(Math.random() * 20) + 1 });
+      render(b);
+      if (msgBox) {
+        msgBox.style.display = 'block';
+        msgBox.innerHTML = '✓ Computed <code>hash("' + k + '") % 4 = ' + b + '</code>. Chained in bucket [' + b + '] in O(1) average time!';
+      }
+      if (keyInput) keyInput.value = '';
+    });
+  }
+
+  if (btnSearch) {
+    btnSearch.addEventListener('click', function() {
+      var k = keyInput ? keyInput.value.trim() : 'banana';
+      var b = hashFn(k);
+      render(b);
+      var found = buckets[b].find(function(it) { return it.k === k; });
+      if (msgBox) {
+        msgBox.style.display = 'block';
+        if (found) {
+          msgBox.innerHTML = '✓ Found key <code>"' + k + '"</code> in bucket [' + b + ']! Value = <strong>' + found.v + '</strong> (O(1) lookup).';
+          msgBox.style.color = 'var(--ok)';
+        } else {
+          msgBox.innerHTML = '✗ Key <code>"' + k + '"</code> hashes to bucket [' + b + '] but was not found in chain.';
+          msgBox.style.color = 'var(--danger)';
+        }
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      buckets = [
+        [{ k: "apple", v: 5 }, { k: "avocado", v: 8 }],
+        [{ k: "banana", v: 3 }],
+        [],
+        [{ k: "cherry", v: 7 }]
+      ];
+      render(-1);
+      if (msgBox) msgBox.style.display = 'none';
+    });
+  }
+
+  render(-1);
+}
+
+/* ---------- 8. Interactive Sorting Bars Visualizer (Day 11) ---------- */
+function initDSASortingBars(root) {
+  var orig = [45, 18, 72, 34, 90, 23, 61];
+  var arr = orig.slice();
+  var i = 0, j = 0;
+  var maxVal = 95;
+
+  var container = root.querySelector('[data-role="sort-container"]');
+  var msgBox = root.querySelector('[data-role="sort-msg"]');
+  var btnStep = root.querySelector('[data-role="btn-sort-step"]');
+  var btnReset = root.querySelector('[data-role="btn-sort-reset"]');
+
+  function render(compA, compB, swapped) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    arr.forEach(function(val, idx) {
+      var col = document.createElement('div');
+      col.className = 'sort-bar-col';
+
+      var num = document.createElement('div');
+      num.className = 'sort-bar-num';
+      num.textContent = val;
+
+      var bar = document.createElement('div');
+      bar.className = 'sort-bar';
+      bar.style.height = Math.max(12, (val / maxVal) * 140) + 'px';
+
+      if (idx === compA || idx === compB) {
+        bar.className += swapped ? ' swapped' : ' comparing';
+      }
+
+      var idxLabel = document.createElement('div');
+      idxLabel.className = 'sort-bar-idx';
+      idxLabel.textContent = '[' + idx + ']';
+
+      col.appendChild(num);
+      col.appendChild(bar);
+      col.appendChild(idxLabel);
+      container.appendChild(col);
+    });
+  }
+
+  if (btnStep) {
+    btnStep.addEventListener('click', function() {
+      if (i < arr.length - 1) {
+        if (j < arr.length - 1 - i) {
+          var a = j, b = j + 1;
+          var didSwap = false;
+          if (arr[a] > arr[b]) {
+            var tmp = arr[a];
+            arr[a] = arr[b];
+            arr[b] = tmp;
+            didSwap = true;
+          }
+          render(a, b, didSwap);
+          if (msgBox) {
+            msgBox.style.display = 'block';
+            msgBox.innerHTML = didSwap ?
+              'Comparing [' + a + '] and [' + b + ']: <strong>Swapped</strong> ' + arr[b] + ' and ' + arr[a] + '!' :
+              'Comparing [' + a + '] and [' + b + ']: In correct order, no swap needed.';
+          }
+          j++;
+        } else {
+          j = 0;
+          i++;
+          render(-1, -1, false);
+        }
+      } else {
+        render(-1, -1, false);
+        if (msgBox) {
+          msgBox.style.display = 'block';
+          msgBox.innerHTML = '🎉 <strong>Sorting Complete!</strong> Array is fully sorted.';
+          msgBox.style.color = 'var(--ok)';
+        }
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      arr = orig.slice();
+      i = 0; j = 0;
+      render(-1, -1, false);
+      if (msgBox) msgBox.style.display = 'none';
+    });
+  }
+
+  render(-1, -1, false);
+}
+
+/* ---------- 9. Interactive Sliding Window Visualizer (Day 24) ---------- */
+function initDSASlidingWindow(root) {
+  var s = ["a", "b", "c", "a", "b", "c", "b", "b"];
+  var left = 0, right = 2;
+
+  var container = root.querySelector('[data-role="sw-container"]');
+  var msgBox = root.querySelector('[data-role="sw-msg"]');
+  var btnExpand = root.querySelector('[data-role="btn-sw-expand"]');
+  var btnShrink = root.querySelector('[data-role="btn-sw-shrink"]');
+  var btnReset = root.querySelector('[data-role="btn-sw-reset"]');
+
+  function render() {
+    if (!container) return;
+    container.innerHTML = '';
+
+    s.forEach(function(char, idx) {
+      var item = document.createElement('div');
+      var inWin = idx >= left && idx <= right;
+      item.className = 'sw-item' + (inWin ? ' in-window' : '');
+      item.textContent = char;
+
+      if (idx === left) {
+        var lTag = document.createElement('span');
+        lTag.className = 'sw-pointer-tag ptr-left';
+        lTag.textContent = 'L';
+        item.appendChild(lTag);
+      }
+      if (idx === right) {
+        var rTag = document.createElement('span');
+        rTag.className = 'sw-pointer-tag ptr-right';
+        rTag.textContent = 'R';
+        item.appendChild(rTag);
+      }
+
+      container.appendChild(item);
+    });
+
+    if (msgBox) {
+      var sub = s.slice(left, right + 1).join('');
+      var len = right - left + 1;
+      msgBox.innerHTML =
+        'Window: <code>"' + sub + '"</code> &bull; Size: <strong>' + len + '</strong> &bull; Range: <code>[' + left + '..' + right + ']</code>';
+    }
+  }
+
+  if (btnExpand) {
+    btnExpand.addEventListener('click', function() {
+      if (right < s.length - 1) {
+        right++;
+        render();
+      }
+    });
+  }
+
+  if (btnShrink) {
+    btnShrink.addEventListener('click', function() {
+      if (left < right) {
+        left++;
+        render();
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      left = 0; right = 2;
+      render();
+    });
+  }
+
+  render();
+}
+
+/* ---------- 10. Interactive Two Pointers Visualizer (Day 25) ---------- */
+function initDSATwoPointers(root) {
+  var nums = [2, 7, 11, 15, 18, 22];
+  var target = 25;
+  var l = 0, r = nums.length - 1;
+  var found = false;
+
+  var container = root.querySelector('[data-role="tp-container"]');
+  var msgBox = root.querySelector('[data-role="tp-msg"]');
+  var btnStep = root.querySelector('[data-role="btn-tp-step"]');
+  var btnReset = root.querySelector('[data-role="btn-tp-reset"]');
+
+  function render() {
+    if (!container) return;
+    container.innerHTML = '';
+
+    nums.forEach(function(val, idx) {
+      var item = document.createElement('div');
+      item.className = 'sw-item';
+      item.textContent = val;
+
+      if (idx === l) {
+        item.classList.add('in-window');
+        var lTag = document.createElement('span');
+        lTag.className = 'sw-pointer-tag ptr-left';
+        lTag.textContent = 'L';
+        item.appendChild(lTag);
+      }
+      if (idx === r) {
+        item.classList.add('in-window');
+        var rTag = document.createElement('span');
+        rTag.className = 'sw-pointer-tag ptr-right';
+        rTag.textContent = 'R';
+        item.appendChild(rTag);
+      }
+
+      container.appendChild(item);
+    });
+
+    if (msgBox) {
+      var curSum = nums[l] + nums[r];
+      if (found) {
+        msgBox.innerHTML = '🎉 <strong>TARGET MATCH!</strong> <code>nums[' + l + '] (' + nums[l] + ') + nums[' + r + '] (' + nums[r] + ') == ' + target + '</code> in O(n) time!';
+        msgBox.style.color = 'var(--ok)';
+      } else {
+        msgBox.innerHTML =
+          'Sum = <code>nums[' + l + '] + nums[' + r + '] = ' + nums[l] + ' + ' + nums[r] + ' = ' + curSum + '</code> (Target: ' + target + '). ' +
+          (curSum < target ? 'Since ' + curSum + ' &lt; ' + target + ', increment Left pointer.' : 'Since ' + curSum + ' &gt; ' + target + ', decrement Right pointer.');
+        msgBox.style.color = 'var(--text)';
+      }
+    }
+  }
+
+  if (btnStep) {
+    btnStep.addEventListener('click', function() {
+      if (found || l >= r) return;
+      var sum = nums[l] + nums[r];
+      if (sum === target) {
+        found = true;
+      } else if (sum < target) {
+        l++;
+      } else {
+        r--;
+      }
+      if (nums[l] + nums[r] === target) found = true;
+      render();
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      l = 0; r = nums.length - 1; found = false;
+      render();
+    });
+  }
+
+  render();
+}
+
+/* ---------- 11. Interactive Bit Manipulation Register (Day 28) ---------- */
+function initDSABitRegister(root) {
+  var bits = [0, 0, 1, 0, 1, 1, 0, 1]; // 45 decimal
+
+  var container = root.querySelector('[data-role="bit-container"]');
+  var decEl = root.querySelector('[data-role="bit-dec"]');
+  var hexEl = root.querySelector('[data-role="bit-hex"]');
+  var btnAnd = root.querySelector('[data-role="btn-bit-and"]');
+  var btnOr = root.querySelector('[data-role="btn-bit-or"]');
+  var btnXor = root.querySelector('[data-role="btn-bit-xor"]');
+  var btnShl = root.querySelector('[data-role="btn-bit-shl"]');
+  var btnShr = root.querySelector('[data-role="btn-bit-shr"]');
+  var btnClearLsb = root.querySelector('[data-role="btn-bit-clear-lsb"]');
+  var btnReset = root.querySelector('[data-role="btn-bit-reset"]');
+
+  function toDec() {
+    var val = 0;
+    for (var i = 0; i < 8; i++) {
+      if (bits[i]) val += Math.pow(2, 7 - i);
+    }
+    return val;
+  }
+
+  function render() {
+    if (!container) return;
+    container.innerHTML = '';
+
+    bits.forEach(function(b, idx) {
+      var box = document.createElement('div');
+      box.className = 'bit-box' + (b === 1 ? ' active' : '');
+      box.innerHTML = '<span class="bit-value">' + b + '</span><span class="bit-index">' + (7 - idx) + '</span>';
+
+      box.addEventListener('click', function() {
+        bits[idx] = bits[idx] === 1 ? 0 : 1;
+        render();
+      });
+
+      container.appendChild(box);
+    });
+
+    var dec = toDec();
+    if (decEl) decEl.textContent = dec;
+    if (hexEl) hexEl.textContent = '0x' + (dec.toString(16).toUpperCase().padStart(2, '0'));
+  }
+
+  if (btnAnd) {
+    btnAnd.addEventListener('click', function() {
+      // AND with 0x0F (clear upper 4 bits)
+      for (var i = 0; i < 4; i++) bits[i] = 0;
+      render();
+    });
+  }
+
+  if (btnOr) {
+    btnOr.addEventListener('click', function() {
+      // OR with 0x80 (set MSB)
+      bits[0] = 1;
+      render();
+    });
+  }
+
+  if (btnXor) {
+    btnXor.addEventListener('click', function() {
+      // XOR with 0xFF (invert all)
+      for (var i = 0; i < 8; i++) bits[i] = bits[i] === 1 ? 0 : 1;
+      render();
+    });
+  }
+
+  if (btnShl) {
+    btnShl.addEventListener('click', function() {
+      bits.shift();
+      bits.push(0);
+      render();
+    });
+  }
+
+  if (btnShr) {
+    btnShr.addEventListener('click', function() {
+      bits.pop();
+      bits.unshift(0);
+      render();
+    });
+  }
+
+  if (btnClearLsb) {
+    btnClearLsb.addEventListener('click', function() {
+      // Clear lowest set bit: n & (n - 1)
+      var d = toDec();
+      d = d & (d - 1);
+      for (var i = 7; i >= 0; i--) {
+        bits[i] = (d & 1);
+        d = d >> 1;
+      }
+      render();
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', function() {
+      bits = [0, 0, 1, 0, 1, 1, 0, 1];
+      render();
+    });
+  }
+
+  render();
+}
+
 /* ---------- 4. Phase Filter for the 30-Day Grid ---------- */
 function initDSAPhaseFilter() {
   var filterButtons = document.querySelectorAll('.dsa-phase-filter .dsa-phase-btn');
@@ -539,5 +1191,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-viz="dsa-array"]').forEach(initDSAArrayViz);
   document.querySelectorAll('[data-viz="dsa-binary-search"]').forEach(initBinarySearchViz);
   document.querySelectorAll('[data-viz="dsa-stack-queue"]').forEach(initStackQueueViz);
+  document.querySelectorAll('[data-viz="dsa-linked-list"]').forEach(initDSALinkedList);
+  document.querySelectorAll('[data-viz="dsa-binary-tree"]').forEach(initDSABinaryTree);
+  document.querySelectorAll('[data-viz="dsa-hash-table"]').forEach(initDSAHashTable);
+  document.querySelectorAll('[data-viz="dsa-sorting"]').forEach(initDSASortingBars);
+  document.querySelectorAll('[data-viz="dsa-sliding-window"]').forEach(initDSASlidingWindow);
+  document.querySelectorAll('[data-viz="dsa-two-pointers"]').forEach(initDSATwoPointers);
+  document.querySelectorAll('[data-viz="dsa-bit-register"]').forEach(initDSABitRegister);
   initDSAPhaseFilter();
 });
+

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200">
+  <defs>
+    <style>
+      .box { fill: #fff; stroke: #333; stroke-width: 1; }
+      .char { font-family: monospace; font-size: 20px; text-anchor: middle; dominant-baseline: middle; }
+      .window { fill: none; stroke: #8b5cf6; stroke-width: 3; rx: 4; stroke-dasharray: 5,5; }
+      .hash { font-family: sans-serif; font-size: 14px; fill: #8b5cf6; font-weight: bold; }
+    </style>
+  </defs>
+
+  <!-- Text -->
+  <rect x="50" y="50" width="40" height="40" class="box" /><text x="70" y="70" class="char">a</text>
+  <rect x="90" y="50" width="40" height="40" class="box" /><text x="110" y="70" class="char">b</text>
+  <rect x="130" y="50" width="40" height="40" class="box" /><text x="150" y="70" class="char">c</text>
+  <rect x="170" y="50" width="40" height="40" class="box" /><text x="190" y="70" class="char">d</text>
+  <rect x="210" y="50" width="40" height="40" class="box" /><text x="230" y="70" class="char">e</text>
+  
+  <!-- Window 1 -->
+  <rect x="45" y="45" width="130" height="50" class="window" />
+  <text x="110" y="35" class="hash" text-anchor="middle">Hash 1 = H("abc")</text>
+  
+  <!-- Window 2 (Scanning) -->
+  <rect x="85" y="45" width="130" height="50" class="window" style="stroke: #ec4899; stroke-dasharray: 0;" />
+  <text x="150" y="120" class="hash" text-anchor="middle" style="fill: #ec4899;">Hash 2 = (Hash 1 - 'a') * base + 'd'</text>
+  
+  <text x="300" y="150" class="hash" style="fill: #333; font-weight: normal; font-size: 12px;">Rolling Hash Update O(1)</text>
+
+  <!-- Arrows -->
+  <path d="M 175 120 L 250 120" stroke="#ec4899" stroke-width="2" marker-end="url(#arrow)" />
+</svg>

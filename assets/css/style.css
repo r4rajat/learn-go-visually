@@ -2591,3 +2591,556 @@ details.solution-details[open] .solution-badge-cta {
   border: 1px solid var(--border);
 }
 
+/* ==========================================================================
+   DSA Visualizer Component Design System (Inspired by DSA-30)
+   ========================================================================== */
+
+.dsa-viz-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  margin: 1.5rem 0 2rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dsa-viz-card:hover {
+  border-color: var(--border-interactive);
+  box-shadow: var(--shadow-md);
+}
+
+.dsa-viz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.dsa-viz-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.dsa-viz-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 750;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  color: var(--accent-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dsa-viz-canvas {
+  padding: 1.75rem 1.4rem;
+  background: var(--bg-sunken);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  min-height: 160px;
+}
+
+.dsa-viz-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.dsa-viz-caption {
+  padding: 0.85rem 1.25rem;
+  font-size: 0.86rem;
+  color: var(--text-dim);
+  background: var(--bg-raised);
+  border-top: 1px dashed var(--border);
+  line-height: 1.6;
+}
+
+/* ─── 1. Linked List Visualizer Styles ─── */
+.ll-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.5rem 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.ll-head-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.ll-node-box {
+  display: flex;
+  align-items: stretch;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  transition: all 0.25s ease;
+}
+
+.ll-node-box.highlight {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+.ll-node-box.new-node {
+  border-color: var(--warn);
+  background: var(--warn-bg);
+  animation: pulse-node 0.6s ease;
+}
+
+.ll-data-field {
+  padding: 0.55rem 1rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text);
+  border-right: 2px solid var(--accent);
+  min-width: 44px;
+  text-align: center;
+}
+
+.ll-next-field {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  background: var(--accent-bg);
+}
+
+.ll-arrow {
+  padding: 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--accent);
+  user-select: none;
+}
+
+.ll-null-badge {
+  padding: 0.4rem 0.8rem;
+  border: 1.5px dashed var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-card);
+}
+
+/* ─── 2. Tree & Graph SVG Styling ─── */
+.tree-svg-container, .graph-svg-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+svg.dsa-svg {
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.tree-node-circle {
+  fill: var(--bg-card);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.tree-node-circle:hover, .tree-node-circle.active {
+  fill: var(--accent-bg);
+  stroke: var(--go-cyan);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 6px rgba(0, 173, 216, 0.5));
+}
+
+.tree-node-text {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 14px;
+  fill: var(--text);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.tree-edge-line {
+  stroke: var(--border-interactive);
+  stroke-width: 2;
+  transition: stroke 0.3s ease;
+}
+
+.tree-edge-line.active {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+/* ─── 3. Hash Table Buckets ─── */
+.ht-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 580px;
+}
+
+.ht-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ht-slot {
+  width: 62px;
+  padding: 0.45rem 0.6rem;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg-card);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: var(--accent-strong);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ht-slot-arrow {
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.ht-chain-items {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ht-entry-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.ht-entry-badge:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.ht-entry-key {
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.ht-entry-val {
+  color: var(--text-dim);
+}
+
+/* ─── 4. Sorting Visualizer Bars ─── */
+.sort-bars-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  height: 180px;
+  padding-bottom: 24px;
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+}
+
+.sort-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  max-width: 48px;
+}
+
+.sort-bar {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, var(--go-cyan), var(--go-blue));
+  border: 1.5px solid var(--go-cyan);
+  transition: height 0.25s ease, background 0.25s ease;
+  position: relative;
+}
+
+.sort-bar.comparing {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+
+.sort-bar.swapped {
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+.sort-bar.sorted {
+  background: linear-gradient(180deg, #10b981, #059669);
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.sort-bar-num {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.sort-bar-idx {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ─── 5. Bit Register Visualizer ─── */
+.bit-register-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.bit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bit-box {
+  width: 38px;
+  height: 48px;
+  border: 2px solid var(--border-interactive);
+  border-radius: 6px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.bit-box:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.bit-box.active {
+  border-color: var(--go-cyan);
+  background: var(--accent-bg);
+  box-shadow: 0 0 12px rgba(0, 173, 216, 0.35);
+}
+
+.bit-value {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.bit-box.active .bit-value {
+  color: var(--accent-strong);
+}
+
+.bit-index {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.bit-summary-badge {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 750;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* ─── 6. Sliding Window & Two Pointers ─── */
+.sw-track-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+}
+
+.sw-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  padding: 1.2rem 0;
+}
+
+.sw-item {
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--border-interactive);
+  border-radius: 8px;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.sw-item.in-window {
+  border-color: var(--go-cyan);
+  background: var(--accent-bg);
+  box-shadow: 0 0 10px rgba(0, 173, 216, 0.3);
+}
+
+.sw-pointer-tag {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sw-pointer-tag.ptr-left {
+  top: -22px;
+  background: var(--ok-bg);
+  border: 1px solid var(--ok);
+  color: var(--ok);
+}
+
+.sw-pointer-tag.ptr-right {
+  bottom: -22px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  color: var(--warn);
+}
+
+/* ─── 7. Go Memory Architecture Split View ─── */
+.go-mem-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 680px;
+}
+
+.go-mem-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  padding: 1.1rem 1.3rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.go-mem-card.stack {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(0, 173, 216, 0.05) 0%, var(--bg-card) 100%);
+}
+
+.go-mem-card.heap {
+  border-color: #8b5cf6;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, var(--bg-card) 100%);
+}
+
+.go-mem-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border);
+}
+
+.go-mem-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.stack .go-mem-badge {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.heap .go-mem-badge {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+  border: 1px solid #8b5cf6;
+}
+
+.go-mem-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.6rem;
+  border-radius: 4px;
+  margin: 0.35rem 0;
+  background: var(--bg-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  border: 1px solid var(--border);
+}
+
+

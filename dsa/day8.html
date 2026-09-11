@@ -174,17 +174,51 @@
         </p>
       </div>
 
-      <!-- Section 1: Concept & Go Memory Architecture -->
+      <!-- Section 1: Concept & Visual Architecture -->
       <section style="margin-bottom: 2.5rem;">
         <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
-          1. Concept &amp; Go Memory Architecture
+          1. Concept &amp; Visual Architecture
         </div>
         <p style="font-size:0.95rem; color:var(--text); line-height:1.7; margin-bottom:1.2rem;">
-          In Go, algorithmic performance and memory efficiency depend heavily on whether data structures use value semantics (contiguous stack allocations) or heap pointer indirection. Observe the memory layout below:
+          In Go, algorithmic efficiency and performance stem from understanding memory layout, pointer indirection, and value semantics. Study the visual representation below:
         </p>
 
-        <!-- Memory / Architecture ASCII Diagram -->
-        <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1.4rem; margin:1.2rem 0; font-family:var(--font-mono); font-size:0.86rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45; box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
+        <!-- Rich Visualizer Card (Inspired by DSA-30) -->
+        <div class="dsa-viz-card">
+          <div class="dsa-viz-header">
+            <div class="dsa-viz-title">
+              <span aria-hidden="true" style="color:var(--accent); font-size:1.15rem;">⚡</span>
+              <span>Hash Table Collision Chaining Simulator</span>
+            </div>
+            <span class="dsa-viz-badge">Interactive Component</span>
+          </div>
+          <div class="dsa-viz-canvas">
+
+<div data-viz="dsa-hash-table" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+  <div class="ht-table-wrap" data-role="ht-container"></div>
+  <div data-role="ht-msg" style="margin-top:0.75rem; font-size:0.86rem; display:none; font-family:var(--font-mono);"></div>
+  <div class="dsa-viz-controls" style="margin-top:1rem;">
+    <input type="text" data-role="ht-key-input" placeholder="Key (e.g. orange)..." class="predict-input" style="max-width:160px; padding:0.35rem 0.6rem; font-size:0.85rem;" />
+    <button class="btn btn-sm btn-primary" data-role="btn-ht-insert" type="button">+ Insert Key</button>
+    <button class="btn btn-sm" data-role="btn-ht-search" type="button">&curren; Search</button>
+    <button class="btn btn-sm btn-secondary" data-role="btn-ht-reset" type="button">Reset</button>
+  </div>
+</div>
+
+          </div>
+          <div class="dsa-viz-caption">
+            <strong>Key Takeaway:</strong> Go maps (<code>runtime.hmap</code>) allocate an array of <code>bmap</code> buckets holding up to 8 key-value pairs each. If a bucket overflows, an overflow bucket pointer chain is allocated.
+          </div>
+        </div>
+
+        <!-- Low-Level Go Memory Layout (Collapsible Secondary View) -->
+        <details style="border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card); margin:1.2rem 0; overflow:hidden;">
+          <summary style="cursor:pointer; user-select:none; padding:0.75rem 1rem; font-size:0.85rem; font-weight:700; color:var(--text); background:var(--bg-raised); display:flex; justify-content:space-between; align-items:center;">
+            <span>🔍 View Low-Level Go Memory &amp; Pointer Layout</span>
+            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">[Expand ASCII Memory Map]</span>
+          </summary>
+          <div style="padding:1rem; background:var(--bg-sunken);">
+            <div style="font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
 Go Runtime hmap Architecture:
 ┌──────────┐       Buckets Array ([]bmap):
 │   hmap   │       ┌──────────────────────────────────────────────┐
@@ -192,7 +226,9 @@ Go Runtime hmap Architecture:
 │  B=3     ├───►   ├──────────────────────────────────────────────┤
 │  buckets │       │ Bucket 1: [tophash: 8B][keys: 8][vals: 8][overflow]
 └──────────┘       └──────────────────────────────────────────────┘
-        </div>
+            </div>
+          </div>
+        </details>
       </section>
 
       <!-- Section 2: Canonical Problem Statement -->

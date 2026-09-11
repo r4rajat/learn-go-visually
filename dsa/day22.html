@@ -174,23 +174,68 @@
         </p>
       </div>
 
-      <!-- Section 1: Concept & Go Memory Architecture -->
+      <!-- Section 1: Concept & Visual Architecture -->
       <section style="margin-bottom: 2.5rem;">
         <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
-          1. Concept &amp; Go Memory Architecture
+          1. Concept &amp; Visual Architecture
         </div>
         <p style="font-size:0.95rem; color:var(--text); line-height:1.7; margin-bottom:1.2rem;">
-          In Go, algorithmic performance and memory efficiency depend heavily on whether data structures use value semantics (contiguous stack allocations) or heap pointer indirection. Observe the memory layout below:
+          In Go, algorithmic efficiency and performance stem from understanding memory layout, pointer indirection, and value semantics. Study the visual representation below:
         </p>
 
-        <!-- Memory / Architecture ASCII Diagram -->
-        <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1.4rem; margin:1.2rem 0; font-family:var(--font-mono); font-size:0.86rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45; box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
+        <!-- Rich Visualizer Card (Inspired by DSA-30) -->
+        <div class="dsa-viz-card">
+          <div class="dsa-viz-header">
+            <div class="dsa-viz-title">
+              <span aria-hidden="true" style="color:var(--accent); font-size:1.15rem;">⚡</span>
+              <span>Minimum Spanning Tree: Greedy Edge Selection Without Cycles</span>
+            </div>
+            <span class="dsa-viz-badge">MST Graph</span>
+          </div>
+          <div class="dsa-viz-canvas">
+
+<div style="display:flex; flex-direction:column; align-items:center; gap:0.6rem; width:100%;">
+  <svg class="dsa-svg" width="300" height="120" viewBox="0 0 300 120">
+    <line x1="60" y1="60" x2="150" y2="25" class="tree-edge-line active" stroke-width="3" style="stroke:var(--ok);" />
+    <text x="100" y="35" style="font-size:11px; font-family:var(--font-mono); fill:var(--ok); font-weight:800;">wt: 1 &check;</text>
+
+    <line x1="150" y1="25" x2="240" y2="60" class="tree-edge-line active" stroke-width="3" style="stroke:var(--ok);" />
+    <text x="200" y="35" style="font-size:11px; font-family:var(--font-mono); fill:var(--ok); font-weight:800;">wt: 2 &check;</text>
+
+    <line x1="60" y1="60" x2="240" y2="60" class="tree-edge-line" stroke-dasharray="4" style="stroke:var(--danger); opacity:0.5;" />
+    <text x="150" y="75" style="font-size:10px; font-family:var(--font-mono); fill:var(--danger);">wt: 7 (Cycle! Rejected)</text>
+
+    <circle cx="60" cy="60" r="16" class="tree-node-circle active" />
+    <text x="60" y="60" class="tree-node-text">A</text>
+    <circle cx="150" cy="25" r="16" class="tree-node-circle active" />
+    <text x="150" y="25" class="tree-node-text">B</text>
+    <circle cx="240" cy="60" r="16" class="tree-node-circle active" />
+    <text x="240" y="60" class="tree-node-text">C</text>
+  </svg>
+</div>
+
+          </div>
+          <div class="dsa-viz-caption">
+            <strong>Key Takeaway:</strong> Kruskal's algorithm sorts all edges by weight, utilizing DSU to add edges that connect disjoint components while rejecting edges that form cycles.
+          </div>
+        </div>
+
+        <!-- Low-Level Go Memory Layout (Collapsible Secondary View) -->
+        <details style="border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card); margin:1.2rem 0; overflow:hidden;">
+          <summary style="cursor:pointer; user-select:none; padding:0.75rem 1rem; font-size:0.85rem; font-weight:700; color:var(--text); background:var(--bg-raised); display:flex; justify-content:space-between; align-items:center;">
+            <span>🔍 View Low-Level Go Memory &amp; Pointer Layout</span>
+            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">[Expand ASCII Memory Map]</span>
+          </summary>
+          <div style="padding:1rem; background:var(--bg-sunken);">
+            <div style="font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
 Kruskal&#x27;s Algorithm Flow:
 1. Generate all pairwise edges
 2. Sort edges by ascending weight
 3. Iterate edges: if endpoints belong to different components (DSU), add to MST
 4. Stop when V - 1 edges selected
-        </div>
+            </div>
+          </div>
+        </details>
       </section>
 
       <!-- Section 2: Canonical Problem Statement -->

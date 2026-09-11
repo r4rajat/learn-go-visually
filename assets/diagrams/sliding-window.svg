@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 150">
+  <defs>
+    <style>
+      .box { fill: #fff; stroke: #ccc; stroke-width: 1; }
+      .char { font-family: monospace; font-size: 20px; text-anchor: middle; dominant-baseline: middle; fill: #999; }
+      .active-char { fill: #000; font-weight: bold; }
+      .window { fill: rgba(59, 130, 246, 0.1); stroke: #3b82f6; stroke-width: 3; rx: 4; }
+      .label { font-family: sans-serif; font-size: 14px; fill: #3b82f6; font-weight: bold; }
+    </style>
+  </defs>
+
+  <!-- String -->
+  <rect x="50" y="50" width="40" height="40" class="box" /><text x="70" y="70" class="char">a</text>
+  <rect x="90" y="50" width="40" height="40" class="box" /><text x="110" y="70" class="char active-char">b</text>
+  <rect x="130" y="50" width="40" height="40" class="box" /><text x="150" y="70" class="char active-char">c</text>
+  <rect x="170" y="50" width="40" height="40" class="box" /><text x="190" y="70" class="char active-char">a</text>
+  <rect x="210" y="50" width="40" height="40" class="box" /><text x="230" y="70" class="char">b</text>
+  
+  <!-- Window -->
+  <rect x="90" y="45" width="120" height="50" class="window" />
+  
+  <!-- Pointers -->
+  <text x="90" y="30" class="label">Left</text>
+  <line x1="90" y1="35" x2="90" y2="45" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)" />
+  
+  <text x="210" y="115" class="label" text-anchor="end">Right</text>
+  <line x1="210" y1="100" x2="210" y2="95" stroke="#3b82f6" stroke-width="2" />
+  
+  <text x="300" y="75" class="label" style="fill: #333; font-weight: normal;">Window size = 3</text>
+  <text x="300" y="95" class="label" style="fill: #666; font-size: 12px; font-weight: normal;">(Expand Right, Shrink Left)</text>
+</svg>
