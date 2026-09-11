@@ -163,7 +163,7 @@
           <span class="dsa-day-pill">Day 01</span>
           <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
           <span class="badge-difficulty diff-easy">Easy</span>
-          <span class="badge-complexity badge-ologn">O(1) / O(n) / O(n²) Time</span>
+          <span class="badge-complexity badge-o1">O(1) / O(n) / O(n²) Time</span>
           <span class="badge-complexity badge-o1">O(1) Space</span>
         </div>
         <h1 style="font-size:2.2rem; margin:0 0 0.75rem; color:var(--text);">
@@ -174,14 +174,13 @@
         </p>
       </div>
 
-      <!-- Core Concept & Go Memory Architecture -->
+      <!-- Section 1: Concept & Go Memory Architecture -->
       <section style="margin-bottom: 2.5rem;">
         <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
           1. Concept &amp; Go Memory Architecture
         </div>
         <p style="font-size:0.95rem; color:var(--text); line-height:1.7; margin-bottom:1.2rem;">
-          In Go, performance and memory efficiency stem from understanding value semantics versus pointer indirection.
-          Observe how the runtime lays out the data structure in memory below:
+          In Go, algorithmic performance and memory efficiency depend heavily on whether data structures use value semantics (contiguous stack allocations) or heap pointer indirection. Observe the memory layout below:
         </p>
 
         <!-- Memory / Architecture ASCII Diagram -->
@@ -194,10 +193,10 @@
         </div>
       </section>
 
-      <!-- Problem Statement & Go Solution -->
+      <!-- Section 2: Canonical Problem Statement -->
       <section style="margin-bottom: 2.5rem;">
         <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
-          2. Canonical Problem &amp; Algorithm
+          2. Canonical Problem
         </div>
         <h2 style="font-size:1.35rem; color:var(--text); margin:0 0 0.6rem; display:flex; align-items:center; gap:0.5rem;">
           <span>🎯 Problem:</span> Operation Counting &amp; Growth Rates
@@ -209,13 +208,116 @@
         <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.85rem 1.1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.5rem; font-size:0.9rem; line-height:1.6; color:var(--text);">
           <strong>Key Algorithmic Insight:</strong> Big-O measures work scaling as input grows. When n grows 1,000x from 1,000 to 1,000,000, linear work grows 1,000x, while quadratic work grows 1,000,000x.
         </div>
+      </section>
 
-        <!-- Verified Go Code Panel -->
-        <div class="code-panel" style="margin: 1.5rem 0;">
-          <div class="code-panel-head">
-            <span class="file-path">day01_introduction_to_dsa_and_go_memory_model.go</span>
+      <!-- Section 3: Intuition & Step-by-Step Strategy -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          3. Intuition &amp; Mental Model
+        </div>
+        <p style="font-size:0.95rem; color:var(--text); line-height:1.75; margin-bottom:1.2rem;">
+          Big-O doesn&#x27;t measure runtime in seconds because different machines have different CPU speeds. Instead, it measures how the count of operations grows when the input n multiplies. In Go, understanding whether data escapes to the heap or lives on the 2KB goroutine stack directly determines whether your program allocates memory.
+        </p>
+
+        <h3 style="font-size:1.05rem; font-weight:750; color:var(--text); margin:1.5rem 0 0.8rem;">
+          🪜 Step-by-Step Algorithmic Strategy
+        </h3>
+        <div class="step-card-list">
+          <div class="step-card">
+            <span class="step-number-badge">1</span>
+            <div>Identify the primary input size n (e.g. length of slice).</div>
           </div>
-          <pre><code class="language-go">package main
+          <div class="step-card">
+            <span class="step-number-badge">2</span>
+            <div>Count how many times the most frequent operation executes relative to n.</div>
+          </div>
+          <div class="step-card">
+            <span class="step-number-badge">3</span>
+            <div>Drop lower-order terms and constant coefficients (e.g. 3n² + 5n + 10 becomes O(n²)).</div>
+          </div>
+          <div class="step-card">
+            <span class="step-number-badge">4</span>
+            <div>Check Go escape analysis using `go build -gcflags=&#x27;-m&#x27;` to verify if variables stay on stack or trigger GC heap allocation.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Pseudocode Blueprint & Common Pitfalls -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          4. Structured Pseudocode
+        </div>
+        <p style="font-size:0.93rem; color:var(--text-dim); margin-bottom:0.75rem;">
+          Before looking at Go syntax, study the language-agnostic logic. Trace this mentally with sample inputs:
+        </p>
+
+        <div class="pseudocode-panel">
+          <div class="pseudocode-panel-head">
+            <span>Algorithm Pseudocode</span>
+            <span>Language Independent</span>
+          </div>
+          <pre><code>FUNCTION compareOperations(n):
+    linearOps = 0
+    FOR i FROM 0 TO n - 1:
+        linearOps = linearOps + 1      // Work scales linearly: O(n)
+
+    quadraticOps = 0
+    FOR i FROM 0 TO n - 1:
+        FOR j FROM 0 TO n - 1:
+            quadraticOps = quadraticOps + 1  // Work explodes quadratically: O(n²)
+
+    RETURN linearOps, quadraticOps</code></pre>
+        </div>
+
+        <div class="pitfall-card">
+          <div class="pitfall-title">
+            <span>⚠️ Common Pitfalls &amp; Edge Cases</span>
+          </div>
+          <div>Micro-optimizing inside loops when the true bottleneck is an O(n²) nested loop or unnecessary heap escapes. Always address the asymptotic Big-O class first before tuning constants.</div>
+        </div>
+      </section>
+
+      <!-- Section 5: Challenge Yourself & Collapsible Solution Reveal -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          5. Implementation &amp; Solution
+        </div>
+
+        <!-- Try It First Challenge Card -->
+        <div class="try-first-banner">
+          <div class="try-first-icon">💡</div>
+          <div class="try-first-content">
+            <div class="try-first-title">Try Solving It Yourself First!</div>
+            <p class="try-first-desc">
+              The fastest way to master DSA is active recall. Open your editor or Go playground, define the function signature, and translate the pseudocode above into Go before revealing the reference solution below.
+            </p>
+          </div>
+        </div>
+
+        <!-- Collapsible Solution Box (HIDDEN BY DEFAULT) -->
+        <details class="solution-details">
+          <summary class="solution-summary">
+            <span style="display:flex; align-items:center; gap:0.6rem;">
+              <span>📝 Reveal Verified Go Solution</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">(Click to expand)</span>
+            </span>
+            <span class="solution-badge-cta">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>View Go 1.26 Code</span>
+            </span>
+          </summary>
+          <div class="solution-body">
+            <div class="solution-tip">
+              <span>⚡</span>
+              <span><strong>Go Idiom:</strong> This reference code uses idiomatic Go value semantics, zero heap allocations where possible, and has been compiled and verified with Go 1.26.</span>
+            </div>
+
+            <!-- Code Panel -->
+            <div class="code-panel">
+              <div class="code-panel-head">
+                <span class="file-path">day01_introduction_to_dsa_and_go_memory_model.go</span>
+              </div>
+              <pre><code class="language-go">package main
 
 import &quot;fmt&quot;
 
@@ -241,6 +343,35 @@ func main() {
 		fmt.Printf(&quot;n=%-4d  O(n): %-6d  O(n^2): %d\n&quot;, n, lin, quad)
 	}
 }</code></pre>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 6: Complexity Deep-Dive -->
+      <section style="margin-bottom: 2.5rem; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem 1.6rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.8rem;">
+          6. Asymptotic Complexity Breakdown
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.2rem;">
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:0.25rem;">Time Complexity</div>
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+              <span class="badge-complexity badge-o1" style="font-size:0.95rem;">O(1) / O(n) / O(n²)</span>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin:0; line-height:1.5;">
+              Scales strictly based on input size with optimal operations.
+            </p>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:0.25rem;">Space Complexity</div>
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+              <span class="badge-complexity badge-o1" style="font-size:0.95rem;">O(1)</span>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin:0; line-height:1.5;">
+              Optimized for Go runtime stack allocation without excessive GC escape.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -264,22 +395,8 @@ func main() {
     <div style="margin-bottom:0.75rem; font-weight:700; color:var(--text);">
       Learn Go, Visually &mdash; Open Source Go Learning Portal
     </div>
-    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:1rem;">
-      Every code example on this site is compiled and verified against a real Go 1.26 toolchain before publishing,
-      and links out to the official Go Playground so you can run it yourself.
-    </p>
-    <div style="display:flex; justify-content:center; gap:1.2rem; font-size:0.86rem; flex-wrap:wrap;">
-      <a href="https://learn-go.r4rajat.com">learn-go.r4rajat.com</a>
-      <span>&bull;</span>
-      <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
-      <span>&bull;</span>
-      <a href="../dsa-30.html">30 Days DSA Hub</a>
-      <span>&bull;</span>
-      <a href="../basics.html">Basics</a>
-      <span>&bull;</span>
-      <a href="../concurrency.html">Concurrency</a>
-      <span>&bull;</span>
-      <a href="../coding-interview.html">Coding Qs</a>
+    <div style="font-size:0.85rem; color:var(--text-muted);">
+      Inspired by <a href="https://github.com/r4rajat/DSA-30" target="_blank" rel="noopener">DSA-30</a> &bull; Handcrafted for Go developers mastering algorithms.
     </div>
   </div>
 </footer>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>30 Days of DSA in Go — Learn Go, Visually</title>
-<meta name="description" content="A complete 30-day Data Structures and Algorithms curriculum tailored for Go developers. Interactive visualizers, memory diagrams, Big-O tables, and dedicated day-by-day pages with Go 1.26 solutions.">
+<meta name="description" content="A complete 30-day Data Structures and Algorithms curriculum tailored for Go developers. Interactive visualizers, memory diagrams, Big-O tables, and idiomatic Go implementations for all 30 days.">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -46,7 +46,7 @@
           <span class="ping"></span>
           <span class="dot"></span>
         </span>
-        <span>DSA-30 in Go · 30 Days · 30 Dedicated Pages · 100% Idiomatic Go</span>
+        <span>DSA-30 in Go · 30 Days · 30 Topics · 100% Idiomatic Go &amp; Generics</span>
       </div>
 
       <h1 class="hero-title">
@@ -55,24 +55,16 @@
 
       <p class="hero-subhead">
         A structured, visual journey through fundamental to advanced Data Structures and Algorithms &mdash;
-        with dedicated page-by-page movement just like DSA-30. Experience slice backing memory, pointer mechanics,
-        standard library <code>container/heap</code>, and concurrent divide-and-conquer firsthand.
+        engineered specifically for Gophers. Experience slice backing memory, pointer mechanics,
+        standard library <code>container/heap</code>, and concurrent divide-and-conquer firsthand with
+        complete day-by-day runnable Go implementations.
       </p>
-
-      <div style="display:flex; justify-content:center; gap:1rem; margin:1.8rem 0 2.5rem; flex-wrap:wrap;">
-        <a href="dsa/day1.html" class="btn btn-primary" style="padding:0.7rem 1.8rem; font-size:1.02rem; font-weight:700;">
-          Start Day 1: Introduction &rarr;
-        </a>
-        <a href="#curriculum-grid" class="btn btn-secondary" style="padding:0.7rem 1.5rem; font-size:1.02rem;">
-          Explore Syllabus &darr;
-        </a>
-      </div>
 
       <!-- Stat Strip -->
       <div class="stat-strip" style="margin: 2.5rem auto 3rem; max-width: 960px;">
         <div class="stat-card">
           <div class="stat-number">30</div>
-          <div class="stat-label">Dedicated Day Pages</div>
+          <div class="stat-label">Days of Detailed DSA</div>
         </div>
         <div class="stat-card">
           <div class="stat-number">8</div>
@@ -84,7 +76,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-number">Go 1.26</div>
-          <div class="stat-label">Verified Go Code Examples</div>
+          <div class="stat-label">Verified Go Implementations</div>
         </div>
       </div>
     </section>
@@ -338,13 +330,13 @@
     </section>
 
     <!-- ──────────────────────── 30-DAY CURRICULUM OVERVIEW GRID ──────────────────────── -->
-    <section id="curriculum-grid" style="margin-bottom: 4rem;">
+    <section style="margin-bottom: 4rem;">
       <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
         <div>
           <span class="viz-badge">Curriculum Road Map</span>
-          <h2 style="margin:0.25rem 0 0.5rem; font-size:1.6rem; color:var(--text);">The 30-Day Path &mdash; Select Any Day</h2>
+          <h2 style="margin:0.25rem 0 0.5rem; font-size:1.6rem; color:var(--text);">The 30-Day Path Overview</h2>
           <p style="color:var(--text-dim); font-size:0.92rem; margin:0;">
-            Click any card to open its dedicated page with interactive visualizers, Go memory breakdown, and code.
+            Select a phase, search for concepts, or click any card to jump straight to its comprehensive deep-dive below.
           </p>
         </div>
 
@@ -368,10 +360,10 @@
         <button class="dsa-phase-btn" data-phase="8">Phase 8: Synthesis (Days 28-30)</button>
       </div>
 
-      <!-- 30-Day Grid Cards linking to individual dedicated day pages -->
+      <!-- 30-Day Grid Cards -->
       <div class="dsa-grid">
 
-        <a href="dsa/day1.html" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
+        <a href="#day-1" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 01</span>
@@ -389,7 +381,7 @@
             <span class="badge-difficulty diff-easy">Easy</span>
           </div>
         </a>
-        <a href="dsa/day2.html" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
+        <a href="#day-2" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 02</span>
@@ -407,7 +399,7 @@
             <span class="badge-difficulty diff-easy">Easy</span>
           </div>
         </a>
-        <a href="dsa/day3.html" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
+        <a href="#day-3" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 03</span>
@@ -425,7 +417,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day4.html" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
+        <a href="#day-4" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 04</span>
@@ -443,7 +435,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day5.html" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
+        <a href="#day-5" class="dsa-card" data-phase="1" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 05</span>
@@ -461,7 +453,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day6.html" class="dsa-card" data-phase="2" style="text-decoration:none; color:inherit;">
+        <a href="#day-6" class="dsa-card" data-phase="2" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 06</span>
@@ -479,7 +471,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day7.html" class="dsa-card" data-phase="2" style="text-decoration:none; color:inherit;">
+        <a href="#day-7" class="dsa-card" data-phase="2" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 07</span>
@@ -497,7 +489,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day8.html" class="dsa-card" data-phase="2" style="text-decoration:none; color:inherit;">
+        <a href="#day-8" class="dsa-card" data-phase="2" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 08</span>
@@ -515,7 +507,7 @@
             <span class="badge-difficulty diff-easy">Easy</span>
           </div>
         </a>
-        <a href="dsa/day9.html" class="dsa-card" data-phase="3" style="text-decoration:none; color:inherit;">
+        <a href="#day-9" class="dsa-card" data-phase="3" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 09</span>
@@ -533,7 +525,7 @@
             <span class="badge-difficulty diff-easy">Easy</span>
           </div>
         </a>
-        <a href="dsa/day10.html" class="dsa-card" data-phase="3" style="text-decoration:none; color:inherit;">
+        <a href="#day-10" class="dsa-card" data-phase="3" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 10</span>
@@ -551,7 +543,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day11.html" class="dsa-card" data-phase="4" style="text-decoration:none; color:inherit;">
+        <a href="#day-11" class="dsa-card" data-phase="4" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 11</span>
@@ -569,7 +561,7 @@
             <span class="badge-difficulty diff-easy">Easy</span>
           </div>
         </a>
-        <a href="dsa/day12.html" class="dsa-card" data-phase="4" style="text-decoration:none; color:inherit;">
+        <a href="#day-12" class="dsa-card" data-phase="4" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 12</span>
@@ -587,7 +579,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day13.html" class="dsa-card" data-phase="4" style="text-decoration:none; color:inherit;">
+        <a href="#day-13" class="dsa-card" data-phase="4" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 13</span>
@@ -605,7 +597,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day14.html" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
+        <a href="#day-14" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 14</span>
@@ -623,7 +615,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day15.html" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
+        <a href="#day-15" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 15</span>
@@ -641,7 +633,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day16.html" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
+        <a href="#day-16" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 16</span>
@@ -659,7 +651,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day17.html" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
+        <a href="#day-17" class="dsa-card" data-phase="5" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 17</span>
@@ -677,7 +669,7 @@
             <span class="badge-difficulty diff-easy">Easy</span>
           </div>
         </a>
-        <a href="dsa/day18.html" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
+        <a href="#day-18" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 18</span>
@@ -695,7 +687,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day19.html" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
+        <a href="#day-19" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 19</span>
@@ -713,7 +705,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day20.html" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
+        <a href="#day-20" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 20</span>
@@ -731,7 +723,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day21.html" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
+        <a href="#day-21" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 21</span>
@@ -749,7 +741,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day22.html" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
+        <a href="#day-22" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 22</span>
@@ -767,7 +759,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day23.html" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
+        <a href="#day-23" class="dsa-card" data-phase="6" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 23</span>
@@ -785,7 +777,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day24.html" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
+        <a href="#day-24" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 24</span>
@@ -803,7 +795,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day25.html" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
+        <a href="#day-25" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 25</span>
@@ -821,7 +813,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day26.html" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
+        <a href="#day-26" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 26</span>
@@ -839,7 +831,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day27.html" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
+        <a href="#day-27" class="dsa-card" data-phase="7" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 27</span>
@@ -857,7 +849,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day28.html" class="dsa-card" data-phase="8" style="text-decoration:none; color:inherit;">
+        <a href="#day-28" class="dsa-card" data-phase="8" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 28</span>
@@ -875,7 +867,7 @@
             <span class="badge-difficulty diff-hard">Hard</span>
           </div>
         </a>
-        <a href="dsa/day29.html" class="dsa-card" data-phase="8" style="text-decoration:none; color:inherit;">
+        <a href="#day-29" class="dsa-card" data-phase="8" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 29</span>
@@ -893,7 +885,7 @@
             <span class="badge-difficulty diff-medium">Medium</span>
           </div>
         </a>
-        <a href="dsa/day30.html" class="dsa-card" data-phase="8" style="text-decoration:none; color:inherit;">
+        <a href="#day-30" class="dsa-card" data-phase="8" style="text-decoration:none; color:inherit;">
           <div>
             <div class="dsa-card-header">
               <span class="dsa-day-pill">Day 30</span>
@@ -912,6 +904,3425 @@
           </div>
         </a>
       </div>
+    </section>
+
+    <!-- ──────────────────────── COMPREHENSIVE DAY-BY-DAY DEEP DIVE ──────────────────────── -->
+    <section id="day-by-day" style="margin-top: 4rem;">
+      <div style="text-align:center; max-width:800px; margin:0 auto 2.5rem;">
+        <span class="eyebrow">Complete Syllabus &amp; Solutions</span>
+        <h2 style="font-size:2rem; margin:0.5rem 0 1rem; color:var(--text);">
+          Day-by-Day <span class="gradient-text">Complete Deep Dive</span>
+        </h2>
+        <p style="color:var(--text-dim); font-size:1rem; line-height:1.6;">
+          Every single day from Day 1 to Day 30 &mdash; detailed concepts, ASCII memory layouts,
+          problem statements, and verified, idiomatic Go implementations with time &amp; space complexity breakdowns.
+        </p>
+      </div>
+
+      <!-- Quick Day Jump Rail -->
+      <div style="background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:3rem; box-shadow:var(--shadow-sm);">
+        <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">
+          Quick Jump to Day:
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+
+          <a href="#day-1" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D01</a>
+          <a href="#day-2" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D02</a>
+          <a href="#day-3" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D03</a>
+          <a href="#day-4" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D04</a>
+          <a href="#day-5" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D05</a>
+          <a href="#day-6" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D06</a>
+          <a href="#day-7" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D07</a>
+          <a href="#day-8" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D08</a>
+          <a href="#day-9" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D09</a>
+          <a href="#day-10" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D10</a>
+          <a href="#day-11" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D11</a>
+          <a href="#day-12" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D12</a>
+          <a href="#day-13" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D13</a>
+          <a href="#day-14" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D14</a>
+          <a href="#day-15" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D15</a>
+          <a href="#day-16" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D16</a>
+          <a href="#day-17" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D17</a>
+          <a href="#day-18" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D18</a>
+          <a href="#day-19" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D19</a>
+          <a href="#day-20" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D20</a>
+          <a href="#day-21" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D21</a>
+          <a href="#day-22" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D22</a>
+          <a href="#day-23" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D23</a>
+          <a href="#day-24" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D24</a>
+          <a href="#day-25" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D25</a>
+          <a href="#day-26" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D26</a>
+          <a href="#day-27" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D27</a>
+          <a href="#day-28" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D28</a>
+          <a href="#day-29" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D29</a>
+          <a href="#day-30" class="dsa-phase-btn" style="padding:0.25em 0.65em; font-size:0.78rem; text-decoration:none;">D30</a>
+        </div>
+      </div>
+
+      <!-- 30 Full Day Deep Dive Sections -->
+
+      <!-- ──────────────── DAY 01 ──────────────── -->
+      <article class="code-panel" id="day-1" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 01</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Introduction to DSA &amp; Go Memory Model
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">O(1) / O(n) / O(n²) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 1 · Fundamentals &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Why data structures matter in Go. Stack vs. Heap allocation, the cost of garbage collection, escape analysis (`go build -gcflags=&#x27;-m&#x27;`), and understanding asymptotic growth rates.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+[Stack Frame (Fast, 2KB Base)]  VS  [Heap (Managed by Go GC)]
+┌───────────────────────────┐        ┌───────────────────────────┐
+│ Local primitives, values  │        │ Escaped pointers, large   │
+│ Inlined structs, slices   │        │ dynamic slices, channels  │
+└───────────────────────────┘        └───────────────────────────┘
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Operation Counting &amp; Growth Rates
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Demonstrate the concrete difference between linear O(n) scan and quadratic O(n²) pair comparisons for input size n.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Big-O measures work scaling as input grows. When n grows 1,000x from 1,000 to 1,000,000, linear work grows 1,000x, while quadratic work grows 1,000,000x.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day01_introduction_to_dsa_and_go_memory_model.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+// CountOps demonstrates O(n) vs O(n^2) operation counts
+func CountOps(n int) (int, int) {
+	linearOps := 0
+	for i := 0; i &lt; n; i++ {
+		linearOps++ // Executes exactly n times
+	}
+
+	quadraticOps := 0
+	for i := 0; i &lt; n; i++ {
+		for j := 0; j &lt; n; j++ {
+			quadraticOps++ // Executes n * n times
+		}
+	}
+	return linearOps, quadraticOps
+}
+
+func main() {
+	for _, n := range []int{10, 100, 1000} {
+		lin, quad := CountOps(n)
+		fmt.Printf(&quot;n=%-4d  O(n): %-6d  O(n^2): %d\n&quot;, n, lin, quad)
+	}
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><span></span></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-2" class="btn btn-sm btn-secondary">Day 02 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 02 ──────────────── -->
+      <article class="code-panel" id="day-2" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 02</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Arrays &amp; Strings in Go
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 1 · Fundamentals &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Fixed-size arrays [N]T vs slice headers (24 bytes in 64-bit Go). Strings as immutable byte slices, rune decoding for multi-byte Unicode UTF-8, and prefix sum technique.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+SliceHeader (24 Bytes):
+┌──────────────┬──────────────┬──────────────┐
+│  Data (Ptr)  │   Len (int)  │   Cap (int)  │
+│    0x1040    │       3      │       6      │
+└──────┬───────┴──────────────┴──────────────┘
+       │
+       ▼ Backing Array (Contiguous RAM):
+┌──────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
+│ [0] = 10 │ [1] = 20 │ [2] = 30 │  (uninit)│  (uninit)│  (uninit)│
+└──────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Best Time to Buy and Sell Stock (LeetCode 121)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an array prices where prices[i] is the stock price on day i, maximize your profit by choosing one day to buy and a future day to sell.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Track the lowest buying price seen so far (minPrice) and compute profit = price - minPrice at each step in a single O(n) pass.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day02_arrays_and_strings_in_go.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func maxProfit(prices []int) int {
+	if len(prices) == 0 {
+		return 0
+	}
+	minPrice := prices[0]
+	maxProfit := 0
+
+	for _, p := range prices[1:] {
+		// Could we achieve a greater profit selling today?
+		if p-minPrice &gt; maxProfit {
+			maxProfit = p - minPrice
+		}
+		// Update the cheapest buying price seen so far
+		if p &lt; minPrice {
+			minPrice = p
+		}
+	}
+	return maxProfit
+}
+
+func main() {
+	prices := []int{7, 1, 5, 3, 6, 4}
+	fmt.Println(&quot;Max Profit:&quot;, maxProfit(prices)) // Output: 5
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-1" class="btn btn-sm btn-secondary">&larr; Day 01</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-3" class="btn btn-sm btn-secondary">Day 03 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 03 ──────────────── -->
+      <article class="code-panel" id="day-3" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 03</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Linked Lists with Go Generics
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 1 · Fundamentals &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Pointers in Go, constructing generic Singly and Doubly Linked Lists using `Node[T any]`, sentinel dummy nodes to eliminate edge-case nil checks, and Floyd&#x27;s cycle detection.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Singly Linked List:
+┌──────┬──────┐    ┌──────┬──────┐    ┌──────┬──────┐
+│Val: 1│ Next ┼───►│Val: 2│ Next ┼───►│Val: 3│ nil  │
+└──────┴──────┘    └──────┴──────┘    └──────┴──────┘
+  Head                                 Tail
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Reverse Linked List &amp; Detect Cycle (LeetCode 206 &amp; 141)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              1. Reverse a singly linked list in-place in O(n) time and O(1) space. 2. Detect if a linked list contains a cycle using two pointers.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> For reversal, maintain prev, curr, next pointers and redirect curr.Next = prev. For cycle detection, slow moves 1 step and fast moves 2 steps; they meet if and only if a cycle exists.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day03_linked_lists_with_go_generics.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type ListNode[T any] struct {
+	Val  T
+	Next *ListNode[T]
+}
+
+// ReverseList reverses a linked list in-place
+func ReverseList[T any](head *ListNode[T]) *ListNode[T] {
+	var prev *ListNode[T]
+	curr := head
+	for curr != nil {
+		nextTemp := curr.Next
+		curr.Next = prev
+		prev = curr
+		curr = nextTemp
+	}
+	return prev
+}
+
+// HasCycle detects loops using Floyd&#x27;s Tortoise and Hare
+func HasCycle[T any](head *ListNode[T]) bool {
+	slow, fast := head, head
+	for fast != nil &amp;&amp; fast.Next != nil {
+		slow = slow.Next
+		fast = fast.Next.Next
+		if slow == fast {
+			return true
+		}
+	}
+	return false
+}
+
+func main() {
+	n3 := &amp;ListNode[int]{Val: 3, Next: nil}
+	n2 := &amp;ListNode[int]{Val: 2, Next: n3}
+	n1 := &amp;ListNode[int]{Val: 1, Next: n2}
+
+	rev := ReverseList(n1)
+	for curr := rev; curr != nil; curr = curr.Next {
+		fmt.Printf(&quot;%d -&gt; &quot;, curr.Val)
+	}
+	fmt.Println(&quot;nil&quot;) // 3 -&gt; 2 -&gt; 1 -&gt; nil
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-2" class="btn btn-sm btn-secondary">&larr; Day 02</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-4" class="btn btn-sm btn-secondary">Day 04 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 04 ──────────────── -->
+      <article class="code-panel" id="day-4" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 04</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Stacks &amp; Queues
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(1) Push/Pop Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 1 · Fundamentals &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              LIFO (Last-In, First-Out) and FIFO (First-In, First-Out) structures. Idiomatic Go slice stacks, circular queue ring buffers, and Monotonic Stacks.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Stack (LIFO):                   Queue (FIFO):
+┌──────────┐                     Head                  Tail
+│ [2] = 30 │ &lt;-- TOP             ┌─────┬─────┬─────┬─────┐
+├──────────┤                     │ 10  │ 20  │ 30  │ 40  │
+│ [1] = 20 │                     └─────┴─────┴─────┴─────┘
+├──────────┤                     Dequeue               Enqueue
+│ [0] = 10 │                     &lt;--                   &lt;--
+└──────────┘
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Valid Parentheses (LeetCode 20)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given a string s containing &#x27;(&#x27;, &#x27;)&#x27;, &#x27;{&#x27;, &#x27;}&#x27;, &#x27;[&#x27; and &#x27;]&#x27;, determine if the input string is valid by matching corresponding brackets.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Push opening brackets onto a stack. When a closing bracket arrives, verify that the top element matches; if not or stack is empty, return false.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day04_stacks_and_queues.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func isValid(s string) bool {
+	stack := make([]rune, 0, len(s))
+	pairs := map[rune]rune{&#x27;)&#x27;: &#x27;(&#x27;, &#x27;]&#x27;: &#x27;[&#x27;, &#x27;}&#x27;: &#x27;{&#x27;}
+
+	for _, ch := range s {
+		if open, isClose := pairs[ch]; isClose {
+			if len(stack) == 0 || stack[len(stack)-1] != open {
+				return false
+			}
+			stack = stack[:len(stack)-1] // Pop
+		} else {
+			stack = append(stack, ch) // Push
+		}
+	}
+	return len(stack) == 0
+}
+
+func main() {
+	fmt.Println(&quot;()[]{}:&quot;, isValid(&quot;()[]{}&quot;)) // true
+	fmt.Println(&quot;(]:&quot;, isValid(&quot;(]&quot;))         // false
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-3" class="btn btn-sm btn-secondary">&larr; Day 03</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-5" class="btn btn-sm btn-secondary">Day 05 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 05 ──────────────── -->
+      <article class="code-panel" id="day-5" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 05</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Recursion &amp; Call Stacks
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) / O(2ⁿ) Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 1 · Fundamentals &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              How Go handles function calls on the stack. Goroutines start with 2KB stack frames that dynamically double as needed. Base cases, recurrence relations, and memoization.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Call Stack Frames:
+┌─────────────────────────────────┐
+│ climbStairs(1) -&gt; returns 1     │
+├─────────────────────────────────┤
+│ climbStairs(2) -&gt; returns 2     │
+├─────────────────────────────────┤
+│ climbStairs(3) -&gt; f(2) + f(1)=3 │
+├─────────────────────────────────┤
+│ main()                          │
+└─────────────────────────────────┘
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Climbing Stairs with Memoization (LeetCode 70)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              You are climbing a staircase with n steps. Each time you can climb 1 or 2 steps. In how many distinct ways can you reach the top?
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Ways to step n equals ways(n-1) + ways(n-2). Without memoization, recursion is O(2ⁿ); with memoization or iterative DP, it runs in O(n) time and O(1) space.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day05_recursion_and_call_stacks.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+// climbStairs with O(1) space Fibonacci optimization
+func climbStairs(n int) int {
+	if n &lt;= 2 {
+		return n
+	}
+	prev2, prev1 := 1, 2
+	for i := 3; i &lt;= n; i++ {
+		curr := prev1 + prev2
+		prev2 = prev1
+		prev1 = curr
+	}
+	return prev1
+}
+
+func main() {
+	fmt.Println(&quot;Ways for n=5:&quot;, climbStairs(5)) // 8
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-4" class="btn btn-sm btn-secondary">&larr; Day 04</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-6" class="btn btn-sm btn-secondary">Day 06 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 06 ──────────────── -->
+      <article class="code-panel" id="day-6" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 06</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Binary Trees &amp; BSTs
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(h) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 2 · Trees & Hashing &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Pointer-based trees in Go. Pre-order, In-order, and Post-order DFS traversals, BFS level-order using slice queues, and validating Binary Search Tree invariants.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Binary Search Tree Property (Left &lt; Root &lt; Right):
+            [ 10 ]
+           /      \
+       [ 5 ]      [ 15 ]
+      /    \      /    \
+    [ 2 ]  [ 7 ] [12]  [20]
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Validate Binary Search Tree (LeetCode 98)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given the root of a binary tree, determine if it is a valid binary search tree (BST).
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Every node must satisfy min &lt; node.Val &lt; max. When recursing left, update max; when recursing right, update min.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day06_binary_trees_and_bsts.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type TreeNode struct {
+	Val   int
+	Left  *TreeNode
+	Right *TreeNode
+}
+
+func isValidBST(root *TreeNode) bool {
+	var validate func(node *TreeNode, minVal, maxVal *int) bool
+	validate = func(node *TreeNode, minVal, maxVal *int) bool {
+		if node == nil {
+			return true
+		}
+		if minVal != nil &amp;&amp; node.Val &lt;= *minVal {
+			return false
+		}
+		if maxVal != nil &amp;&amp; node.Val &gt;= *maxVal {
+			return false
+		}
+		return validate(node.Left, minVal, &amp;node.Val) &amp;&amp;
+			validate(node.Right, &amp;node.Val, maxVal)
+	}
+	return validate(root, nil, nil)
+}
+
+func main() {
+	tree := &amp;TreeNode{
+		Val:   10,
+		Left:  &amp;TreeNode{Val: 5},
+		Right: &amp;TreeNode{Val: 15},
+	}
+	fmt.Println(&quot;Is valid BST:&quot;, isValidBST(tree)) // true
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-5" class="btn btn-sm btn-secondary">&larr; Day 05</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-7" class="btn btn-sm btn-secondary">Day 07 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 07 ──────────────── -->
+      <article class="code-panel" id="day-7" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 07</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Heaps &amp; Priority Queues
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n log k) Time</span>
+            <span class="badge-complexity badge-o1">O(k) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 2 · Trees & Hashing &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Array-based binary heaps (left child = 2i+1, right child = 2i+2). Mastering Go&#x27;s standard library `container/heap` interface: Len(), Less(), Swap(), Push(), and Pop().
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Min-Heap Array Mapping:
+Index:   0    1    2    3    4    5
+Array: [ 2 ][ 5 ][ 3 ][ 8 ][ 7 ][ 6 ]
+Tree:
+             [2] (i=0)
+           /     \
+       [5] (1)   [3] (2)
+      /   \      /
+    [8]   [7]  [6]
+    (3)   (4)  (5)
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Top K Frequent Elements (LeetCode 347)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an integer array nums and an integer k, return the k most frequent elements using a min-heap.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Count frequencies with a map, then push into a Min-Heap of size k. If heap size exceeds k, pop the minimum frequency. Leaves top-k elements in O(n log k) time.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day07_heaps_and_priority_queues.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import (
+	&quot;container/heap&quot;
+	&quot;fmt&quot;
+)
+
+type Item struct {
+	val, count int
+}
+
+type MinHeap []Item
+
+func (h MinHeap) Len() int           { return len(h) }
+func (h MinHeap) Less(i, j int) bool { return h[i].count &lt; h[j].count }
+func (h MinHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *MinHeap) Push(x any)        { *h = append(*h, x.(Item)) }
+func (h *MinHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[:n-1]
+	return x
+}
+
+func topKFrequent(nums []int, k int) []int {
+	freq := make(map[int]int)
+	for _, n := range nums {
+		freq[n]++
+	}
+
+	h := &amp;MinHeap{}
+	heap.Init(h)
+
+	for val, count := range freq {
+		heap.Push(h, Item{val, count})
+		if h.Len() &gt; k {
+			heap.Pop(h)
+		}
+	}
+
+	result := make([]int, k)
+	for i := k - 1; i &gt;= 0; i-- {
+		result[i] = heap.Pop(h).(Item).val
+	}
+	return result
+}
+
+func main() {
+	fmt.Println(&quot;Top 2 frequent:&quot;, topKFrequent([]int{1, 1, 1, 2, 2, 3}, 2)) // [1, 2]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-6" class="btn btn-sm btn-secondary">&larr; Day 06</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-8" class="btn btn-sm btn-secondary">Day 08 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 08 ──────────────── -->
+      <article class="code-panel" id="day-8" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 08</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Hash Tables &amp; Go Runtime Maps
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 2 · Trees & Hashing &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Inside Go&#x27;s runtime map: `hmap` and 8-slot `bmap` buckets. Top-hash byte comparisons, overflow buckets for collision chaining, and incremental rehashing.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Go Runtime hmap Architecture:
+┌──────────┐       Buckets Array ([]bmap):
+│   hmap   │       ┌──────────────────────────────────────────────┐
+│  count   │       │ Bucket 0: [tophash: 8B][keys: 8][vals: 8][overflow]
+│  B=3     ├───►   ├──────────────────────────────────────────────┤
+│  buckets │       │ Bucket 1: [tophash: 8B][keys: 8][vals: 8][overflow]
+└──────────┘       └──────────────────────────────────────────────┘
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Group Anagrams (LeetCode 49)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an array of strings strs, group the anagrams together in any order.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Use a character count array [26]byte as the map key. Because arrays are comparable values in Go, [26]byte works directly as a map key with zero heap string allocations!
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day08_hash_tables_and_go_runtime_maps.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func groupAnagrams(strs []string) [][]string {
+	// [26]byte is a value type in Go, so it can be a map key directly!
+	groups := make(map[[26]byte][]string)
+
+	for _, s := range strs {
+		var count [26]byte
+		for i := 0; i &lt; len(s); i++ {
+			count[s[i]-&#x27;a&#x27;]++
+		}
+		groups[count] = append(groups[count], s)
+	}
+
+	res := make([][]string, 0, len(groups))
+	for _, g := range groups {
+		res = append(res, g)
+	}
+	return res
+}
+
+func main() {
+	strs := []string{&quot;eat&quot;, &quot;tea&quot;, &quot;tan&quot;, &quot;ate&quot;, &quot;nat&quot;, &quot;bat&quot;}
+	fmt.Println(&quot;Grouped:&quot;, groupAnagrams(strs))
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-7" class="btn btn-sm btn-secondary">&larr; Day 07</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-9" class="btn btn-sm btn-secondary">Day 09 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 09 ──────────────── -->
+      <article class="code-panel" id="day-9" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 09</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Graph Representations in Go
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">O(V + E) Time</span>
+            <span class="badge-complexity badge-o1">O(V + E) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 3 · Graphs &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Representing sparse and dense networks. Adjacency lists using Go maps `map[int][]int` vs adjacency matrices `[][]int`. Undirected vs directed graphs and degree counting.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Graph:                 Adjacency List (map[int][]int):
+ (0) ─── (1)           0 -&gt; [1, 2]
+  │       │            1 -&gt; [0, 2]
+  └─────►(2)           2 -&gt; [0, 1]
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Find if Path Exists in Graph (LeetCode 1971)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an undirected graph with n vertices and a list of edges, determine if there is a valid path from source to destination.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Build the adjacency list, then traverse from source using a BFS queue and a visited boolean slice.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day09_graph_representations_in_go.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func validPath(n int, edges [][]int, source int, destination int) bool {
+	if source == destination {
+		return true
+	}
+	adj := make(map[int][]int, n)
+	for _, e := range edges {
+		adj[e[0]] = append(adj[e[0]], e[1])
+		adj[e[1]] = append(adj[e[1]], e[0])
+	}
+
+	visited := make([]bool, n)
+	visited[source] = true
+	queue := []int{source}
+
+	for len(queue) &gt; 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		if curr == destination {
+			return true
+		}
+		for _, nxt := range adj[curr] {
+			if !visited[nxt] {
+				visited[nxt] = true
+				queue = append(queue, nxt)
+			}
+		}
+	}
+	return false
+}
+
+func main() {
+	edges := [][]int{{0, 1}, {1, 2}, {2, 0}}
+	fmt.Println(&quot;Path exists (0-&gt;2):&quot;, validPath(3, edges, 0, 2)) // true
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-8" class="btn btn-sm btn-secondary">&larr; Day 08</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-10" class="btn btn-sm btn-secondary">Day 10 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 10 ──────────────── -->
+      <article class="code-panel" id="day-10" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 10</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Graph Traversals: DFS &amp; BFS
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(M × N) Time</span>
+            <span class="badge-complexity badge-o1">O(M × N) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 3 · Graphs &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Deep dive into Depth-First Search (recursion / call stack) and Breadth-First Search (FIFO queue). Grid-based graphs, connected components, and flood fill algorithms.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+DFS (Explore deep):             BFS (Explore level by level):
+    (1)                             (1) Level 0
+    /                               / \
+  (2)                             (2) (3) Level 1
+  /                               / \
+(3)                             (4) (5) Level 2
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Number of Islands (LeetCode 200)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an m x n 2D binary grid grid which represents a map of &#x27;1&#x27;s (land) and &#x27;0&#x27;s (water), return the number of islands.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Iterate through each cell. When land (&#x27;1&#x27;) is encountered, increment island count and trigger a 4-directional DFS flood fill mutating visited cells to &#x27;0&#x27;.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day10_graph_traversals:_dfs_and_bfs.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func numIslands(grid [][]byte) int {
+	if len(grid) == 0 {
+		return 0
+	}
+	m, n := len(grid), len(grid[0])
+	count := 0
+
+	var dfs func(r, c int)
+	dfs = func(r, c int) {
+		if r &lt; 0 || r &gt;= m || c &lt; 0 || c &gt;= n || grid[r][c] != &#x27;1&#x27; {
+			return
+		}
+		grid[r][c] = &#x27;0&#x27; // Sink island in-place (no visited map needed)
+		dfs(r+1, c)
+		dfs(r-1, c)
+		dfs(r, c+1)
+		dfs(r, c-1)
+	}
+
+	for i := 0; i &lt; m; i++ {
+		for j := 0; j &lt; n; j++ {
+			if grid[i][j] == &#x27;1&#x27; {
+				count++
+				dfs(i, j)
+			}
+		}
+	}
+	return count
+}
+
+func main() {
+	grid := [][]byte{
+		{&#x27;1&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;0&#x27;, &#x27;0&#x27;},
+		{&#x27;1&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;0&#x27;, &#x27;0&#x27;},
+		{&#x27;0&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;0&#x27;},
+		{&#x27;0&#x27;, &#x27;0&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;1&#x27;},
+	}
+	fmt.Println(&quot;Islands:&quot;, numIslands(grid)) // 3
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-9" class="btn btn-sm btn-secondary">&larr; Day 09</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-11" class="btn btn-sm btn-secondary">Day 11 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 11 ──────────────── -->
+      <article class="code-panel" id="day-11" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 11</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Sorting Algorithms - I
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">O(m + n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 4 · Sorting & Searching &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Elementary comparison sorts: Bubble Sort, Selection Sort, and Insertion Sort. Analyzing inversion counts, stability in sorting, and two-pointer backward merging.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Three-Pointer In-Place Merge (Back-to-Front):
+nums1: [ 1 ][ 2 ][ 3 ][ 0 ][ 0 ][ 0 ]
+                   ▲               ▲
+                   p1              p (Write position)
+nums2: [ 2 ][ 5 ][ 6 ]
+                   ▲
+                   p2
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Merge Sorted Array (LeetCode 88)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given two integer arrays nums1 and nums2, sorted in non-decreasing order, merge nums2 into nums1 in-place as one sorted array.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> By filling nums1 from the back (index m + n - 1), we avoid overwriting unexamined elements in nums1, achieving O(1) auxiliary space.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day11_sorting_algorithms_-_i.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func merge(nums1 []int, m int, nums2 []int, n int) {
+	p1 := m - 1
+	p2 := n - 1
+	p := m + n - 1
+
+	for p2 &gt;= 0 {
+		if p1 &gt;= 0 &amp;&amp; nums1[p1] &gt; nums2[p2] {
+			nums1[p] = nums1[p1]
+			p1--
+		} else {
+			nums1[p] = nums2[p2]
+			p2--
+		}
+		p--
+	}
+}
+
+func main() {
+	n1 := []int{1, 2, 3, 0, 0, 0}
+	n2 := []int{2, 5, 6}
+	merge(n1, 3, n2, 3)
+	fmt.Println(&quot;Merged:&quot;, n1) // [1 2 2 3 5 6]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-10" class="btn btn-sm btn-secondary">&larr; Day 10</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-12" class="btn btn-sm btn-secondary">Day 12 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 12 ──────────────── -->
+      <article class="code-panel" id="day-12" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 12</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Sorting Algorithms - II &amp; pdqsort
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) avg / O(n²) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 4 · Sorting & Searching &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Divide-and-conquer sorts: MergeSort, QuickSort with 3-way Dutch National Flag partitioning, and HeapSort. Deep dive into Go 1.19+&#x27;s built-in `pdqsort` (Pattern-Defeating QuickSort).
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Quickselect Partitioning (Lomuto / Hoare):
+Pivot = 4
+[ 3 ][ 2 ][ 1 ]  [ 4 ]  [ 6 ][ 5 ]
+ &lt; Pivot         Pivot   &gt; Pivot
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Kth Largest Element in an Array (LeetCode 215)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an integer array nums and an integer k, return the kth largest element in the array using Quickselect.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Quickselect only recurses into the partition containing the target index (len - k), dropping the average time complexity from O(n log n) to O(n).
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day12_sorting_algorithms_-_ii_and_pdqsort.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func findKthLargest(nums []int, k int) int {
+	target := len(nums) - k
+
+	var quickSelect func(l, r int) int
+	quickSelect = func(l, r int) int {
+		pivot := nums[r]
+		p := l
+		for i := l; i &lt; r; i++ {
+			if nums[i] &lt;= pivot {
+				nums[p], nums[i] = nums[i], nums[p]
+				p++
+			}
+		}
+		nums[p], nums[r] = nums[r], nums[p]
+
+		if p == target {
+			return nums[p]
+		}
+		if p &lt; target {
+			return quickSelect(p+1, r)
+		}
+		return quickSelect(l, p-1)
+	}
+
+	return quickSelect(0, len(nums)-1)
+}
+
+func main() {
+	nums := []int{3, 2, 1, 5, 6, 4}
+	fmt.Println(&quot;2nd largest:&quot;, findKthLargest(nums, 2)) // 5
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-11" class="btn btn-sm btn-secondary">&larr; Day 11</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-13" class="btn btn-sm btn-secondary">Day 13 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 13 ──────────────── -->
+      <article class="code-panel" id="day-13" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 13</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Searching Algorithms &amp; sort.Search
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(log n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 4 · Sorting & Searching &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Binary Search template mechanics. Avoiding integer overflow with `mid = low + (high-low)/2`. Standard library `sort.Search`, lower/upper bounds, and searching on rotated sorted slices.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Rotated Sorted Array:
+nums = [ 4,  5,  6,  7,  0,  1,  2 ]
+         ▲           ▲           ▲
+        low         mid         high
+Left half [4..7] is sorted! Check if target lies within [low..mid].
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Search in Rotated Sorted Array (LeetCode 33)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given a sorted array rotated at an unknown pivot, find the index of target in O(log n) runtime.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> At every midpoint, at least one half of the array is guaranteed to be strictly sorted. Determine which half is sorted, then check if target is inside its boundaries.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day13_searching_algorithms_and_sort.search.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func search(nums []int, target int) int {
+	low, high := 0, len(nums)-1
+
+	for low &lt;= high {
+		mid := low + (high-low)/2
+		if nums[mid] == target {
+			return mid
+		}
+
+		// Check if left half is sorted
+		if nums[low] &lt;= nums[mid] {
+			if target &gt;= nums[low] &amp;&amp; target &lt; nums[mid] {
+				high = mid - 1
+			} else {
+				low = mid + 1
+			}
+		} else { // Right half is sorted
+			if target &gt; nums[mid] &amp;&amp; target &lt;= nums[high] {
+				low = mid + 1
+			} else {
+				high = mid - 1
+			}
+		}
+	}
+	return -1
+}
+
+func main() {
+	nums := []int{4, 5, 6, 7, 0, 1, 2}
+	fmt.Println(&quot;Index of 0:&quot;, search(nums, 0)) // 4
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-12" class="btn btn-sm btn-secondary">&larr; Day 12</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-14" class="btn btn-sm btn-secondary">Day 14 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 14 ──────────────── -->
+      <article class="code-panel" id="day-14" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 14</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Dynamic Programming
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O(amount × n) Time</span>
+            <span class="badge-complexity badge-o1">O(amount) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 5 · Patterns &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Overlapping subproblems and optimal substructure. Top-down memoization with maps vs. bottom-up tabulation with slices. Space optimization and 1D rolling array DP.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Coin Change DP Table (amount = 5, coins = [1, 2]):
+Amount:  0   1   2   3   4   5
+dp:    [ 0 ][ 1 ][ 1 ][ 2 ][ 2 ][ 3 ]
+dp[i] = min(dp[i], dp[i - coin] + 1)
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Coin Change (LeetCode 322)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              You are given an integer array coins and an integer amount. Return the fewest number of coins that you need to make up that amount.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Define dp[i] as the minimum coins to make amount i. For each coin, if i &gt;= coin, dp[i] = min(dp[i], dp[i-coin] + 1).
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day14_dynamic_programming.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func coinChange(coins []int, amount int) int {
+	dp := make([]int, amount+1)
+	// Initialize with impossible high value
+	for i := 1; i &lt;= amount; i++ {
+		dp[i] = amount + 1
+	}
+	dp[0] = 0
+
+	for i := 1; i &lt;= amount; i++ {
+		for _, c := range coins {
+			if i &gt;= c &amp;&amp; dp[i-c]+1 &lt; dp[i] {
+				dp[i] = dp[i-c] + 1
+			}
+		}
+	}
+
+	if dp[amount] &gt; amount {
+		return -1
+	}
+	return dp[amount]
+}
+
+func main() {
+	fmt.Println(&quot;Min coins:&quot;, coinChange([]int{1, 2, 5}, 11)) // 3 (5 + 5 + 1)
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-13" class="btn btn-sm btn-secondary">&larr; Day 13</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-15" class="btn btn-sm btn-secondary">Day 15 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 15 ──────────────── -->
+      <article class="code-panel" id="day-15" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 15</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Greedy Algorithms
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n log n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 5 · Patterns &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Making locally optimal choices to achieve globally optimal solutions. When greedy works (matroids, exchange arguments) vs when it fails. Sorting slices with Go&#x27;s `slices.Sort`.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Greedy Assignment:
+Children Greed:  [ 1, 2, 3 ] (sorted)
+Cookie Sizes:    [ 1, 1 ]    (sorted)
+Match: cookie 1 -&gt; child 1. Cookie 1 &lt; child 2 (cannot satisfy). Max satisfied = 1.
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Assign Cookies (LeetCode 455)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Assume you are an awesome parent and want to give your children some cookies. Maximize the number of content children.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Sort both greed factors and cookie sizes. Give the smallest cookie that satisfies the least greedy child first.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day15_greedy_algorithms.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;slices&quot;
+)
+
+func findContentChildren(g []int, s []int) int {
+	slices.Sort(g)
+	slices.Sort(s)
+
+	child, cookie := 0, 0
+	for child &lt; len(g) &amp;&amp; cookie &lt; len(s) {
+		if s[cookie] &gt;= g[child] {
+			child++
+		}
+		cookie++
+	}
+	return child
+}
+
+func main() {
+	g := []int{1, 2, 3}
+	s := []int{1, 1}
+	fmt.Println(&quot;Content children:&quot;, findContentChildren(g, s)) // 1
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-14" class="btn btn-sm btn-secondary">&larr; Day 14</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-16" class="btn btn-sm btn-secondary">Day 16 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 16 ──────────────── -->
+      <article class="code-panel" id="day-16" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 16</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Backtracking
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O(2ⁿ) Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 5 · Patterns &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              State-space tree exploration with pruning. The universal template: Choose → Recurse → Unchoose. Slicing and copy mechanics in Go to prevent reference mutation bugs.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Recursion Tree (Subsets of [1, 2]):
+                  []
+               /      \
+            [1]        []
+           /   \      /  \
+       [1,2]   [1]  [2]   []
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Subsets (LeetCode 78)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an integer array nums of unique elements, return all possible subsets (the power set).
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> At each decision point, make a copy of the current state (`subset := make([]int, len(curr)); copy(subset, curr)`) before appending to result slice.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day16_backtracking.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func subsets(nums []int) [][]int {
+	var result [][]int
+	var curr []int
+
+	var backtrack func(start int)
+	backtrack = func(start int) {
+		// Deep copy current buffer
+		subset := make([]int, len(curr))
+		copy(subset, curr)
+		result = append(result, subset)
+
+		for i := start; i &lt; len(nums); i++ {
+			curr = append(curr, nums[i]) // Choose
+			backtrack(i + 1)             // Explore
+			curr = curr[:len(curr)-1]    // Unchoose
+		}
+	}
+
+	backtrack(0)
+	return result
+}
+
+func main() {
+	fmt.Println(&quot;Subsets of [1, 2]:&quot;, subsets([]int{1, 2}))
+	// Output: [[], [1], [1, 2], [2]]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-15" class="btn btn-sm btn-secondary">&larr; Day 15</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-17" class="btn btn-sm btn-secondary">Day 17 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 17 ──────────────── -->
+      <article class="code-panel" id="day-17" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 17</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Bit Manipulation
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 5 · Patterns &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Bitwise operators in Go (`&amp;`, `|`, `^`, and bit-clear `&amp;^`). Standard library `math/bits` package. Brian Kernighan&#x27;s trick `n &amp; (n - 1)` and XOR cancellation.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+XOR Properties:
+a ^ 0 = a
+a ^ a = 0 (Numbers cancel each other out!)
+[4, 1, 2, 1, 2] -&gt; (1^1) ^ (2^2) ^ 4 = 0 ^ 0 ^ 4 = 4
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Single Number (LeetCode 136)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given a non-empty array of integers nums, every element appears twice except for one. Find that single one in linear time and constant space.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> XORing all elements eliminates pairs because x ^ x = 0. The remaining value is the unique singleton element.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day17_bit_manipulation.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func singleNumber(nums []int) int {
+	res := 0
+	for _, n := range nums {
+		res ^= n
+	}
+	return res
+}
+
+func main() {
+	fmt.Println(&quot;Single number:&quot;, singleNumber([]int{4, 1, 2, 1, 2})) // 4
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-16" class="btn btn-sm btn-secondary">&larr; Day 16</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-18" class="btn btn-sm btn-secondary">Day 18 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 18 ──────────────── -->
+      <article class="code-panel" id="day-18" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 18</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Tries (Prefix Trees)
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(k) Insert/Search Time</span>
+            <span class="badge-complexity badge-o1">O(N × k) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 6 · Specialized &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Prefix trees for dictionary search, autocomplete, and IP routing. Fixed-size `[26]*TrieNode` arrays vs map children. Trade-offs between memory footprint and pointer chasing.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Trie Structure for [&quot;app&quot;, &quot;apple&quot;]:
+               (root)
+                 │ &#x27;a&#x27;
+                (a)
+                 │ &#x27;p&#x27;
+                (p)
+                 │ &#x27;p&#x27;
+               (p)*  &lt;- &quot;app&quot; ends here
+                 │ &#x27;l&#x27;
+                (l)
+                 │ &#x27;e&#x27;
+               (e)*  &lt;- &quot;apple&quot; ends here
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Implement Trie (Prefix Tree) (LeetCode 208)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Implement a trie with insert, search, and startsWith methods.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Each node holds a 26-element array of child pointers and a boolean flag isEnd. Traversal takes O(k) time where k is word length.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day18_tries_(prefix_trees).go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type TrieNode struct {
+	children [26]*TrieNode
+	isEnd    bool
+}
+
+type Trie struct {
+	root *TrieNode
+}
+
+func Constructor() Trie {
+	return Trie{root: &amp;TrieNode{}}
+}
+
+func (t *Trie) Insert(word string) {
+	curr := t.root
+	for i := 0; i &lt; len(word); i++ {
+		idx := word[i] - &#x27;a&#x27;
+		if curr.children[idx] == nil {
+			curr.children[idx] = &amp;TrieNode{}
+		}
+		curr = curr.children[idx]
+	}
+	curr.isEnd = true
+}
+
+func (t *Trie) StartsWith(prefix string) bool {
+	curr := t.root
+	for i := 0; i &lt; len(prefix); i++ {
+		idx := prefix[i] - &#x27;a&#x27;
+		if curr.children[idx] == nil {
+			return false
+		}
+		curr = curr.children[idx]
+	}
+	return true
+}
+
+func main() {
+	trie := Constructor()
+	trie.Insert(&quot;apple&quot;)
+	fmt.Println(&quot;Starts with app:&quot;, trie.StartsWith(&quot;app&quot;)) // true
+	fmt.Println(&quot;Starts with ban:&quot;, trie.StartsWith(&quot;ban&quot;)) // false
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-17" class="btn btn-sm btn-secondary">&larr; Day 17</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-19" class="btn btn-sm btn-secondary">Day 19 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 19 ──────────────── -->
+      <article class="code-panel" id="day-19" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 19</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Segment Trees &amp; Fenwick Trees
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O(log n) Query/Update Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 6 · Specialized &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Range sum and minimum queries in O(log n) time. Storing trees in 4*n size arrays. Point updates and range updates with Lazy Propagation.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Segment Tree for [1, 3, 5, 7]:
+                     [16] [0..3]
+                    /           \
+             [4] [0..1]      [12] [2..3]
+            /          \     /         \
+        [1][0]      [3][1]  [5][2]    [7][3]
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Range Sum Query - Mutable (LeetCode 307)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an integer array nums, handle multiple queries of range sum and single point updates efficiently.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Build a segment tree in an array of size 4*n. Recursive divide and conquer answers any range sum query in O(log n).
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day19_segment_trees_and_fenwick_trees.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type NumArray struct {
+	tree []int
+	n    int
+}
+
+func ConstructorNumArray(nums []int) NumArray {
+	n := len(nums)
+	tree := make([]int, 4*n)
+	var build func(node, start, end int)
+	build = func(node, start, end int) {
+		if start == end {
+			tree[node] = nums[start]
+			return
+		}
+		mid := (start + end) / 2
+		build(2*node, start, mid)
+		build(2*node+1, mid+1, end)
+		tree[node] = tree[2*node] + tree[2*node+1]
+	}
+	if n &gt; 0 {
+		build(1, 0, n-1)
+	}
+	return NumArray{tree: tree, n: n}
+}
+
+func (na *NumArray) SumRange(left int, right int) int {
+	var query func(node, start, end, l, r int) int
+	query = func(node, start, end, l, r int) int {
+		if r &lt; start || end &lt; l {
+			return 0
+		}
+		if l &lt;= start &amp;&amp; end &lt;= r {
+			return na.tree[node]
+		}
+		mid := (start + end) / 2
+		return query(2*node, start, mid, l, r) + query(2*node+1, mid+1, end, l, r)
+	}
+	return query(1, 0, na.n-1, left, right)
+}
+
+func main() {
+	na := ConstructorNumArray([]int{1, 3, 5})
+	fmt.Println(&quot;Sum (0..2):&quot;, na.SumRange(0, 2)) // 9
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-18" class="btn btn-sm btn-secondary">&larr; Day 18</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-20" class="btn btn-sm btn-secondary">Day 20 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 20 ──────────────── -->
+      <article class="code-panel" id="day-20" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 20</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Union-Find (Disjoint Set Union)
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(α(n)) Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 6 · Specialized &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Tracking partitioned elements across connected sets. Path compression flattens tree depth to O(1), and union by rank ensures balanced parent assignment.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Path Compression:
+Before Find(4):      After Find(4):
+    (1)                  (1)
+     │                 /  │  \
+    (2)              (2) (3) (4)
+     │
+    (3)
+     │
+    (4)
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Redundant Connection (LeetCode 684)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an undirected graph that started as a tree with one additional edge added, find the edge that creates a cycle.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Iterate through edges. For each edge (u, v), if Union(u, v) returns false (already in the same component), that edge is the cycle-forming redundant edge.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day20_union-find_(disjoint_set_union).go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type DSU struct {
+	parent []int
+	rank   []int
+}
+
+func NewDSU(size int) *DSU {
+	p := make([]int, size)
+	r := make([]int, size)
+	for i := range p {
+		p[i] = i
+	}
+	return &amp;DSU{parent: p, rank: r}
+}
+
+func (d *DSU) Find(x int) int {
+	if d.parent[x] != x {
+		d.parent[x] = d.Find(d.parent[x]) // Path compression
+	}
+	return d.parent[x]
+}
+
+func (d *DSU) Union(x, y int) bool {
+	rootX, rootY := d.Find(x), d.Find(y)
+	if rootX == rootY {
+		return false // Already connected!
+	}
+	if d.rank[rootX] &lt; d.rank[rootY] {
+		d.parent[rootX] = rootY
+	} else if d.rank[rootX] &gt; d.rank[rootY] {
+		d.parent[rootY] = rootX
+	} else {
+		d.parent[rootY] = rootX
+		d.rank[rootX]++
+	}
+	return true
+}
+
+func findRedundantConnection(edges [][]int) []int {
+	dsu := NewDSU(len(edges) + 1)
+	for _, e := range edges {
+		if !dsu.Union(e[0], e[1]) {
+			return e
+		}
+	}
+	return nil
+}
+
+func main() {
+	edges := [][]int{{1, 2}, {1, 3}, {2, 3}}
+	fmt.Println(&quot;Redundant edge:&quot;, findRedundantConnection(edges)) // [2, 3]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-19" class="btn btn-sm btn-secondary">&larr; Day 19</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-21" class="btn btn-sm btn-secondary">Day 21 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 21 ──────────────── -->
+      <article class="code-panel" id="day-21" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 21</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Shortest Paths (Dijkstra)
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O((V + E) log V) Time</span>
+            <span class="badge-complexity badge-o1">O(V + E) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 6 · Specialized &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Single-source shortest paths on weighted graphs. Dijkstra&#x27;s greedy edge relaxation algorithm using standard library `container/heap`. Bellman-Ford for negative edge weights.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Dijkstra Greedy Exploration:
+Source [k] (dist=0)
+  │
+  ├─(w=1)─► [A] (dist=1) [Pushed to Min-Heap]
+  └─(w=4)─► [B] (dist=4)
+Relax neighboring edges in order of lowest tentative distance.
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Network Delay Time (LeetCode 743)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              You are given a network of n nodes and directed weighted edges. Return the minimum time for a signal sent from node k to reach all nodes.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Use Dijkstra&#x27;s algorithm. Maintain a min-heap of (distance, node). Pop minimum distance node; if not visited, relax its outgoing edges.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day21_shortest_paths_(dijkstra).go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import (
+	&quot;container/heap&quot;
+	&quot;fmt&quot;
+)
+
+type Edge struct {
+	to, weight int
+}
+
+type NodeDist struct {
+	id, dist int
+}
+
+type PQ []NodeDist
+
+func (pq PQ) Len() int           { return len(pq) }
+func (pq PQ) Less(i, j int) bool { return pq[i].dist &lt; pq[j].dist }
+func (pq PQ) Swap(i, j int)      { pq[i], pq[j] = pq[j], pq[i] }
+func (pq *PQ) Push(x any)        { *pq = append(*pq, x.(NodeDist)) }
+func (pq *PQ) Pop() any {
+	old := *pq
+	n := len(old)
+	it := old[n-1]
+	*pq = old[:n-1]
+	return it
+}
+
+func networkDelayTime(times [][]int, n int, k int) int {
+	adj := make(map[int][]Edge)
+	for _, t := range times {
+		adj[t[0]] = append(adj[t[0]], Edge{t[1], t[2]})
+	}
+
+	dist := make(map[int]int)
+	pq := &amp;PQ{{k, 0}}
+	heap.Init(pq)
+
+	for pq.Len() &gt; 0 {
+		curr := heap.Pop(pq).(NodeDist)
+		if _, exists := dist[curr.id]; exists {
+			continue
+		}
+		dist[curr.id] = curr.dist
+
+		for _, e := range adj[curr.id] {
+			if _, visited := dist[e.to]; !visited {
+				heap.Push(pq, NodeDist{e.to, curr.dist + e.weight})
+			}
+		}
+	}
+
+	if len(dist) &lt; n {
+		return -1
+	}
+	maxTime := 0
+	for _, d := range dist {
+		if d &gt; maxTime {
+			maxTime = d
+		}
+	}
+	return maxTime
+}
+
+func main() {
+	times := [][]int{{2, 1, 1}, {2, 3, 1}, {3, 4, 1}}
+	fmt.Println(&quot;Delay time:&quot;, networkDelayTime(times, 4, 2)) // 2
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-20" class="btn btn-sm btn-secondary">&larr; Day 20</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-22" class="btn btn-sm btn-secondary">Day 22 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 22 ──────────────── -->
+      <article class="code-panel" id="day-22" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 22</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Minimum Spanning Trees
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(E log E) Time</span>
+            <span class="badge-complexity badge-o1">O(V + E) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 6 · Specialized &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Connecting all vertices with minimum total edge weight. The Cut Property. Kruskal&#x27;s algorithm combining edge sorting and Disjoint Set Union (DSU).
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Kruskal&#x27;s Algorithm Flow:
+1. Generate all pairwise edges
+2. Sort edges by ascending weight
+3. Iterate edges: if endpoints belong to different components (DSU), add to MST
+4. Stop when V - 1 edges selected
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Min Cost to Connect All Points (LeetCode 1584)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given an array points representing coordinates, return the minimum cost to make all points connected using Manhattan distance.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Build complete graph edges with Manhattan weights, sort using `slices.SortFunc`, and apply Kruskal&#x27;s with DSU until n - 1 edges are accepted.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day22_minimum_spanning_trees.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;math&quot;
+	&quot;slices&quot;
+)
+
+type MSTEdge struct {
+	u, v, cost int
+}
+
+func minCostConnectPoints(points [][]int) int {
+	n := len(points)
+	var edges []MSTEdge
+
+	for i := 0; i &lt; n; i++ {
+		for j := i + 1; j &lt; n; j++ {
+			cost := int(math.Abs(float64(points[i][0]-points[j][0]))) +
+				int(math.Abs(float64(points[i][1]-points[j][1])))
+			edges = append(edges, MSTEdge{i, j, cost})
+		}
+	}
+
+	slices.SortFunc(edges, func(a, b MSTEdge) int {
+		return a.cost - b.cost
+	})
+
+	parent := make([]int, n)
+	for i := range parent {
+		parent[i] = i
+	}
+	var find func(x int) int
+	find = func(x int) int {
+		if parent[x] != x {
+			parent[x] = find(parent[x])
+		}
+		return parent[x]
+	}
+
+	totalCost, edgesCount := 0, 0
+	for _, e := range edges {
+		rootU, rootV := find(e.u), find(e.v)
+		if rootU != rootV {
+			parent[rootU] = rootV
+			totalCost += e.cost
+			edgesCount++
+			if edgesCount == n-1 {
+				break
+			}
+		}
+	}
+	return totalCost
+}
+
+func main() {
+	pts := [][]int{{0, 0}, {2, 2}, {3, 10}, {5, 2}, {7, 0}}
+	fmt.Println(&quot;Min MST cost:&quot;, minCostConnectPoints(pts)) // 20
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-21" class="btn btn-sm btn-secondary">&larr; Day 21</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-23" class="btn btn-sm btn-secondary">Day 23 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 23 ──────────────── -->
+      <article class="code-panel" id="day-23" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 23</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Topological Sort &amp; DAGs
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(V + E) Time</span>
+            <span class="badge-complexity badge-o1">O(V + E) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 6 · Specialized &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Linear ordering of vertices in Directed Acyclic Graphs (DAGs). Kahn&#x27;s in-degree BFS queue algorithm and cycle detection. Real-world applications in build dependencies.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Dependency DAG:
+(Course 0) ───► (Course 1) ───► (Course 2)
+In-degree: 0      In-degree: 1    In-degree: 1
+Kahn&#x27;s Queue: [0] -&gt; order [0] -&gt; decrement 1 -&gt; queue [1] -&gt; order [0, 1, 2]
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Course Schedule II (LeetCode 210)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Return the ordering of courses you should take to finish all courses given prerequisite pairs. If impossible, return an empty array.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Track in-degrees of every course. Push courses with 0 prerequisites into a queue. As each is completed, decrement dependent in-degrees. If order length &lt; n, cycle exists!
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day23_topological_sort_and_dags.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func findOrder(numCourses int, prerequisites [][]int) []int {
+	adj := make(map[int][]int, numCourses)
+	inDegree := make([]int, numCourses)
+
+	for _, p := range prerequisites {
+		course, pre := p[0], p[1]
+		adj[pre] = append(adj[pre], course)
+		inDegree[course]++
+	}
+
+	queue := make([]int, 0)
+	for i := 0; i &lt; numCourses; i++ {
+		if inDegree[i] == 0 {
+			queue = append(queue, i)
+		}
+	}
+
+	order := make([]int, 0, numCourses)
+	for len(queue) &gt; 0 {
+		curr := queue[0]
+		queue = queue[1:]
+		order = append(order, curr)
+
+		for _, nxt := range adj[curr] {
+			inDegree[nxt]--
+			if inDegree[nxt] == 0 {
+				queue = append(queue, nxt)
+			}
+		}
+	}
+
+	if len(order) == numCourses {
+		return order
+	}
+	return nil // Cycle detected
+}
+
+func main() {
+	reqs := [][]int{{1, 0}, {2, 0}, {3, 1}, {3, 2}}
+	fmt.Println(&quot;Course order:&quot;, findOrder(4, reqs)) // [0, 1, 2, 3] or [0, 2, 1, 3]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-22" class="btn btn-sm btn-secondary">&larr; Day 22</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-24" class="btn btn-sm btn-secondary">Day 24 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 24 ──────────────── -->
+      <article class="code-panel" id="day-24" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 24</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Sliding Window Pattern
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(min(n, m)) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 7 · Techniques &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Fixed vs. variable size sliding windows over continuous slices and strings. Avoiding redundant inner loops by adjusting left and right pointers in linear time.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Sliding Window:
+s = &quot;a b c a b c b b&quot;
+    [a b c]           left=0, right=2, len=3
+      [b c a]         left=1, right=3, len=3
+        [c a b]       left=2, right=4, len=3
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Longest Substring Without Repeating Characters (LeetCode 3)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given a string s, find the length of the longest substring without repeating characters.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Keep track of last seen index of each character using a 256-int slice. When duplicate found at right, advance left = max(left, lastSeen[char] + 1).
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day24_sliding_window_pattern.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func lengthOfLongestSubstring(s string) int {
+	lastSeen := make([]int, 256)
+	for i := range lastSeen {
+		lastSeen[i] = -1
+	}
+
+	maxLen, left := 0, 0
+	for right := 0; right &lt; len(s); right++ {
+		char := s[right]
+		if lastSeen[char] &gt;= left {
+			left = lastSeen[char] + 1
+		}
+		lastSeen[char] = right
+		if right-left+1 &gt; maxLen {
+			maxLen = right - left + 1
+		}
+	}
+	return maxLen
+}
+
+func main() {
+	fmt.Println(&quot;Longest len:&quot;, lengthOfLongestSubstring(&quot;abcabcbb&quot;)) // 3 (&quot;abc&quot;)
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-23" class="btn btn-sm btn-secondary">&larr; Day 23</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-25" class="btn btn-sm btn-secondary">Day 25 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 25 ──────────────── -->
+      <article class="code-panel" id="day-25" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 25</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Two Pointers Technique
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 7 · Techniques &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Opposite-direction converging pointers (Two Sum II, Container With Most Water), same-direction read/write pointers, and fast/slow pointer cycle detection.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Two Pointers Converging:
+height = [ 1, 8, 6, 2, 5, 4, 8, 3, 7 ]
+           ▲                         ▲
+          left                     right
+Water = min(h[left], h[right]) * (right - left)
+Since h[left] &lt; h[right], increment left to search for taller column.
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Container With Most Water (LeetCode 11)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given n non-negative integers representing vertical lines, find two lines that together with the x-axis form a container holding the most water.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Width shrinks with every step. To find a larger area, always move the pointer pointing to the shorter wall inward.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day25_two_pointers_technique.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func maxArea(height []int) int {
+	left, right := 0, len(height)-1
+	maxWater := 0
+
+	for left &lt; right {
+		h := min(height[left], height[right])
+		w := right - left
+		if h*w &gt; maxWater {
+			maxWater = h * w
+		}
+		if height[left] &lt; height[right] {
+			left++
+		} else {
+			right--
+		}
+	}
+	return maxWater
+}
+
+func main() {
+	heights := []int{1, 8, 6, 2, 5, 4, 8, 3, 7}
+	fmt.Println(&quot;Max Area:&quot;, maxArea(heights)) // 49
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-24" class="btn btn-sm btn-secondary">&larr; Day 24</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-26" class="btn btn-sm btn-secondary">Day 26 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 26 ──────────────── -->
+      <article class="code-panel" id="day-26" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 26</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Divide &amp; Conquer with Goroutines
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O(n log n) Time</span>
+            <span class="badge-complexity badge-o1">O(n) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 7 · Techniques &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              The Divide, Conquer, Combine paradigm. Harnessing Go&#x27;s concurrency primitives: running independent subproblems in lightweight goroutines and combining results via channels.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Concurrent Divide &amp; Conquer:
+                     [MergeSort Slice]
+                    /                 \
+       [Goroutine 1: Left]       [Goroutine 2: Right]
+                │                         │
+          channel &lt;- left           channel &lt;- right
+                    \                 /
+                    [Merge Two Halves]
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Concurrent Parallel Merge Sort in Go
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Sort an integer slice concurrently by delegating recursive left and right sub-arrays to separate goroutines bounded by a recursion depth.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Unbounded goroutine creation causes scheduler overhead. Pass a depth budget: when depth &lt;= 0, fall back to sequential sort.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day26_divide_and_conquer_with_goroutines.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func merge(left, right []int) []int {
+	res := make([]int, 0, len(left)+len(right))
+	i, j := 0, 0
+	for i &lt; len(left) &amp;&amp; j &lt; len(right) {
+		if left[i] &lt;= right[j] {
+			res = append(res, left[i])
+			i++
+		} else {
+			res = append(res, right[j])
+			j++
+		}
+	}
+	res = append(res, left[i:]...)
+	res = append(res, right[j:]...)
+	return res
+}
+
+func ConcurrentMergeSort(arr []int, depth int) []int {
+	if len(arr) &lt;= 1 {
+		return arr
+	}
+	mid := len(arr) / 2
+
+	if depth &lt;= 0 {
+		left := ConcurrentMergeSort(arr[:mid], 0)
+		right := ConcurrentMergeSort(arr[mid:], 0)
+		return merge(left, right)
+	}
+
+	leftChan := make(chan []int)
+	rightChan := make(chan []int)
+
+	go func() { leftChan &lt;- ConcurrentMergeSort(arr[:mid], depth-1) }()
+	go func() { rightChan &lt;- ConcurrentMergeSort(arr[mid:], depth-1) }()
+
+	left := &lt;-leftChan
+	right := &lt;-rightChan
+	return merge(left, right)
+}
+
+func main() {
+	data := []int{38, 27, 43, 3, 9, 82, 10}
+	sorted := ConcurrentMergeSort(data, 2)
+	fmt.Println(&quot;Sorted:&quot;, sorted) // [3 9 10 27 38 43 82]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-25" class="btn btn-sm btn-secondary">&larr; Day 25</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-27" class="btn btn-sm btn-secondary">Day 27 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 27 ──────────────── -->
+      <article class="code-panel" id="day-27" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 27</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Advanced Strings (KMP &amp; Rabin-Karp)
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O(n + m) Time</span>
+            <span class="badge-complexity badge-o1">O(m) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 7 · Techniques &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Knuth-Morris-Pratt (KMP) Longest Prefix Suffix (LPS) table computation. Never re-examining matched characters. Rabin-Karp rolling hash for multiple pattern matching.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+KMP Match Avoids Re-evaluation:
+Haystack: [a b a b c a b a b a b ... ]
+Needle:   [a b a b a b]
+Mismatch at &#x27;c&#x27; -&gt; LPS informs us needle prefix &#x27;a b&#x27; is already matched!
+Slide forward without resetting haystack pointer.
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Find the Index of the First Occurrence in a String (LeetCode 28)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given two strings needle and haystack, return the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Compute the LPS (Longest Prefix Suffix) array for needle in O(m). Use it to jump needle index on mismatch, achieving linear O(n + m) runtime.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day27_advanced_strings_(kmp_and_rabin-karp).go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func strStr(haystack string, needle string) int {
+	if len(needle) == 0 {
+		return 0
+	}
+	// Build LPS array
+	lps := make([]int, len(needle))
+	j := 0
+	for i := 1; i &lt; len(needle); i++ {
+		for j &gt; 0 &amp;&amp; needle[i] != needle[j] {
+			j = lps[j-1]
+		}
+		if needle[i] == needle[j] {
+			j++
+			lps[i] = j
+		}
+	}
+
+	// Search
+	j = 0
+	for i := 0; i &lt; len(haystack); i++ {
+		for j &gt; 0 &amp;&amp; haystack[i] != needle[j] {
+			j = lps[j-1]
+		}
+		if haystack[i] == needle[j] {
+			j++
+		}
+		if j == len(needle) {
+			return i - len(needle) + 1
+		}
+	}
+	return -1
+}
+
+func main() {
+	fmt.Println(&quot;Found at index:&quot;, strStr(&quot;sadbutsad&quot;, &quot;sad&quot;)) // 0
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-26" class="btn btn-sm btn-secondary">&larr; Day 26</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-28" class="btn btn-sm btn-secondary">Day 28 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 28 ──────────────── -->
+      <article class="code-panel" id="day-28" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 28</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              System Design &amp; DSA in Production
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-hard">Hard</span>
+            <span class="badge-complexity badge-ologn">O(1) Get/Put Time</span>
+            <span class="badge-complexity badge-o1">O(Capacity) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 8 · Synthesis &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Bridging abstract DSA and distributed infrastructure. Thread-safe LRU Cache combining `container/list` doubly-linked list with Go `map` and `sync.RWMutex`.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Thread-Safe LRU Cache Architecture:
+               ┌───────────────────────┐
+               │    sync.RWMutex       │
+               └───────────┬───────────┘
+                           │
+       ┌───────────────────┴───────────────────┐
+       ▼                                       ▼
+Hash Map: map[int]*Element           Doubly Linked List (container/list):
+[Key: 1] ───► [*Element] ──────────► [1: &quot;val1&quot;] (Most Recent)
+[Key: 2] ───► [*Element]               │
+                                       ▼
+                                     [2: &quot;val2&quot;] (Least Recent)
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Thread-Safe LRU Cache Implementation (LeetCode 146)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Design a data structure that follows the constraints of a Least Recently Used (LRU) cache with O(1) Get and Put operations that is safe for concurrent access.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Map provides O(1) key lookup. Doubly-linked list allows O(1) eviction of oldest element and O(1) promotion to head. sync.RWMutex guards concurrent goroutines.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day28_system_design_and_dsa_in_production.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import (
+	&quot;container/list&quot;
+	&quot;fmt&quot;
+	&quot;sync&quot;
+)
+
+type CacheItem struct {
+	key, value int
+}
+
+type LRUCache struct {
+	capacity int
+	items    map[int]*list.Element
+	list     *list.List
+	mu       sync.RWMutex
+}
+
+func NewLRUCache(capacity int) *LRUCache {
+	return &amp;LRUCache{
+		capacity: capacity,
+		items:    make(map[int]*list.Element),
+		list:     list.New(),
+	}
+}
+
+func (c *LRUCache) Get(key int) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if elem, ok := c.items[key]; ok {
+		c.list.MoveToFront(elem)
+		return elem.Value.(CacheItem).value
+	}
+	return -1
+}
+
+func (c *LRUCache) Put(key int, value int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if elem, ok := c.items[key]; ok {
+		elem.Value = CacheItem{key, value}
+		c.list.MoveToFront(elem)
+		return
+	}
+
+	if c.list.Len() &gt;= c.capacity {
+		oldest := c.list.Back()
+		if oldest != nil {
+			delete(c.items, oldest.Value.(CacheItem).key)
+			c.list.Remove(oldest)
+		}
+	}
+
+	c.items[key] = c.list.PushFront(CacheItem{key, value})
+}
+
+func main() {
+	cache := NewLRUCache(2)
+	cache.Put(1, 100)
+	cache.Put(2, 200)
+	fmt.Println(&quot;Get 1:&quot;, cache.Get(1)) // 100 (1 is promoted)
+	cache.Put(3, 300)                  // Evicts 2
+	fmt.Println(&quot;Get 2:&quot;, cache.Get(2)) // -1 (evicted!)
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-27" class="btn btn-sm btn-secondary">&larr; Day 27</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-29" class="btn btn-sm btn-secondary">Day 29 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 29 ──────────────── -->
+      <article class="code-panel" id="day-29" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 29</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Mock Interview &amp; 5-Step Playbook
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-medium">Medium</span>
+            <span class="badge-complexity badge-ologn">O(n) Time</span>
+            <span class="badge-complexity badge-o1">O(1) Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 8 · Synthesis &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              The FAANG and top-tier coding interview rubric: 1. Clarify constraints, 2. Diagram edge cases, 3. Formulate brute force &amp; trade-offs, 4. Write idiomatic Go, 5. Proactive test walkthrough.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+The 5-Step Interview Loop:
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  1. Clarify  │───►│ 2. Brute     │───►│ 3. Choose    │
+│  Constraints │    │    Force     │    │ Data Struct  │
+└──────────────┘    └──────────────┘    └──────┬───────┘
+                                               │
+┌──────────────┐    ┌──────────────┐           │
+│ 5. Dry Run &amp; │◄───│  4. Idiomatic│◄──────────┘
+│  Edge Cases  │    │     Go Code  │
+└──────────────┘    └──────────────┘
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Two Sum II - Input Array Is Sorted (LeetCode 167)
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Given a 1-indexed array of integers numbers that is already sorted in non-decreasing order, find two numbers that add up to target.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Debate trade-offs in interview: A hash map yields O(n) time and O(n) space. Because the array is sorted, two converging pointers achieve O(n) time and O(1) auxiliary space!
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day29_mock_interview_and_5-step_playbook.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func twoSum(numbers []int, target int) []int {
+	left := 0
+	right := len(numbers) - 1
+
+	for left &lt; right {
+		sum := numbers[left] + numbers[right]
+		if sum == target {
+			return []int{left + 1, right + 1} // 1-indexed
+		}
+		if sum &lt; target {
+			left++
+		} else {
+			right--
+		}
+	}
+	return nil
+}
+
+func main() {
+	nums := []int{2, 7, 11, 15}
+	fmt.Println(&quot;Indices (1-based):&quot;, twoSum(nums, 9)) // [1, 2]
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-28" class="btn btn-sm btn-secondary">&larr; Day 28</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><a href="#day-30" class="btn btn-sm btn-secondary">Day 30 &rarr;</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ──────────────── DAY 30 ──────────────── -->
+      <article class="code-panel" id="day-30" style="margin-bottom: 3.5rem; scroll-margin-top: 5rem;">
+        <div class="code-panel-header" style="justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <span class="dsa-day-pill">Day 30</span>
+            <span style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text); font-weight:700;">
+              Victory Lap: Pattern Map &amp; Capstone
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span class="badge-difficulty diff-easy">Easy</span>
+            <span class="badge-complexity badge-ologn">Complete Mastery Time</span>
+            <span class="badge-complexity badge-o1">30 / 30 Days Space</span>
+          </div>
+        </div>
+
+        <div style="padding: 1.6rem 1.8rem; background: var(--bg-raised);">
+          <!-- Concept & Theory -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="font-size:0.78rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.4rem;">
+              Phase 8 · Synthesis &mdash; Core Concept
+            </div>
+            <p style="font-size:0.95rem; color:var(--text); line-height:1.65; margin:0 0 1rem;">
+              Consolidating all 30 days into long-term intuition. The algorithmic pattern decision tree, Go standard library collections cheatsheet, and production systems next steps.
+            </p>
+
+            <!-- Memory / Architecture Diagram -->
+            <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin:1rem 0; font-family:var(--font-mono); font-size:0.84rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45;">
+Algorithm Selection Decision Tree:
+Array / String Problem:
+  ├─ Contiguous subarray / substring? ──► Sliding Window (Day 24)
+  ├─ Sorted array or pair sums?       ──► Two Pointers (Day 25) / Binary Search (Day 13)
+  └─ Next greater / monotonic trend?  ──► Monotonic Stack (Day 4)
+Graph / Tree Problem:
+  ├─ Shortest path unweighted?        ──► BFS (Day 10)
+  ├─ Shortest path weighted?          ──► Dijkstra (Day 21)
+  ├─ Cycle / connected components?    ──► DSU / Union-Find (Day 20)
+  └─ Dependencies / ordering?         ──► Topological Sort (Day 23)
+            </div>
+          </div>
+
+          <!-- Problem & Go Solution -->
+          <div style="border-top:1px solid var(--border); padding-top:1.4rem; margin-top:1.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:var(--text); display:flex; align-items:center; gap:0.5rem;">
+                <span>🎯 Problem:</span> Go Standard Library DSA Quick-Reference
+              </h3>
+            </div>
+            <p style="font-size:0.92rem; color:var(--text-dim); line-height:1.6; margin-bottom:0.9rem;">
+              Mastering the built-in Go data structures and standard library packages for algorithmic interviews.
+            </p>
+
+            <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.75rem 1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.4rem; font-size:0.88rem; line-height:1.55; color:var(--text);">
+              <strong>Key Algorithmic Insight:</strong> Go emphasizes minimal language constructs: slices over linked lists, maps over balanced BSTs, and container/heap for priority queues. Use slices.Sort() for zero-allocation sorting.
+            </div>
+
+            <!-- Runnable Go Code Panel -->
+            <div class="code-panel" style="margin: 1rem 0 1.5rem;">
+              <div class="code-panel-head">
+                <span class="file-path">day30_victory_lap:_pattern_map_and_capstone.go</span>
+              </div>
+              <pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;slices&quot;
+)
+
+func main() {
+	// 1. Generic Slice Operations (Go 1.21+)
+	data := []int{5, 2, 8, 1, 9}
+	slices.Sort(data)
+	fmt.Println(&quot;Sorted Slice:&quot;, data) // [1 2 5 8 9]
+
+	// 2. Binary Search in Go
+	idx, found := slices.BinarySearch(data, 8)
+	fmt.Printf(&quot;Search 8: index=%d, found=%t\n&quot;, idx, found)
+
+	// 3. In-Place Min/Max
+	fmt.Println(&quot;Min:&quot;, slices.Min(data), &quot;Max:&quot;, slices.Max(data))
+	fmt.Println(&quot;30 Days of DSA in Go completed! You are interview ready.&quot;)
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Section Footer Navigation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+            <div><a href="#day-29" class="btn btn-sm btn-secondary">&larr; Day 29</a></div>
+            <a href="#day-by-day" style="font-size:0.82rem; font-family:var(--font-mono); color:var(--text-muted); text-decoration:none;">&uarr; Top of Syllabus</a>
+            <div><span></span></div>
+          </div>
+        </div>
+      </article>
+
     </section>
 
     <!-- ──────────────────────── CHECKPOINT QUIZ & PREDICTION (DSA-30 STYLE) ──────────────────────── -->
@@ -981,10 +4392,11 @@ s = append(s, 20)</pre>
 
     <!-- ──────────────────────── CALLOUT ──────────────────────── -->
     <div class="callout callout-tip" style="margin: 3.5rem 0;">
-      <div class="callout-title">Ready to Start Day 1?</div>
+      <div class="callout-title">Ready to Test Your Practical Coding Skills?</div>
       <p>
-        Begin your 30-day journey with <a href="dsa/day1.html">Day 1: Introduction to DSA &amp; Go Memory Model</a>.
-        Navigate through the course step-by-step using the previous/next buttons on each day's page.
+        Check out the <a href="coding-interview.html">Coding Interview Questions</a> page for full end-to-end
+        implementations of Two Sum, LRU Cache, Concurrency Worker Pools, and Rate Limiters with clickable tabs,
+        unit tests, and complexity explanations.
       </p>
     </div>
 
@@ -1005,9 +4417,7 @@ s = append(s, 20)</pre>
       <span>&bull;</span>
       <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
       <span>&bull;</span>
-      <a href="dsa-30.html">30 Days DSA Hub</a>
-      <span>&bull;</span>
-      <a href="dsa/day1.html">Day 1</a>
+      <a href="dsa-30.html">30 Days DSA</a>
       <span>&bull;</span>
       <a href="basics.html">Basics</a>
       <span>&bull;</span>

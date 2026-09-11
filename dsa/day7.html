@@ -164,7 +164,7 @@
           <span class="dsa-phase-tag">Phase 2 · Trees &amp; Hashing</span>
           <span class="badge-difficulty diff-medium">Medium</span>
           <span class="badge-complexity badge-ologn">O(n log k) Time</span>
-          <span class="badge-complexity badge-o1">O(k) Space</span>
+          <span class="badge-complexity badge-on">O(k) Space</span>
         </div>
         <h1 style="font-size:2.2rem; margin:0 0 0.75rem; color:var(--text);">
           Heaps &amp; Priority Queues
@@ -174,14 +174,13 @@
         </p>
       </div>
 
-      <!-- Core Concept & Go Memory Architecture -->
+      <!-- Section 1: Concept & Go Memory Architecture -->
       <section style="margin-bottom: 2.5rem;">
         <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
           1. Concept &amp; Go Memory Architecture
         </div>
         <p style="font-size:0.95rem; color:var(--text); line-height:1.7; margin-bottom:1.2rem;">
-          In Go, performance and memory efficiency stem from understanding value semantics versus pointer indirection.
-          Observe how the runtime lays out the data structure in memory below:
+          In Go, algorithmic performance and memory efficiency depend heavily on whether data structures use value semantics (contiguous stack allocations) or heap pointer indirection. Observe the memory layout below:
         </p>
 
         <!-- Memory / Architecture ASCII Diagram -->
@@ -199,10 +198,10 @@ Tree:
         </div>
       </section>
 
-      <!-- Problem Statement & Go Solution -->
+      <!-- Section 2: Canonical Problem Statement -->
       <section style="margin-bottom: 2.5rem;">
         <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
-          2. Canonical Problem &amp; Algorithm
+          2. Canonical Problem
         </div>
         <h2 style="font-size:1.35rem; color:var(--text); margin:0 0 0.6rem; display:flex; align-items:center; gap:0.5rem;">
           <span>🎯 Problem:</span> Top K Frequent Elements (LeetCode 347)
@@ -214,13 +213,119 @@ Tree:
         <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.85rem 1.1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.5rem; font-size:0.9rem; line-height:1.6; color:var(--text);">
           <strong>Key Algorithmic Insight:</strong> Count frequencies with a map, then push into a Min-Heap of size k. If heap size exceeds k, pop the minimum frequency. Leaves top-k elements in O(n log k) time.
         </div>
+      </section>
 
-        <!-- Verified Go Code Panel -->
-        <div class="code-panel" style="margin: 1.5rem 0;">
-          <div class="code-panel-head">
-            <span class="file-path">day07_heaps_and_priority_queues.go</span>
+      <!-- Section 3: Intuition & Step-by-Step Strategy -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          3. Intuition &amp; Mental Model
+        </div>
+        <p style="font-size:0.95rem; color:var(--text); line-height:1.75; margin-bottom:1.2rem;">
+          If you sort the whole array to find top k elements, it takes O(n log n). But we only care about the top k! By maintaining a Min-Heap of size k, the root of the heap always holds the k-th most frequent element. Whenever the heap grows beyond k, we drop the smallest frequency. At the end, only the top k elements remain in O(n log k) time!
+        </p>
+
+        <h3 style="font-size:1.05rem; font-weight:750; color:var(--text); margin:1.5rem 0 0.8rem;">
+          🪜 Step-by-Step Algorithmic Strategy
+        </h3>
+        <div class="step-card-list">
+          <div class="step-card">
+            <span class="step-number-badge">1</span>
+            <div>Count frequency of each number using a Go map[int]int.</div>
           </div>
-          <pre><code class="language-go">package main
+          <div class="step-card">
+            <span class="step-number-badge">2</span>
+            <div>Define a MinHeap struct that implements heap.Interface (Len, Less, Swap, Push, Pop).</div>
+          </div>
+          <div class="step-card">
+            <span class="step-number-badge">3</span>
+            <div>Iterate through map entries and Push (num, count) into the heap.</div>
+          </div>
+          <div class="step-card">
+            <span class="step-number-badge">4</span>
+            <div>If heap size exceeds k, immediately Pop the minimum element.</div>
+          </div>
+          <div class="step-card">
+            <span class="step-number-badge">5</span>
+            <div>Extract the remaining k elements into a result slice.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Pseudocode Blueprint & Common Pitfalls -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          4. Structured Pseudocode
+        </div>
+        <p style="font-size:0.93rem; color:var(--text-dim); margin-bottom:0.75rem;">
+          Before looking at Go syntax, study the language-agnostic logic. Trace this mentally with sample inputs:
+        </p>
+
+        <div class="pseudocode-panel">
+          <div class="pseudocode-panel-head">
+            <span>Algorithm Pseudocode</span>
+            <span>Language Independent</span>
+          </div>
+          <pre><code>FUNCTION topKFrequent(nums, k):
+    freqMap = COUNT_ELEMENTS(nums)
+    minHeap = EMPTY_MIN_HEAP()
+
+    FOR EACH (val, count) IN freqMap:
+        PUSH(minHeap, Item(val, count))
+        IF SIZE(minHeap) &gt; k:
+            POP_MIN(minHeap)  // Evict the element with smallest frequency
+
+    RETURN EXTRACT_VALUES(minHeap)</code></pre>
+        </div>
+
+        <div class="pitfall-card">
+          <div class="pitfall-title">
+            <span>⚠️ Common Pitfalls &amp; Edge Cases</span>
+          </div>
+          <div>Using a Max-Heap instead of a Min-Heap. With a Max-Heap, popping drops the largest elements, which defeats the purpose! A Min-Heap keeps the largest elements safe at the bottom.</div>
+        </div>
+      </section>
+
+      <!-- Section 5: Challenge Yourself & Collapsible Solution Reveal -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          5. Implementation &amp; Solution
+        </div>
+
+        <!-- Try It First Challenge Card -->
+        <div class="try-first-banner">
+          <div class="try-first-icon">💡</div>
+          <div class="try-first-content">
+            <div class="try-first-title">Try Solving It Yourself First!</div>
+            <p class="try-first-desc">
+              The fastest way to master DSA is active recall. Open your editor or Go playground, define the function signature, and translate the pseudocode above into Go before revealing the reference solution below.
+            </p>
+          </div>
+        </div>
+
+        <!-- Collapsible Solution Box (HIDDEN BY DEFAULT) -->
+        <details class="solution-details">
+          <summary class="solution-summary">
+            <span style="display:flex; align-items:center; gap:0.6rem;">
+              <span>📝 Reveal Verified Go Solution</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">(Click to expand)</span>
+            </span>
+            <span class="solution-badge-cta">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>View Go 1.26 Code</span>
+            </span>
+          </summary>
+          <div class="solution-body">
+            <div class="solution-tip">
+              <span>⚡</span>
+              <span><strong>Go Idiom:</strong> This reference code uses idiomatic Go value semantics, zero heap allocations where possible, and has been compiled and verified with Go 1.26.</span>
+            </div>
+
+            <!-- Code Panel -->
+            <div class="code-panel">
+              <div class="code-panel-head">
+                <span class="file-path">day07_heaps_and_priority_queues.go</span>
+              </div>
+              <pre><code class="language-go">package main
 
 import (
 	&quot;container/heap&quot;
@@ -271,6 +376,35 @@ func topKFrequent(nums []int, k int) []int {
 func main() {
 	fmt.Println(&quot;Top 2 frequent:&quot;, topKFrequent([]int{1, 1, 1, 2, 2, 3}, 2)) // [1, 2]
 }</code></pre>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 6: Complexity Deep-Dive -->
+      <section style="margin-bottom: 2.5rem; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem 1.6rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.8rem;">
+          6. Asymptotic Complexity Breakdown
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.2rem;">
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:0.25rem;">Time Complexity</div>
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+              <span class="badge-complexity badge-ologn" style="font-size:0.95rem;">O(n log k)</span>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin:0; line-height:1.5;">
+              Scales strictly based on input size with optimal operations.
+            </p>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:0.25rem;">Space Complexity</div>
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+              <span class="badge-complexity badge-on" style="font-size:0.95rem;">O(k)</span>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin:0; line-height:1.5;">
+              Optimized for Go runtime stack allocation without excessive GC escape.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -294,22 +428,8 @@ func main() {
     <div style="margin-bottom:0.75rem; font-weight:700; color:var(--text);">
       Learn Go, Visually &mdash; Open Source Go Learning Portal
     </div>
-    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:1rem;">
-      Every code example on this site is compiled and verified against a real Go 1.26 toolchain before publishing,
-      and links out to the official Go Playground so you can run it yourself.
-    </p>
-    <div style="display:flex; justify-content:center; gap:1.2rem; font-size:0.86rem; flex-wrap:wrap;">
-      <a href="https://learn-go.r4rajat.com">learn-go.r4rajat.com</a>
-      <span>&bull;</span>
-      <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
-      <span>&bull;</span>
-      <a href="../dsa-30.html">30 Days DSA Hub</a>
-      <span>&bull;</span>
-      <a href="../basics.html">Basics</a>
-      <span>&bull;</span>
-      <a href="../concurrency.html">Concurrency</a>
-      <span>&bull;</span>
-      <a href="../coding-interview.html">Coding Qs</a>
+    <div style="font-size:0.85rem; color:var(--text-muted);">
+      Inspired by <a href="https://github.com/r4rajat/DSA-30" target="_blank" rel="noopener">DSA-30</a> &bull; Handcrafted for Go developers mastering algorithms.
     </div>
   </div>
 </footer>
