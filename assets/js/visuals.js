@@ -3,7 +3,6 @@
 
 /* Helper to ensure stepper header, progress bar, and navigation exist */
 function createStepperChrome(root, title, badgeText, totalSteps, onStepChange) {
-  // Add header if not present
   var header = root.querySelector(".viz-header");
   if (!header) {
     header = document.createElement("div");
@@ -12,7 +11,6 @@ function createStepperChrome(root, title, badgeText, totalSteps, onStepChange) {
     root.insertBefore(header, root.firstChild);
   }
 
-  // Add progress bar if not present
   var track = root.querySelector(".viz-progress-track");
   if (!track) {
     track = document.createElement("div");
@@ -24,7 +22,6 @@ function createStepperChrome(root, title, badgeText, totalSteps, onStepChange) {
   var bar = track.querySelector(".viz-progress-bar");
   var stepCounter = header.querySelector(".viz-step-counter");
 
-  // Setup navigation controls in controls container
   var controls = root.querySelector(".viz-controls");
   if (controls && !controls.querySelector(".stepper-nav")) {
     var nav = document.createElement("div");
@@ -106,7 +103,6 @@ function initGoroutineViz(root) {
   var playBtn = root.querySelector('[data-role="play"]');
   var caption = root.querySelector('[data-role="caption"]');
 
-  // Add header if not present
   if (!root.querySelector(".viz-header")) {
     var header = document.createElement("div");
     header.className = "viz-header";
@@ -126,6 +122,7 @@ function initGoroutineViz(root) {
     lanes.fills.forEach(function (f) {
       f.style.transition = "none";
       f.style.width = "0%";
+      void f.offsetWidth; // Force synchronous reflow so 0% is registered!
     });
     lanes.badges.forEach(function (b) {
       b.classList.remove("show");
@@ -137,14 +134,17 @@ function initGoroutineViz(root) {
     var lanes = panelLanes(panel);
     var cumulative = 0;
     var remaining = durations.length;
+    var initialDelay = 40; // Allow 0% to render before sliding
+
     durations.forEach(function (d, i) {
-      var start = sequential ? cumulative : 0;
+      var start = initialDelay + (sequential ? cumulative : 0);
       if (sequential) cumulative += d;
+
       setTimeout(function () {
         lanes.fills[i].style.transition = "width " + d + "ms cubic-bezier(0.2, 0, 0.4, 1)";
-        void lanes.fills[i].offsetWidth;
         lanes.fills[i].style.width = "100%";
       }, start);
+
       setTimeout(function () {
         lanes.badges[i].textContent = "done (" + Math.round(d / 8) + "ms)";
         lanes.badges[i].classList.add("show");
@@ -166,16 +166,19 @@ function initGoroutineViz(root) {
     var t0 = performance.now();
     var seqDone = false, conDone = false, seqTime = 0, conTime = 0;
 
-    runPanel(seqPanel, true, function () {
-      seqDone = true;
-      seqTime = Math.round(performance.now() - t0);
-      finish();
-    });
-    runPanel(conPanel, false, function () {
-      conDone = true;
-      conTime = Math.round(performance.now() - t0);
-      finish();
-    });
+    // Small delay ensures resetPanel layout is flushed
+    setTimeout(function() {
+      runPanel(seqPanel, true, function () {
+        seqDone = true;
+        seqTime = Math.round(performance.now() - t0);
+        finish();
+      });
+      runPanel(conPanel, false, function () {
+        conDone = true;
+        conTime = Math.round(performance.now() - t0);
+        finish();
+      });
+    }, 20);
 
     function finish() {
       if (seqDone && conDone) {
@@ -200,10 +203,10 @@ function initUnbufferedViz(root) {
   var timer = null;
 
   var messages = [
-    'Start: Sender goroutine is ready to run <code>ch &lt;- "hello"</code>.',
-    'Sender executes <code>ch &lt;- "hello"</code> &mdash; and <strong>blocks</strong>. An unbuffered channel has 0 capacity, so the sender cannot continue until a receiver is present.',
-    'Receiver goroutine reaches <code>&lt;-ch</code>. Both sides are now rendezvoused at the channel.',
-    '<strong>Handshake complete!</strong> Value transferred directly in memory without queuing. Both goroutines resume execution.',
+    'Start: Sender goroutine is holding <code>"hello"</code> and ready to send via <code>ch &lt;- "hello"</code>.',
+    'Sender executes <code>ch &lt;- "hello"</code> &mdash; and <strong>blocks</strong>. An unbuffered channel has 0 capacity, so the sender pauses until a receiver shows up.',
+    'Receiver goroutine reaches <code>&lt;-ch</code>. Both sides have now rendezvoused at the channel.',
+    '<strong>Handshake complete!</strong> Value transferred directly in memory without queuing. Both goroutines are unblocked and resume execution.',
   ];
 
   var totalSteps = messages.length;
@@ -247,35 +250,40 @@ function initUnbufferedViz(root) {
       } else {
         stopPlay();
       }
-    }, 1200);
+    }, 1300);
   }
 
   function render() {
     senderDot.classList.remove("waiting", "active");
     receiverDot.classList.remove("waiting", "active");
-    packet.classList.remove("show");
-    packet.style.transition = "none";
-    packet.style.left = "6%";
-    void packet.offsetWidth;
-    packet.style.transition = "";
 
-    if (step === 1) senderDot.classList.add("waiting");
-    if (step === 2) {
+    if (step === 0) {
+      packet.style.transition = "none";
+      packet.style.left = "6%";
+      packet.style.opacity = "1";
+      void packet.offsetWidth;
+      packet.style.transition = "left 0.65s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease";
+    } else if (step === 1) {
+      senderDot.classList.add("waiting");
+      packet.style.transition = "none";
+      packet.style.left = "6%";
+      packet.style.opacity = "1";
+      void packet.offsetWidth;
+      packet.style.transition = "left 0.65s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease";
+    } else if (step === 2) {
       senderDot.classList.add("waiting");
       receiverDot.classList.add("active");
-    }
-    if (step === 3) {
+      packet.style.left = "6%";
+      packet.style.opacity = "1";
+    } else if (step === 3) {
       senderDot.classList.add("active");
       receiverDot.classList.add("active");
-      requestAnimationFrame(function () {
-        packet.classList.add("show");
-        packet.style.left = "82%";
-      });
+      packet.style.left = "82%";
+      packet.style.opacity = "1";
     }
 
     caption.innerHTML = messages[step];
 
-    // Update Stepper Chrome
     if (chrome.stepCounter) chrome.stepCounter.textContent = "Step " + (step + 1) + " of " + totalSteps;
     if (chrome.bar) chrome.bar.style.width = (((step + 1) / totalSteps) * 100) + "%";
     if (chrome.prevBtn) chrome.prevBtn.disabled = step === 0;
@@ -383,7 +391,7 @@ function initBufferedViz(root) {
       return;
     }
     var v = buffer.shift();
-    caption.innerHTML = "Received <code>" + v + "</code>, freeing up slot 1.";
+    caption.innerHTML = "Received <code>" + v + "</code>, freeing up a buffer slot.";
     render();
   });
 

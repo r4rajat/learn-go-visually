@@ -50,9 +50,35 @@ function initOwnerTreeVisual(root) {
   const children = root.querySelectorAll('[data-role="child"]');
   const btn = root.querySelector('[data-role="delete"]');
   const caption = root.querySelector('[data-role="caption"]');
+  const controls = root.querySelector(".viz-controls");
+
+  if (!root.querySelector(".viz-header")) {
+    const header = document.createElement("div");
+    header.className = "viz-header";
+    header.innerHTML = '<div class="viz-title"><span class="viz-badge">Garbage Collector</span><span>OwnerReference Cascading Deletion</span></div><span class="viz-step-counter">k8s GC Tree</span>';
+    root.insertBefore(header, root.firstChild);
+  }
+
+  let resetBtn = controls ? controls.querySelector('[data-role="reset"]') : null;
+  if (controls && !resetBtn) {
+    resetBtn = document.createElement("button");
+    resetBtn.className = "btn btn-sm";
+    resetBtn.setAttribute("data-role", "reset");
+    resetBtn.textContent = "↺ Reset Tree";
+    resetBtn.style.display = "none";
+    resetBtn.addEventListener("click", function () {
+      parent.classList.remove("gc-deleted");
+      children.forEach(function (child) { child.classList.remove("gc-deleted"); });
+      btn.disabled = false;
+      resetBtn.style.display = "none";
+      caption.innerHTML = "Click &ldquo;Delete Website (owner)&rdquo; to see what the cluster garbage collector does next.";
+    });
+    controls.appendChild(resetBtn);
+  }
 
   btn.addEventListener("click", function () {
     btn.disabled = true;
+    if (resetBtn) resetBtn.style.display = "inline-flex";
     parent.classList.add("gc-deleted");
     caption.textContent = "Website deleted. Kubernetes' garbage collector notices the owner is gone...";
     children.forEach(function (child, i) {

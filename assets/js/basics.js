@@ -318,7 +318,7 @@ function initRangeDecompViz(root) {
   var modes = [
     { label: 'slice', code: 'for i, v := range []int{10, 20}', items: [['0', '10'], ['1', '20'], ['2', '30']] },
     { label: 'map', code: 'for k, v := range map[string]int{"a": 1}', items: [['"a"', '1'], ['"b"', '2'], ['"c"', '3']] },
-    { label: 'string', code: 'for i, r := range "Go"', items: [['0', ''G' (71)'], ['1', ''o' (111)']] },
+    { label: 'string', code: 'for i, r := range "Go"', items: [['0', "'G' (71)"], ['1', "'o' (111)"]] },
   ];
 
   if (!root.querySelector(".viz-header")) {

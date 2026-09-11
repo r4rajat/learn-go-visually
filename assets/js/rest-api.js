@@ -58,7 +58,7 @@ function initHTTPMethodsViz(root) {
 
 function initMethodTableViz(root) {
   const rows = root.querySelectorAll('[data-method-row]');
-  const descriptionBox = root.getElementById('method-description');
+  const descriptionBox = document.getElementById('method-description');
 
   const methodDetails = {
     'GET': {
