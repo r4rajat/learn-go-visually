@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 04: Stacks &amp; Queues — 30 Days of DSA in Go</title>
+<meta name="description" content="LIFO (Last-In, First-Out) and FIFO (First-In, First-Out) structures. Idiomatic Go slice stacks, circular queue ring buffers, and Monotonic Stacks.">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="../index.html">
+    <span class="brand-badge">Go</span>
+    <span>Learn Go, Visually</span>
+  </a>
+  <nav class="nav-links">
+    <a href="../index.html">Home</a>
+    <a href="../basics.html">Basics</a>
+    <a href="../core.html">Core</a>
+    <a href="../concurrency.html">Concurrency</a>
+    <a href="../advanced.html">Advanced</a>
+    <a href="../operators.html">Operators</a>
+    <a href="../rest-api.html">REST APIs</a>
+    <a href="../grpc-api.html">gRPC</a>
+    <a href="../coding-interview.html">Coding Qs</a>
+    <a href="../dsa-30.html" class="active">30 Days DSA</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <!-- Ambient background glow mesh -->
+  <div class="hero-glow-layer">
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+    <div class="glow-orb-3"></div>
+  </div>
+
+  <div class="docs-layout">
+    <!-- Left Navigation Sidebar -->
+    <aside class="docs-sidebar">
+<div style="font-size:0.78rem; font-weight:750; color:var(--text); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+  <span>Course Syllabus</span>
+  <a href="../dsa-30.html" style="font-size:0.72rem; color:var(--accent); text-decoration:none;">Overview Hub &rarr;</a>
+</div>
+<div class="sidebar-phase-title">Phase 1 — Fundamentals</div>
+<a href="day1.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D01</span><span>Introduction to DSA &amp; Go Memory Model</span></span>
+</a>
+<a href="day2.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D02</span><span>Arrays &amp; Strings in Go</span></span>
+</a>
+<a href="day3.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D03</span><span>Linked Lists with Go Generics</span></span>
+</a>
+<a href="day4.html" class="sidebar-day-link active">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D04</span><span>Stacks &amp; Queues</span></span>
+</a>
+<a href="day5.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D05</span><span>Recursion &amp; Call Stacks</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 2 — Trees & Hashing</div>
+<a href="day6.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D06</span><span>Binary Trees &amp; BSTs</span></span>
+</a>
+<a href="day7.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D07</span><span>Heaps &amp; Priority Queues</span></span>
+</a>
+<a href="day8.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D08</span><span>Hash Tables &amp; Go Runtime Maps</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 3 — Graphs</div>
+<a href="day9.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D09</span><span>Graph Representations in Go</span></span>
+</a>
+<a href="day10.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D10</span><span>Graph Traversals: DFS &amp; BFS</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 4 — Sorting & Searching</div>
+<a href="day11.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D11</span><span>Sorting Algorithms - I</span></span>
+</a>
+<a href="day12.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D12</span><span>Sorting Algorithms - II &amp; pdqsort</span></span>
+</a>
+<a href="day13.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D13</span><span>Searching Algorithms &amp; sort.Search</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 5 — Algorithmic Patterns</div>
+<a href="day14.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D14</span><span>Dynamic Programming</span></span>
+</a>
+<a href="day15.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D15</span><span>Greedy Algorithms</span></span>
+</a>
+<a href="day16.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D16</span><span>Backtracking</span></span>
+</a>
+<a href="day17.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D17</span><span>Bit Manipulation</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 6 — Specialized Structures</div>
+<a href="day18.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D18</span><span>Tries (Prefix Trees)</span></span>
+</a>
+<a href="day19.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D19</span><span>Segment Trees &amp; Fenwick Trees</span></span>
+</a>
+<a href="day20.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D20</span><span>Union-Find (Disjoint Set Union)</span></span>
+</a>
+<a href="day21.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D21</span><span>Shortest Paths (Dijkstra)</span></span>
+</a>
+<a href="day22.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D22</span><span>Minimum Spanning Trees</span></span>
+</a>
+<a href="day23.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D23</span><span>Topological Sort &amp; DAGs</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 7 — Interview Techniques</div>
+<a href="day24.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D24</span><span>Sliding Window Pattern</span></span>
+</a>
+<a href="day25.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D25</span><span>Two Pointers Technique</span></span>
+</a>
+<a href="day26.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D26</span><span>Divide &amp; Conquer with Goroutines</span></span>
+</a>
+<a href="day27.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D27</span><span>Advanced Strings (KMP &amp; Rabin-Karp)</span></span>
+</a>
+<div class="sidebar-phase-title">Phase 8 — Synthesis</div>
+<a href="day28.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D28</span><span>System Design &amp; DSA in Production</span></span>
+</a>
+<a href="day29.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D29</span><span>Mock Interview &amp; 5-Step Playbook</span></span>
+</a>
+<a href="day30.html" class="sidebar-day-link">
+  <span style="display:flex; align-items:center;"><span class="sidebar-day-num">D30</span><span>Victory Lap: Pattern Map &amp; Capstone</span></span>
+</a>
+    </aside>
+
+    <!-- Main Content Area -->
+    <article class="docs-content">
+      <!-- Breadcrumbs -->
+      <div class="docs-breadcrumbs">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="../dsa-30.html">30 Days DSA</a>
+        <span>/</span>
+        <span>Phase 1 · Fundamentals</span>
+        <span>/</span>
+        <span style="color:var(--text); font-weight:600;">Day 04</span>
+      </div>
+
+      <!-- Header Box -->
+      <div style="margin-bottom: 2rem; border-bottom:1px solid var(--border); padding-bottom:1.5rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+          <span class="dsa-day-pill">Day 04</span>
+          <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
+          <span class="badge-difficulty diff-medium">Medium</span>
+          <span class="badge-complexity badge-ologn">O(1) Push/Pop Time</span>
+          <span class="badge-complexity badge-o1">O(n) Space</span>
+        </div>
+        <h1 style="font-size:2.2rem; margin:0 0 0.75rem; color:var(--text);">
+          Stacks &amp; Queues
+        </h1>
+        <p style="font-size:1.05rem; color:var(--text-dim); line-height:1.65; margin:0;">
+          LIFO (Last-In, First-Out) and FIFO (First-In, First-Out) structures. Idiomatic Go slice stacks, circular queue ring buffers, and Monotonic Stacks.
+        </p>
+      </div>
+
+      <!-- Core Concept & Go Memory Architecture -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          1. Concept &amp; Go Memory Architecture
+        </div>
+        <p style="font-size:0.95rem; color:var(--text); line-height:1.7; margin-bottom:1.2rem;">
+          In Go, performance and memory efficiency stem from understanding value semantics versus pointer indirection.
+          Observe how the runtime lays out the data structure in memory below:
+        </p>
+
+        <!-- Memory / Architecture ASCII Diagram -->
+        <div style="background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1.4rem; margin:1.2rem 0; font-family:var(--font-mono); font-size:0.86rem; color:var(--accent-strong); overflow-x:auto; white-space:pre; line-height:1.45; box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
+Stack (LIFO):                   Queue (FIFO):
+┌──────────┐                     Head                  Tail
+│ [2] = 30 │ &lt;-- TOP             ┌─────┬─────┬─────┬─────┐
+├──────────┤                     │ 10  │ 20  │ 30  │ 40  │
+│ [1] = 20 │                     └─────┴─────┴─────┴─────┘
+├──────────┤                     Dequeue               Enqueue
+│ [0] = 10 │                     &lt;--                   &lt;--
+└──────────┘
+        </div>
+      </section>
+
+      <!-- Problem Statement & Go Solution -->
+      <section style="margin-bottom: 2.5rem;">
+        <div style="font-size:0.8rem; font-weight:750; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); margin-bottom:0.6rem;">
+          2. Canonical Problem &amp; Algorithm
+        </div>
+        <h2 style="font-size:1.35rem; color:var(--text); margin:0 0 0.6rem; display:flex; align-items:center; gap:0.5rem;">
+          <span>🎯 Problem:</span> Valid Parentheses (LeetCode 20)
+        </h2>
+        <p style="font-size:0.95rem; color:var(--text-dim); line-height:1.65; margin-bottom:1rem;">
+          Given a string s containing &#x27;(&#x27;, &#x27;)&#x27;, &#x27;{&#x27;, &#x27;}&#x27;, &#x27;[&#x27; and &#x27;]&#x27;, determine if the input string is valid by matching corresponding brackets.
+        </p>
+
+        <div style="background:var(--accent-bg); border-left:4px solid var(--accent); padding:0.85rem 1.1rem; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:1.5rem; font-size:0.9rem; line-height:1.6; color:var(--text);">
+          <strong>Key Algorithmic Insight:</strong> Push opening brackets onto a stack. When a closing bracket arrives, verify that the top element matches; if not or stack is empty, return false.
+        </div>
+
+        <!-- Verified Go Code Panel -->
+        <div class="code-panel" style="margin: 1.5rem 0;">
+          <div class="code-panel-head">
+            <span class="file-path">day04_stacks_and_queues.go</span>
+          </div>
+          <pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func isValid(s string) bool {
+	stack := make([]rune, 0, len(s))
+	pairs := map[rune]rune{&#x27;)&#x27;: &#x27;(&#x27;, &#x27;]&#x27;: &#x27;[&#x27;, &#x27;}&#x27;: &#x27;{&#x27;}
+
+	for _, ch := range s {
+		if open, isClose := pairs[ch]; isClose {
+			if len(stack) == 0 || stack[len(stack)-1] != open {
+				return false
+			}
+			stack = stack[:len(stack)-1] // Pop
+		} else {
+			stack = append(stack, ch) // Push
+		}
+	}
+	return len(stack) == 0
+}
+
+func main() {
+	fmt.Println(&quot;()[]{}:&quot;, isValid(&quot;()[]{}&quot;)) // true
+	fmt.Println(&quot;(]:&quot;, isValid(&quot;(]&quot;))         // false
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- Page-by-Page Pagination Bar (DSA-30 style) -->
+      <div class="docs-pagination">
+        <a href="day3.html" class="docs-nav-card prev">
+          <span class="nav-direction">&larr; Previous</span>
+          <span class="nav-title">Day 03: Linked Lists with Go Generics</span>
+        </a>
+        <a href="day5.html" class="docs-nav-card next">
+          <span class="nav-direction">Next &rarr;</span>
+          <span class="nav-title">Day 05: Recursion &amp; Call Stacks</span>
+        </a>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div style="max-width:700px; margin:0 auto; line-height:1.8;">
+    <div style="margin-bottom:0.75rem; font-weight:700; color:var(--text);">
+      Learn Go, Visually &mdash; Open Source Go Learning Portal
+    </div>
+    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:1rem;">
+      Every code example on this site is compiled and verified against a real Go 1.26 toolchain before publishing,
+      and links out to the official Go Playground so you can run it yourself.
+    </p>
+    <div style="display:flex; justify-content:center; gap:1.2rem; font-size:0.86rem; flex-wrap:wrap;">
+      <a href="https://learn-go.r4rajat.com">learn-go.r4rajat.com</a>
+      <span>&bull;</span>
+      <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
+      <span>&bull;</span>
+      <a href="../dsa-30.html">30 Days DSA Hub</a>
+      <span>&bull;</span>
+      <a href="../basics.html">Basics</a>
+      <span>&bull;</span>
+      <a href="../concurrency.html">Concurrency</a>
+      <span>&bull;</span>
+      <a href="../coding-interview.html">Coding Qs</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/dsa.js"></script>
+</body>
+</html>

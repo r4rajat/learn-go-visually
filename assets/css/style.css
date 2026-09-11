@@ -2178,3 +2178,179 @@ footer.site-footer a:hover {
   box-shadow: 0 0 24px rgba(0, 173, 216, 0.4) !important;
   transition: all 0.3s ease;
 }
+
+/* ---------------------------------------------------------------
+   16. Documentation Page-by-Page Layout (DSA-30 Docs Style)
+   --------------------------------------------------------------- */
+.docs-layout {
+  display: flex;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+}
+
+.docs-sidebar {
+  width: 290px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-raised);
+  padding: 1.5rem 1rem 3rem;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.03);
+}
+
+.docs-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.docs-sidebar::-webkit-scrollbar-thumb {
+  background: var(--border-interactive);
+  border-radius: 4px;
+}
+
+.sidebar-phase-title {
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 1.4rem 0 0.4rem;
+  padding: 0 0.5rem;
+}
+.sidebar-phase-title:first-child {
+  margin-top: 0.2rem;
+}
+
+.sidebar-day-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  margin-bottom: 2px;
+}
+
+.sidebar-day-link:hover {
+  background: var(--bg-sunken);
+  color: var(--text);
+  transform: translateX(2px);
+}
+
+.sidebar-day-link.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  border-left: 3px solid var(--accent);
+}
+
+.sidebar-day-num {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+.sidebar-day-link.active .sidebar-day-num {
+  color: var(--accent-strong);
+}
+
+.docs-content {
+  flex: 1;
+  min-width: 0;
+  padding: 2.2rem 3rem 5rem;
+}
+
+/* Breadcrumbs */
+.docs-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  font-family: var(--font-sans);
+}
+.docs-breadcrumbs a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.docs-breadcrumbs a:hover {
+  color: var(--accent);
+}
+
+/* Pagination cards */
+.docs-pagination {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.docs-nav-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.docs-nav-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.docs-nav-card.next {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.docs-nav-card .nav-direction {
+  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.docs-nav-card .nav-title {
+  font-size: 0.98rem;
+  font-weight: 750;
+  color: var(--text);
+}
+
+@media (max-width: 960px) {
+  .docs-layout {
+    flex-direction: column;
+  }
+  .docs-sidebar {
+    width: 100%;
+    position: static;
+    height: auto;
+    max-height: 260px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .docs-content {
+    padding: 1.5rem 1.2rem 3rem;
+  }
+  .docs-pagination {
+    grid-template-columns: 1fr;
+  }
+}
+
