@@ -1,12 +1,114 @@
-/* Interactive concept visualizations. Each init function is self-contained
-   and driven by data-attributes so it can be wired up independently per page. */
+/* Interactive concept visualizations for Concurrency.
+   Inspired by DSA-30 stepper controls & modern Go runtime mechanics. */
+
+/* Helper to ensure stepper header, progress bar, and navigation exist */
+function createStepperChrome(root, title, badgeText, totalSteps, onStepChange) {
+  var header = root.querySelector(".viz-header");
+  if (!header) {
+    header = document.createElement("div");
+    header.className = "viz-header";
+    header.innerHTML = '<div class="viz-title"><span class="viz-badge">' + (badgeText || "Stepper") + '</span><span>' + title + '</span></div><span class="viz-step-counter">Step 1 of ' + totalSteps + '</span>';
+    root.insertBefore(header, root.firstChild);
+  }
+
+  var track = root.querySelector(".viz-progress-track");
+  if (!track) {
+    track = document.createElement("div");
+    track.className = "viz-progress-track";
+    track.innerHTML = '<div class="viz-progress-bar"></div>';
+    header.parentNode.insertBefore(track, header.nextSibling);
+  }
+
+  var bar = track.querySelector(".viz-progress-bar");
+  var stepCounter = header.querySelector(".viz-step-counter");
+
+  var controls = root.querySelector(".viz-controls");
+  if (controls && !controls.querySelector(".stepper-nav")) {
+    var nav = document.createElement("div");
+    nav.className = "stepper-nav";
+
+    var prevBtn = document.createElement("button");
+    prevBtn.className = "btn btn-sm btn-step-prev";
+    prevBtn.type = "button";
+    prevBtn.textContent = "◀ Prev";
+
+    var playBtn = document.createElement("button");
+    playBtn.className = "btn btn-sm btn-step-play";
+    playBtn.type = "button";
+    playBtn.textContent = "Auto ▶";
+
+    var nextBtn = controls.querySelector('[data-role="step"]');
+    if (!nextBtn) {
+      nextBtn = document.createElement("button");
+      nextBtn.className = "btn btn-sm btn-primary btn-step-next";
+      nextBtn.type = "button";
+      nextBtn.textContent = "Next ▶";
+      controls.appendChild(nextBtn);
+    } else {
+      nextBtn.classList.add("btn-step-next");
+    }
+
+    var resetBtn = document.createElement("button");
+    resetBtn.className = "btn btn-sm btn-step-reset";
+    resetBtn.type = "button";
+    resetBtn.textContent = "↺ Reset";
+
+    var dotsWrap = document.createElement("div");
+    dotsWrap.className = "step-dots";
+    for (var d = 0; d < totalSteps; d++) {
+      var dot = document.createElement("span");
+      dot.className = "step-dot" + (d === 0 ? " active" : "");
+      dot.dataset.step = d;
+      (function(idx) {
+        dot.addEventListener("click", function() {
+          onStepChange(idx);
+        });
+      })(d);
+      dotsWrap.appendChild(dot);
+    }
+
+    nav.appendChild(prevBtn);
+    nav.appendChild(playBtn);
+    nav.appendChild(nextBtn);
+    nav.appendChild(dotsWrap);
+    nav.appendChild(resetBtn);
+
+    controls.insertBefore(nav, controls.firstChild);
+
+    return {
+      bar: bar,
+      stepCounter: stepCounter,
+      prevBtn: prevBtn,
+      playBtn: playBtn,
+      nextBtn: nextBtn,
+      resetBtn: resetBtn,
+      dots: dotsWrap.querySelectorAll(".step-dot")
+    };
+  }
+
+  return {
+    bar: bar,
+    stepCounter: stepCounter,
+    prevBtn: controls ? controls.querySelector(".btn-step-prev") : null,
+    playBtn: controls ? controls.querySelector(".btn-step-play") : null,
+    nextBtn: controls ? controls.querySelector('[data-role="step"]') : null,
+    resetBtn: controls ? controls.querySelector(".btn-step-reset") : null,
+    dots: controls ? controls.querySelectorAll(".step-dot") : []
+  };
+}
 
 /* ---------- 1. Goroutines: sequential vs concurrent ---------- */
 function initGoroutineViz(root) {
-  // Durations mirror the verified example (worker sleeps 150/100/50ms), scaled x8 for visibility.
   var durations = [1200, 800, 400];
   var playBtn = root.querySelector('[data-role="play"]');
   var caption = root.querySelector('[data-role="caption"]');
+
+  if (!root.querySelector(".viz-header")) {
+    var header = document.createElement("div");
+    header.className = "viz-header";
+    header.innerHTML = '<div class="viz-title"><span class="viz-badge">Runtime Visualizer</span><span>Goroutines vs Sequential Execution</span></div><span class="viz-step-counter">3 concurrent tasks</span>';
+    root.insertBefore(header, root.firstChild);
+  }
 
   function panelLanes(panel) {
     return {
@@ -20,9 +122,11 @@ function initGoroutineViz(root) {
     lanes.fills.forEach(function (f) {
       f.style.transition = "none";
       f.style.width = "0%";
+      void f.offsetWidth; // Force synchronous reflow so 0% is registered!
     });
     lanes.badges.forEach(function (b) {
       b.classList.remove("show");
+      b.textContent = "done";
     });
   }
 
@@ -30,16 +134,19 @@ function initGoroutineViz(root) {
     var lanes = panelLanes(panel);
     var cumulative = 0;
     var remaining = durations.length;
+    var initialDelay = 40; // Allow 0% to render before sliding
+
     durations.forEach(function (d, i) {
-      var start = sequential ? cumulative : 0;
+      var start = initialDelay + (sequential ? cumulative : 0);
       if (sequential) cumulative += d;
+
       setTimeout(function () {
-        lanes.fills[i].style.transition = "width " + d + "ms linear";
-        // Force reflow so the transition reliably restarts on repeated clicks.
-        void lanes.fills[i].offsetWidth;
+        lanes.fills[i].style.transition = "width " + d + "ms cubic-bezier(0.2, 0, 0.4, 1)";
         lanes.fills[i].style.width = "100%";
       }, start);
+
       setTimeout(function () {
+        lanes.badges[i].textContent = "done (" + Math.round(d / 8) + "ms)";
         lanes.badges[i].classList.add("show");
         remaining--;
         if (remaining === 0) onAllDone();
@@ -54,28 +161,31 @@ function initGoroutineViz(root) {
     var conPanel = root.querySelector('[data-panel="concurrent"]');
     resetPanel(seqPanel);
     resetPanel(conPanel);
-    caption.innerHTML = "Running both strategies now&hellip;";
+    caption.innerHTML = "Benchmarking both execution models in real time...";
 
     var t0 = performance.now();
     var seqDone = false, conDone = false, seqTime = 0, conTime = 0;
 
-    runPanel(seqPanel, true, function () {
-      seqDone = true;
-      seqTime = Math.round(performance.now() - t0);
-      finish();
-    });
-    runPanel(conPanel, false, function () {
-      conDone = true;
-      conTime = Math.round(performance.now() - t0);
-      finish();
-    });
+    // Small delay ensures resetPanel layout is flushed
+    setTimeout(function() {
+      runPanel(seqPanel, true, function () {
+        seqDone = true;
+        seqTime = Math.round(performance.now() - t0);
+        finish();
+      });
+      runPanel(conPanel, false, function () {
+        conDone = true;
+        conTime = Math.round(performance.now() - t0);
+        finish();
+      });
+    }, 20);
 
     function finish() {
       if (seqDone && conDone) {
         caption.innerHTML =
-          "Sequential took <strong>~" + seqTime + "ms</strong> (each task waits for the last). " +
+          "Sequential took <strong>~" + seqTime + "ms</strong> (each task blocks the thread until finished). " +
           "Concurrent took <strong>~" + conTime + "ms</strong> (all three run at once &mdash; " +
-          "total time is set by the slowest task, not the sum).";
+          "total time is bounded by the single slowest task, not their sum).";
         playBtn.disabled = false;
       }
     }
@@ -84,51 +194,132 @@ function initGoroutineViz(root) {
 
 /* ---------- 2. Unbuffered channel: synchronous handshake ---------- */
 function initUnbufferedViz(root) {
-  var stepBtn = root.querySelector('[data-role="step"]');
   var caption = root.querySelector('[data-role="caption"]');
   var senderDot = root.querySelector('[data-node="sender"] .hs-dot');
   var receiverDot = root.querySelector('[data-node="receiver"] .hs-dot');
   var packet = root.querySelector(".hs-packet");
   var step = 0;
+  var playing = false;
+  var timer = null;
 
   var messages = [
-    'Click "Next step" to start: the sender goroutine is about to attempt <code>ch &lt;- "hello"</code>.',
-    "Sender reaches the send &mdash; and <strong>blocks</strong>. An unbuffered channel has no room to hold a value, so the send cannot complete until a receiver is ready to take it right now.",
-    "Receiver reaches <code>&lt;-ch</code> and is ready. The instant both sides are ready, the handoff happens.",
-    "Value transferred directly from sender to receiver &mdash; this is the one moment they synchronize. Both goroutines are now free to continue.",
+    'Start: Sender goroutine is holding <code>"hello"</code> and ready to send via <code>ch &lt;- "hello"</code>.',
+    'Sender executes <code>ch &lt;- "hello"</code> &mdash; and <strong>blocks</strong>. An unbuffered channel has 0 capacity, so the sender pauses until a receiver shows up.',
+    'Receiver goroutine reaches <code>&lt;-ch</code>. Both sides have now rendezvoused at the channel.',
+    '<strong>Handshake complete!</strong> Value transferred directly in memory without queuing. Both goroutines are unblocked and resume execution.',
   ];
+
+  var totalSteps = messages.length;
+
+  function goToStep(s) {
+    step = Math.max(0, Math.min(totalSteps - 1, s));
+    render();
+  }
+
+  var chrome = createStepperChrome(root, "Channel Rendezvous (Handshake)", "Concurrency Stepper", totalSteps, function(targetStep) {
+    stopPlay();
+    goToStep(targetStep);
+  });
+
+  function stopPlay() {
+    playing = false;
+    if (timer) clearTimeout(timer);
+    if (chrome.playBtn) chrome.playBtn.textContent = "Auto ▶";
+  }
+
+  function togglePlay() {
+    if (playing) {
+      stopPlay();
+    } else {
+      playing = true;
+      if (chrome.playBtn) chrome.playBtn.textContent = "Pause ❚❚";
+      if (step >= totalSteps - 1) step = 0;
+      render();
+      advanceAuto();
+    }
+  }
+
+  function advanceAuto() {
+    if (!playing) return;
+    timer = setTimeout(function() {
+      if (!playing) return;
+      if (step < totalSteps - 1) {
+        step++;
+        render();
+        advanceAuto();
+      } else {
+        stopPlay();
+      }
+    }, 1300);
+  }
 
   function render() {
     senderDot.classList.remove("waiting", "active");
     receiverDot.classList.remove("waiting", "active");
-    packet.classList.remove("show");
-    packet.style.transition = "none";
-    packet.style.left = "6%";
-    void packet.offsetWidth; // force reflow so transition is suppressed for the reset
-    packet.style.transition = "";
 
-    if (step === 1) senderDot.classList.add("waiting");
-    if (step === 2) {
+    if (step === 0) {
+      packet.style.transition = "none";
+      packet.style.left = "6%";
+      packet.style.opacity = "1";
+      void packet.offsetWidth;
+      packet.style.transition = "left 0.65s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease";
+    } else if (step === 1) {
+      senderDot.classList.add("waiting");
+      packet.style.transition = "none";
+      packet.style.left = "6%";
+      packet.style.opacity = "1";
+      void packet.offsetWidth;
+      packet.style.transition = "left 0.65s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease";
+    } else if (step === 2) {
       senderDot.classList.add("waiting");
       receiverDot.classList.add("active");
-    }
-    if (step === 3) {
+      packet.style.left = "6%";
+      packet.style.opacity = "1";
+    } else if (step === 3) {
       senderDot.classList.add("active");
       receiverDot.classList.add("active");
-      requestAnimationFrame(function () {
-        packet.classList.add("show");
-        packet.style.left = "82%";
+      packet.style.left = "82%";
+      packet.style.opacity = "1";
+    }
+
+    caption.innerHTML = messages[step];
+
+    if (chrome.stepCounter) chrome.stepCounter.textContent = "Step " + (step + 1) + " of " + totalSteps;
+    if (chrome.bar) chrome.bar.style.width = (((step + 1) / totalSteps) * 100) + "%";
+    if (chrome.prevBtn) chrome.prevBtn.disabled = step === 0;
+    if (chrome.nextBtn) chrome.nextBtn.textContent = step >= totalSteps - 1 ? "Restart ↺" : "Next ▶";
+    if (chrome.dots) {
+      chrome.dots.forEach(function(d, i) {
+        d.classList.toggle("active", i === step);
       });
     }
-    caption.innerHTML = messages[step];
-    stepBtn.textContent = step >= messages.length - 1 ? "Restart" : "Next step";
   }
 
-  if (!stepBtn) return;
-  stepBtn.addEventListener("click", function () {
-    step = step >= messages.length - 1 ? 0 : step + 1;
-    render();
-  });
+  if (chrome.prevBtn) {
+    chrome.prevBtn.addEventListener("click", function() {
+      stopPlay();
+      goToStep(step - 1);
+    });
+  }
+
+  if (chrome.nextBtn) {
+    chrome.nextBtn.addEventListener("click", function() {
+      stopPlay();
+      goToStep(step >= totalSteps - 1 ? 0 : step + 1);
+    });
+  }
+
+  if (chrome.playBtn) {
+    chrome.playBtn.addEventListener("click", togglePlay);
+  }
+
+  if (chrome.resetBtn) {
+    chrome.resetBtn.addEventListener("click", function() {
+      stopPlay();
+      goToStep(0);
+    });
+  }
+
   render();
 }
 
@@ -144,6 +335,15 @@ function initBufferedViz(root) {
   var sendBtn = root.querySelector('[data-role="send"]');
   var recvBtn = root.querySelector('[data-role="receive"]');
 
+  if (!root.querySelector(".viz-header")) {
+    var header = document.createElement("div");
+    header.className = "viz-header";
+    header.innerHTML = '<div class="viz-title"><span class="viz-badge">Queue Visualizer</span><span>Buffered Channel Queue (cap: 3)</span></div><span class="viz-step-counter queue-stat">0 / 3 filled</span>';
+    root.insertBefore(header, root.firstChild);
+  }
+
+  var statBadge = root.querySelector(".queue-stat");
+
   if (!sendBtn || !recvBtn) return;
 
   function render() {
@@ -156,27 +356,29 @@ function initBufferedViz(root) {
         slot.classList.remove("filled");
       }
     });
-    meta.textContent = "len(ch) = " + buffer.length + "   cap(ch) = " + CAP;
+    var txt = "len(ch) = " + buffer.length + "   cap(ch) = " + CAP;
+    if (meta) meta.textContent = txt;
+    if (statBadge) statBadge.textContent = buffer.length + " / " + CAP + " filled";
   }
 
   function flashBlocked(msg) {
-    senderDot.classList.add("waiting");
+    if (senderDot) senderDot.classList.add("waiting");
     caption.innerHTML = msg;
     setTimeout(function () {
-      senderDot.classList.remove("waiting");
-    }, 700);
+      if (senderDot) senderDot.classList.remove("waiting");
+    }, 750);
   }
 
   sendBtn.addEventListener("click", function () {
     if (buffer.length >= CAP) {
       flashBlocked(
-        "<code>ch &lt;- " + nextVal + "</code> would <strong>block</strong> right now &mdash; " +
-        "the buffer is full (len == cap). A real send here waits until something is received."
+        "<code>ch &lt;- " + nextVal + "</code> would <strong>block</strong> &mdash; " +
+        "the buffer is full (len == cap). The sender sleeps until a receiver frees a slot."
       );
       return;
     }
     buffer.push(nextVal);
-    caption.innerHTML = "Sent <code>" + nextVal + "</code>. Since the buffer isn't full, the send " +
+    caption.innerHTML = "Sent <code>" + nextVal + "</code>. The buffer had free space, so the send " +
       "returns immediately &mdash; no receiver needed yet.";
     nextVal++;
     render();
@@ -184,17 +386,17 @@ function initBufferedViz(root) {
 
   recvBtn.addEventListener("click", function () {
     if (buffer.length === 0) {
-      caption.innerHTML = "<code>&lt;-ch</code> would <strong>block</strong> right now &mdash; " +
-        "the buffer is empty. A real receive here waits until something is sent.";
+      caption.innerHTML = "<code>&lt;-ch</code> would <strong>block</strong> &mdash; " +
+        "the buffer is empty. The receiver sleeps until a sender pushes a value.";
       return;
     }
     var v = buffer.shift();
-    caption.innerHTML = "Received <code>" + v + "</code>, freeing one slot.";
+    caption.innerHTML = "Received <code>" + v + "</code>, freeing up a buffer slot.";
     render();
   });
 
   render();
-  caption.innerHTML = "Try it: send a few values, then try sending past capacity " + CAP + ".";
+  caption.innerHTML = "Try it: send values to fill the buffer, then try sending past capacity " + CAP + ".";
 }
 
 /* ---------- 4. select: multiplexing over ready channels ---------- */
@@ -216,40 +418,49 @@ function initSelectViz(root) {
     2: root.querySelector('[data-ch="2"] .hs-dot'),
   };
 
-  function updateTallyUI() {
-    var total = tally[1] + tally[2];
-    tallyEls[1].textContent = "ch1: " + tally[1];
-    tallyEls[2].textContent = "ch2: " + tally[2];
-    barEls[1].style.width = (total ? (tally[1] / total) * 100 : 0) + "%";
-    barEls[2].style.width = (total ? (tally[2] / total) * 100 : 0) + "%";
+  if (!root.querySelector(".viz-header")) {
+    var header = document.createElement("div");
+    header.className = "viz-header";
+    header.innerHTML = '<div class="viz-title"><span class="viz-badge">Multiplexer</span><span>select Statement Non-Deterministic Choice</span></div><span class="viz-step-counter">Pseudo-random arbiter</span>';
+    root.insertBefore(header, root.firstChild);
   }
 
-  fireBtn.addEventListener("click", function () {
-    fireBtn.disabled = true;
-    box.classList.remove("picked");
-    box.textContent = "?";
-    chDots[1].classList.add("waiting");
-    chDots[2].classList.add("waiting");
-    caption.textContent = "Both channels have a value ready at the same time...";
+  function updateTallyUI() {
+    var total = tally[1] + tally[2];
+    if (tallyEls[1]) tallyEls[1].textContent = "ch1: " + tally[1];
+    if (tallyEls[2]) tallyEls[2].textContent = "ch2: " + tally[2];
+    if (barEls[1]) barEls[1].style.width = (total ? (tally[1] / total) * 100 : 0) + "%";
+    if (barEls[2]) barEls[2].style.width = (total ? (tally[2] / total) * 100 : 0) + "%";
+  }
 
-    setTimeout(function () {
-      var pick = Math.random() < 0.5 ? 1 : 2;
-      chDots[1].classList.remove("waiting");
-      chDots[2].classList.remove("waiting");
-      chDots[pick].classList.add("active");
-      box.textContent = "ch" + pick;
-      box.classList.add("picked");
-      tally[pick]++;
-      updateTallyUI();
-      caption.innerHTML = "<code>select</code> picked <strong>ch" + pick + "</strong> this time. " +
-        "Run it several times &mdash; per the Go spec, when multiple cases are ready, one is chosen " +
-        "<em>pseudo-randomly</em>, not always the first one written.";
+  if (fireBtn) {
+    fireBtn.addEventListener("click", function () {
+      fireBtn.disabled = true;
+      box.classList.remove("picked");
+      box.textContent = "🎲";
+      chDots[1].classList.add("waiting");
+      chDots[2].classList.add("waiting");
+      caption.textContent = "Both channels have a value ready at the exact same moment...";
+
       setTimeout(function () {
-        chDots[pick].classList.remove("active");
-        fireBtn.disabled = false;
+        var pick = Math.random() < 0.5 ? 1 : 2;
+        chDots[1].classList.remove("waiting");
+        chDots[2].classList.remove("waiting");
+        chDots[pick].classList.add("active");
+        box.textContent = "ch" + pick;
+        box.classList.add("picked");
+        tally[pick]++;
+        updateTallyUI();
+        caption.innerHTML = "<code>select</code> picked <strong>ch" + pick + "</strong> this time. " +
+          "Run it several times &mdash; when multiple cases are ready, Go picks one " +
+          "<em>pseudo-randomly</em> to guarantee fairness across channels.";
+        setTimeout(function () {
+          chDots[pick].classList.remove("active");
+          fireBtn.disabled = false;
+        }, 500);
       }, 500);
-    }, 500);
-  });
+    });
+  }
 
   updateTallyUI();
 }

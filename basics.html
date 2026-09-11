@@ -10,7 +10,7 @@
 <body>
 
 <header class="site-header">
-  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <a class="brand" href="index.html"><span class="brand-badge">Go</span> <span>Learn Go, Visually</span></a>
   <nav class="nav-links">
     <a href="index.html">Home</a>
     <a href="basics.html" class="active">Basics</a>
@@ -931,14 +931,25 @@ done</div>
       middleware pattern and goroutine-friendly callbacks.
     </p>
 
-    <h3 style="margin-top:2em;"><code>defer</code>: guaranteed cleanup</h3>
-    <p>
-      A <code>defer</code> statement schedules a function call to run <em>after</em> the
-      current function returns. Multiple <code>defer</code> calls run in
-      <strong>reverse order</strong> (last-in, first-out) &mdash; like a stack. This is the
-      standard way to ensure resources (files, locks, network connections) are always cleaned
-      up, even if the function panics.
-    </p>
+    <div class="predict-box" data-predict="defer-order">
+      <div class="predict-header">
+        <span aria-hidden="true" style="font-size:1.1rem;">🔮</span>
+        <span class="predict-badge">Predict first</span>
+      </div>
+      <div class="predict-prompt">
+        If a function executes <code>defer fmt.Println("A")</code>, followed by <code>defer fmt.Println("B")</code>, followed by <code>defer fmt.Println("C")</code> &mdash; in what order do they print when the function returns?
+      </div>
+      <div class="predict-input-row">
+        <input class="predict-input" placeholder="Type your prediction (e.g., A B C or C B A)..." aria-label="your prediction">
+        <button class="btn btn-sm btn-primary" data-role="predict-reveal" type="button">Reveal Answer</button>
+      </div>
+      <div class="predict-user-guess"></div>
+      <div class="predict-reveal-area">
+        <strong>Answer: C, then B, then A.</strong><br>
+        Deferred functions are pushed onto a LIFO (Last-In, First-Out) call stack. When the outer function returns, the runtime pops and executes them in reverse order. Step through the visual below to watch the stack in action.
+        <button class="btn btn-sm" data-role="predict-hide" type="button" style="margin-top:0.6rem; padding:0.2em 0.6em; font-size:0.75rem;">Hide</button>
+      </div>
+    </div>
 
     <div class="viz" data-viz="defer-stack">
       <div class="viz-stage">

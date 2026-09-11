@@ -10,7 +10,7 @@
 <body>
 
 <header class="site-header">
-  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <a class="brand" href="index.html"><span class="brand-badge">Go</span> <span>Learn Go, Visually</span></a>
   <nav class="nav-links">
     <a href="index.html">Home</a>
     <a href="basics.html">Basics</a>
@@ -261,16 +261,42 @@ main: received: hello
 sender: sent, handoff complete</div>
     </div>
 
-    <p>
-      Read the output against the visual above: the sender goroutine prints
-      <code>"waiting to send..."</code> immediately, then <strong>goes silent for 200ms</strong>
-      &mdash; that's the send blocking, exactly as the spec describes, because no receiver is
-      ready yet. Only once <code>main</code> reaches <code>&lt;-ch</code> does the handoff
-      happen and both sides continue. This is why unbuffered channels are often used not just
-      to move data, but to <em>synchronize</em> two goroutines at a specific point.
-    </p>
+    <div class="quiz-box" data-quiz="unbuffered-quiz" data-correct="1">
+      <div class="quiz-header">
+        <span class="quiz-badge">Checkpoint Quiz</span>
+        <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">Concurrency Intuition</span>
+      </div>
+      <div class="quiz-question">
+        What happens if goroutine A attempts to send to an unbuffered channel <code>ch &lt;- val</code> while no other goroutine is currently executing a receive <code>&lt;-ch</code>?
+      </div>
+      <div class="quiz-options">
+        <button class="quiz-option" type="button">
+          <span class="quiz-opt-letter">A</span>
+          <span>The value is dropped, and goroutine A immediately proceeds to the next line.</span>
+        </button>
+        <button class="quiz-option" type="button">
+          <span class="quiz-opt-letter">B</span>
+          <span>Goroutine A blocks (pauses execution) until another goroutine executes a receive on <code>ch</code>.</span>
+        </button>
+        <button class="quiz-option" type="button">
+          <span class="quiz-opt-letter">C</span>
+          <span>The Go runtime creates a hidden dynamic buffer to store <code>val</code> until a receiver arrives.</span>
+        </button>
+        <button class="quiz-option" type="button">
+          <span class="quiz-opt-letter">D</span>
+          <span>A panic is thrown immediately with <code>panic: send on empty channel</code>.</span>
+        </button>
+      </div>
+      <div style="display:flex; gap:0.6rem;">
+        <button class="btn btn-primary btn-sm" data-role="quiz-check" disabled>Check Answer</button>
+        <button class="btn btn-sm" data-role="quiz-reset" style="display:none;">Try Again</button>
+      </div>
+      <div class="quiz-explanation">
+        <strong>Correct!</strong> An unbuffered channel has a capacity of 0. It is a <em>synchronous rendezvous point</em>: sending blocks until a receiver is ready, and receiving blocks until a sender is ready. Neither can proceed alone.
+      </div>
+    </div>
 
-    <h3 style="margin-top:2em;">Channel directions: restricting send and receive</h3>
+    <h3 style="margin-top:2.5em;">Channel directions: restricting send and receive</h3>
     <p>
       When you pass a channel to a function, you can restrict what that function is
       allowed to do with it. A <strong>send-only</strong> channel (<code>chan&lt;- T</code>)

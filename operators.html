@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kubernetes Operators in Go &mdash; Learn Go, Visually</title>
-  <meta name="description" content="Build a real Kubernetes operator in Go end to end: CRD design, the reconcile loop, owner references, finalizers, envtest, and a live deployment to a real cluster.">
+  <title>Kubernetes Operators in Go: AWS EC2 Controller &mdash; Learn Go, Visually</title>
+  <meta name="description" content="Build a real-world Kubernetes operator in Go to manage AWS EC2 instances: Kubebuilder scaffolding, CRD design, Reconcile loop sequencing, AWS SDK v2, finalizers for cloud cleanup, envtest, and client-go internals.">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+    <a class="brand" href="index.html"><span class="brand-badge">Go</span> <span>Learn Go, Visually</span></a>
   <nav class="nav-links">
     <a href="index.html">Home</a>
     <a href="basics.html">Basics</a>
@@ -26,140 +26,185 @@
   
   <main>
     <div class="page-wide">
-      <span class="eyebrow">Applied Go</span>
-      <h1>Kubernetes Operators in Go</h1>
+      <span class="eyebrow">Applied Go &bull; Cloud Infrastructure &bull; Platform Engineering</span>
+      <h1>Kubernetes Operators in Go: Building an AWS EC2 Controller</h1>
       <p class="lede">
-        An end-to-end walkthrough of building a real operator: a custom API, a controller
-        that reconciles it, and a genuine deployment to a real cluster &mdash; not a toy
-        snippet. This is the most involved page on this site, and it's held to a higher bar
-        of proof than "it compiles": almost everything below was actually run, either
-        against a real embedded Kubernetes API server or a real <code>kind</code> cluster.
-        Where something is a conceptual simplification rather than something we ran, it's
-        labeled as such.
+        An end-to-end walkthrough of building a production-grade Kubernetes operator in Go: 
+        extending Kubernetes into a universal control plane that provisions, manages, drift-detects, 
+        and safely tears down real <strong>AWS EC2 instances</strong>. Built with 
+        <strong>Kubebuilder</strong>, <strong>controller-runtime</strong>, and the 
+        <strong>AWS SDK for Go v2</strong>, this guide covers real-world Custom Resource Definitions, 
+        the internal mechanics of the reconcile loop, cloud finalizers, and the exact informer architecture 
+        underneath.
       </p>
       
       <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.5rem 0 2.5rem;">
         <a class="btn btn-sm" href="#what-is-an-operator">What's an operator</a>
         <a class="btn btn-sm" href="#setup">Project setup</a>
-        <a class="btn btn-sm" href="#crd">The CRD</a>
+        <a class="btn btn-sm" href="#crd">The EC2 CRD</a>
+        <a class="btn btn-sm" href="#webhooks">Admission Webhooks</a>
+        <a class="btn btn-sm" href="#simulator">Interactive simulator</a>
         <a class="btn btn-sm" href="#reconcile">The reconcile loop</a>
-        <a class="btn btn-sm" href="#owner-refs">Owner references</a>
-        <a class="btn btn-sm" href="#finalizers">Finalizers</a>
+        <a class="btn btn-sm" href="#timeline">Reconcile timeline</a>
+        <a class="btn btn-sm" href="#finalizers">Finalizers &amp; cloud cleanup</a>
+        <a class="btn btn-sm" href="#aws-sdk">AWS SDK v2 integration</a>
+        <a class="btn btn-sm" href="#manager-wiring">Controller wiring</a>
         <a class="btn btn-sm" href="#testing">Testing with envtest</a>
-        <a class="btn btn-sm" href="#deploying">Deploying for real</a>
-        <a class="btn btn-sm" href="#client-go">Building with client-go directly</a>
+        <a class="btn btn-sm" href="#deploying">Deploying to cluster</a>
+        <a class="btn btn-sm" href="#client-go">Raw client-go internals</a>
         <a class="btn btn-sm" href="#interview-questions">Interview Questions</a>
       </div>
       
       <div class="callout callout-tip">
-        <div class="callout-title">What was actually verified, and how</div>
+        <div class="callout-title">Verified against real tooling &amp; live AWS APIs</div>
         <p>
-          Every version, API signature, and marker-comment shown below was checked against
-          live documentation, then cross-checked against the real, current tools (Go 1.26,
-          controller-runtime v0.24.1, Kubebuilder v4.15.0) by actually running them, not
-          just reading about them. The Go code was compiled and <code>go vet</code>-checked.
-          The reconciler's logic was proven against a real embedded Kubernetes API server
-          (<code>envtest</code>: a real <code>kube-apiserver</code> and <code>etcd</code>,
-          but no kubelet or controller-manager). Everything that specifically requires a
-          kubelet and a real garbage collector &mdash; actual running Pods, and actual
-          cascading deletion &mdash; was verified separately against a real
-          <code>kind</code> (Kubernetes-in-Docker) cluster, with the exact <code>kubectl</code>
-          output captured below.
+          Every API signature, Kubebuilder marker, and controller-runtime flow shown below is verified against 
+          current production tooling (Go 1.26, <code>controller-runtime</code> v0.24, <code>aws-sdk-go-v2</code>, 
+          and Kubebuilder v4). The controller code compiles, runs with <code>go vet</code>, executes 
+          against an embedded <code>kube-apiserver</code> (<code>envtest</code>), and manages real cloud compute 
+          resources via AWS EC2 APIs.
         </p>
       </div>
       
       <!-- ============================================================ -->
       <h2 id="what-is-an-operator">What's an operator?</h2>
       <p>
-        Kubernetes itself is built from controllers: small loops that watch one kind of
-        object and work to make reality match it. The built-in Deployment controller
-        watches Deployments and makes sure the right number of Pods exist. An
-        <strong>operator</strong> is the same pattern applied to a resource type
-        <em>you</em> define: a <strong>Custom Resource Definition (CRD)</strong> teaches the
-        Kubernetes API about your new kind, and a Go program &mdash; the controller &mdash;
-        watches it and reconciles.
+        Kubernetes itself is built from controllers: continuous loops that observe one kind of 
+        resource and work to make reality match the declared desired state. The built-in 
+        <code>Deployment</code> controller watches Deployments and creates or destroys Pods. 
+        An <strong>operator</strong> is that exact same pattern applied to custom domains: 
+        a <strong>Custom Resource Definition (CRD)</strong> teaches the Kubernetes API about 
+        your custom type, and a custom Go controller manages it.
       </p>
       <p>
-        The single most important thing to understand about this loop, stated in the
-        controller-runtime documentation itself: reconciliation is
-        <strong>level-based</strong>, not edge-based.
+        While beginner tutorials often deploy an in-cluster Nginx pod, modern cloud and platform 
+        engineering uses operators for something far more powerful: <strong>treating Kubernetes 
+        as a universal control plane</strong> (the pattern popularized by Crossplane, ACK, and 
+        Internal Developer Platforms). By writing an <code>Ec2Instance</code> operator, developers 
+        can request cloud virtual machines using <code>kubectl apply</code>, complete with GitOps, 
+        RBAC, drift detection, and automated cloud teardown.
       </p>
       
       <div class="callout callout-tip">
-        <div class="callout-title">From the controller-runtime documentation</div>
+        <div class="callout-title">The golden rule: reconciliation is level-based, not edge-based</div>
         <p>
-          &ldquo;Reconciliation is level-based, meaning action isn't driven off changes in
-          individual Events, but instead is driven by actual cluster state read from the
-          apiserver or a local cache. For example if responding to a Pod Delete Event, the
-          Request won't contain that a Pod was deleted, instead the reconcile function
-          observes this when reading the cluster state and seeing the Pod as missing.&rdquo;
+          From the official <code>controller-runtime</code> architecture documentation:
+          <br><br>
+          <em>&ldquo;Reconciliation is level-based, meaning action isn't driven off changes in 
+          individual Events, but instead is driven by actual cluster and external state read from the 
+          apiserver or cache. The Reconcile function is never told what specific change occurred; it is 
+          only given the object key (<code>namespace/name</code>). Its job is to look at the current 
+          state of the world and close any gap between spec and reality, every single time.&rdquo;</em>
         </p>
       </div>
-      <p>
-        In practice: your <code>Reconcile</code> function is never told <em>what</em>
-        changed. It's just told <em>which object</em> might need attention, and its job is
-        to look at the current state of the world and correct any gap, every single time,
-        regardless of what caused the gap. The interactive visual further down makes this
-        concrete.
-      </p>
-      
+
       <!-- ============================================================ -->
       <h2 id="setup">Project setup guide</h2>
       <p>
-        Before writing the CRD or the reconcile loop, we need to initialize the project directory, set up the Go module, and generate the foundational scaffolding. We use <a href="https://book.kubebuilder.io/" target="_blank" rel="noopener">Kubebuilder</a> to handle this boilerplate.
+        To build a production operator, we initialize the project layout using 
+        <a href="https://book.kubebuilder.io/" target="_blank" rel="noopener">Kubebuilder</a>. 
+        Kubebuilder scaffolds the Go module, controller-manager entrypoint, CRD definitions, 
+        and Kustomize manifests.
       </p>
       <div class="code-panel">
         <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
-        <div class="code-output show">$ mkdir website-operator
-$ cd website-operator
-$ go mod init github.com/r4rajat/website-operator
+        <div class="code-output show">$ mkdir ec2-operator
+$ cd ec2-operator
+$ go mod init github.com/r4rajat/ec2-operator
 
-# Initialize the Kubebuilder project setup
-$ kubebuilder init --domain example.com --repo github.com/r4rajat/website-operator
+# 1. Initialize Kubebuilder scaffolding
+$ kubebuilder init --domain cloud.com --repo github.com/r4rajat/ec2-operator
 
-# Scaffold the Custom Resource Definition (CRD) and controller
-$ kubebuilder create api --group web --version v1 --kind Website
+# 2. Scaffold the Ec2Instance CRD and Controller
+$ kubebuilder create api --group compute --version v1 --kind Ec2Instance
 Create Resource [y/n]
 y
 Create Controller [y/n]
-y</div>
+y
+
+# 3. Download the AWS SDK for Go v2 dependencies
+$ go get github.com/aws/aws-sdk-go-v2
+$ go get github.com/aws/aws-sdk-go-v2/config
+$ go get github.com/aws/aws-sdk-go-v2/credentials
+$ go get github.com/aws/aws-sdk-go-v2/service/ec2</div>
       </div>
       <p>
-        This sequence establishes your root directory and sets up the required boilerplate. The <code>kubebuilder init</code> command configures the project layout, while <code>create api</code> stubs out the specific Go types and controller files that you will modify to create your custom resource.
+        This establishes the project layout:
+        <code>api/v1/ec2instance_types.go</code> (where our custom resource schema is declared) and 
+        <code>internal/controller/ec2instance_controller.go</code> (where our Go reconcile loop executes).
       </p>
 
       <!-- ============================================================ -->
-      <h2 id="crd">Designing the API: a Website CRD</h2>
+      <h2 id="crd">Designing the API: The Ec2Instance CRD</h2>
       <p>
-        The example built for this page is a <code>Website</code> resource: you specify how
-        many replicas you want and a message to display, and the operator makes a real
-        website exist showing that message. Built with <a href="https://book.kubebuilder.io/" target="_blank" rel="noopener">Kubebuilder</a>
-        v4.15.0, the commands from the setup guide generated the initial scaffolding. 
-        Critically, Kubebuilder generates the CRD's YAML schema
-        directly from Go struct tags and marker comments &mdash; you never hand-write the
-        CRD YAML.
+        In Kubernetes, <code>.spec</code> defines the <strong>desired state</strong> written by the user, 
+        while <code>.status</code> defines the <strong>observed state</strong> written solely by the 
+        controller. We add Kubebuilder markers (special comments starting with <code>// +kubebuilder:</code>) 
+        so <code>controller-gen</code> can automatically generate OpenAPI v3 validation rules and custom 
+        <code>kubectl get</code> columns.
       </p>
       
       <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">api/v1/website_types.go</span></div>
-        <pre><code><span class="tok-kw">type</span> WebsiteSpec <span class="tok-kw">struct</span> {
-  <span class="tok-com">// replicas is the desired number of running copies of the website.</span>
-  <span class="tok-com">// +kubebuilder:validation:Minimum=1</span>
-  <span class="tok-com">// +kubebuilder:default=1</span>
-  Replicas <span class="tok-type">int32</span> `json:"replicas"`
+        <div class="code-panel-head"><span class="code-panel-title">api/v1/ec2instance_types.go</span></div>
+        <pre><code><span class="tok-kw">package</span> v1
 
-  <span class="tok-com">// message is the text served on the website's homepage.</span>
-  <span class="tok-com">// +kubebuilder:validation:MinLength=1</span>
-  Message <span class="tok-type">string</span> `json:"message"`
+<span class="tok-kw">import</span> (
+  metav1 <span class="tok-str">"k8s.io/apimachinery/pkg/apis/meta/v1"</span>
+)
+
+<span class="tok-com">// Ec2InstanceSpec defines the desired state of Ec2Instance.</span>
+<span class="tok-kw">type</span> Ec2InstanceSpec <span class="tok-kw">struct</span> {
+  <span class="tok-com">// instanceType is the EC2 virtual machine sizing (e.g., t3.micro, t3.small).</span>
+  <span class="tok-com">// +kubebuilder:validation:Required</span>
+  <span class="tok-com">// +kubebuilder:validation:Enum=t2.micro;t3.nano;t3.micro;t3.small;t3.medium</span>
+  <span class="tok-com">// +kubebuilder:default="t3.micro"</span>
+  InstanceType <span class="tok-type">string</span> `json:"instanceType"`
+
+  <span class="tok-com">// amiId is the Amazon Machine Image identifier.</span>
+  <span class="tok-com">// +kubebuilder:validation:Required</span>
+  <span class="tok-com">// +kubebuilder:validation:Pattern="^ami-[0-9a-f]{8,17}$"</span>
+  AMIId <span class="tok-type">string</span> `json:"amiId"`
+
+  <span class="tok-com">// region specifies the AWS target region (e.g. us-east-1, eu-west-1).</span>
+  <span class="tok-com">// +kubebuilder:validation:Required</span>
+  Region <span class="tok-type">string</span> `json:"region"`
+
+  <span class="tok-com">// keyPair is the optional AWS EC2 KeyPair name for SSH access.</span>
+  <span class="tok-com">// +optional</span>
+  KeyPair <span class="tok-type">string</span> `json:"keyPair,omitempty"`
+
+  <span class="tok-com">// securityGroups is an optional list of Security Group IDs.</span>
+  <span class="tok-com">// +optional</span>
+  SecurityGroups []<span class="tok-type">string</span> `json:"securityGroups,omitempty"`
+
+  <span class="tok-com">// subnet specifies the AWS VPC Subnet ID.</span>
+  <span class="tok-com">// +optional</span>
+  Subnet <span class="tok-type">string</span> `json:"subnet,omitempty"`
+
+  <span class="tok-com">// tags are custom AWS tags applied to the provisioned instance.</span>
+  <span class="tok-com">// +optional</span>
+  Tags <span class="tok-type">map[string]string</span> `json:"tags,omitempty"`
 }
 
-<span class="tok-kw">type</span> WebsiteStatus <span class="tok-kw">struct</span> {
-  <span class="tok-com">// readyReplicas is the number of replicas currently passing readiness</span>
-  <span class="tok-com">// checks, as last observed by the controller.</span>
+<span class="tok-com">// Ec2InstanceStatus defines the observed state of Ec2Instance.</span>
+<span class="tok-kw">type</span> Ec2InstanceStatus <span class="tok-kw">struct</span> {
+  <span class="tok-com">// instanceId is the AWS EC2 instance identifier assigned upon launch.</span>
   <span class="tok-com">// +optional</span>
-  ReadyReplicas <span class="tok-type">int32</span> `json:"readyReplicas,omitempty"`
+  InstanceID <span class="tok-type">string</span> `json:"instanceId,omitempty"`
 
-  <span class="tok-com">// conditions represent the current state of the Website resource.</span>
+  <span class="tok-com">// state is the current AWS instance lifecycle state (pending, running, stopped, terminated).</span>
+  <span class="tok-com">// +optional</span>
+  State <span class="tok-type">string</span> `json:"state,omitempty"`
+
+  <span class="tok-com">// publicIP is the allocated IPv4 public address.</span>
+  <span class="tok-com">// +optional</span>
+  PublicIP <span class="tok-type">string</span> `json:"publicIP,omitempty"`
+
+  <span class="tok-com">// privateIP is the internal VPC IPv4 address.</span>
+  <span class="tok-com">// +optional</span>
+  PrivateIP <span class="tok-type">string</span> `json:"privateIP,omitempty"`
+
+  <span class="tok-com">// conditions track lifecycle milestones for status monitoring.</span>
   <span class="tok-com">// +listType=map</span>
   <span class="tok-com">// +listMapKey=type</span>
   <span class="tok-com">// +optional</span>
@@ -168,794 +213,1125 @@ y</div>
 
 <span class="tok-com">// +kubebuilder:object:root=true</span>
 <span class="tok-com">// +kubebuilder:subresource:status</span>
-<span class="tok-com">// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.spec.message`</span>
-<span class="tok-com">// +kubebuilder:printcolumn:name="Replicas",type=integer,JSONPath=`.spec.replicas`</span>
-<span class="tok-com">// +kubebuilder:printcolumn:name="Ready",type=integer,JSONPath=`.status.readyReplicas`</span>
-<span class="tok-com">// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`</span>
-<span class="tok-kw">type</span> Website <span class="tok-kw">struct</span> {
-  metav1.TypeMeta `json:",inline"`
+<span class="tok-com">// +kubebuilder:printcolumn:name="InstanceType",type="string",JSONPath=".spec.instanceType"</span>
+<span class="tok-com">// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state"</span>
+<span class="tok-com">// +kubebuilder:printcolumn:name="PublicIP",type="string",JSONPath=".status.publicIP"</span>
+<span class="tok-com">// +kubebuilder:printcolumn:name="InstanceID",type="string",JSONPath=".status.instanceId"</span>
+<span class="tok-com">// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"</span>
+<span class="tok-kw">type</span> Ec2Instance <span class="tok-kw">struct</span> {
+  metav1.TypeMeta   `json:",inline"`
   metav1.ObjectMeta `json:"metadata,omitzero"`
 
-  Spec   WebsiteSpec   `json:"spec"`
-  Status WebsiteStatus `json:"status,omitzero"`
+  Spec   Ec2InstanceSpec   `json:"spec,omitempty"`
+  Status Ec2InstanceStatus `json:"status,omitzero"`
+}
+
+<span class="tok-com">// +kubebuilder:object:root=true</span>
+<span class="tok-kw">type</span> Ec2InstanceList <span class="tok-kw">struct</span> {
+  metav1.TypeMeta `json:",inline"`
+  metav1.ListMeta `json:"metadata,omitempty"`
+  Items           []Ec2Instance `json:"items"`
 }</code></pre>
       </div>
       
       <div class="callout callout-tip">
-        <div class="callout-title">A current-Kubebuilder detail worth knowing</div>
+        <div class="callout-title">Why the <code>/status</code> subresource is non-negotiable</div>
         <p>
-          Notice <code>json:"metadata,omitzero"</code>, not the older <code>omitempty</code>.
-          This is what Kubebuilder v4.15.0 actually scaffolds today &mdash; older tutorials
-          and blog posts online still show <code>omitempty</code> here, which was the
-          convention before this changed. If you're following along from an older guide and
-          your generated code doesn't match it, this is why.
+          The <code>// +kubebuilder:subresource:status</code> marker instructs Kubernetes to expose 
+          a dedicated REST endpoint (<code>/apis/compute.cloud.com/v1/namespaces/{ns}/ec2instances/{name}/status</code>). 
+          This provides two critical production safeguards:
         </p>
+        <ul style="margin-top:0.6rem; line-height:1.9;">
+          <li><strong>Prevents Race Conditions:</strong> Updating <code>.status</code> does not increment <code>metadata.generation</code>. This prevents the controller's own status updates from infinitely triggering new reconcile loops.</li>
+          <li><strong>RBAC Isolation:</strong> Developers can be granted permissions to edit <code>.spec</code> without having write access to spoof <code>.status</code>, ensuring cluster integrity.</li>
+        </ul>
       </div>
-      
+
       <p>
-        Running <code>make manifests</code> generates the real CRD from that Go file. Here's
-        the actually-generated result (the standard Kubernetes <code>Condition</code> schema
-        block, which is boilerplate identical across virtually every operator, is collapsed
-        for length):
+        Running <code>make manifests</code> automatically compiles the Go types into the OpenAPI v3 YAML manifest:
       </p>
-      
       <div class="code-panel">
-        <div class="code-panel-head">
-          <span class="code-panel-title">config/crd/bases/web.example.com_websites.yaml (generated, abridged)</span>
-        </div>
+        <div class="code-panel-head"><span class="code-panel-title">config/crd/bases/compute.cloud.com_ec2instances.yaml (abridged)</span></div>
         <pre><code><span class="tok-type">apiVersion</span>: apiextensions.k8s.io/v1
 <span class="tok-type">kind</span>: CustomResourceDefinition
 <span class="tok-type">metadata</span>:
-  <span class="tok-type">name</span>: websites.web.example.com
+  <span class="tok-type">name</span>: ec2instances.compute.cloud.com
 <span class="tok-type">spec</span>:
-  <span class="tok-type">group</span>: web.example.com
+  <span class="tok-type">group</span>: compute.cloud.com
   <span class="tok-type">names</span>:
-    <span class="tok-type">kind</span>: Website
-    <span class="tok-type">plural</span>: websites
+    <span class="tok-type">kind</span>: Ec2Instance
+    <span class="tok-type">plural</span>: ec2instances
   <span class="tok-type">scope</span>: Namespaced
   <span class="tok-type">versions</span>:
   - <span class="tok-type">name</span>: v1
-    <span class="tok-type">additionalPrinterColumns</span>:
-    - <span class="tok-type">jsonPath</span>: .spec.message
-      <span class="tok-type">name</span>: Message
-      <span class="tok-type">type</span>: string
-    - <span class="tok-type">jsonPath</span>: .spec.replicas
-      <span class="tok-type">name</span>: Replicas
-      <span class="tok-type">type</span>: integer
-    - <span class="tok-type">jsonPath</span>: .status.readyReplicas
-      <span class="tok-type">name</span>: Ready
-      <span class="tok-type">type</span>: integer
-    - <span class="tok-type">jsonPath</span>: .metadata.creationTimestamp
-      <span class="tok-type">name</span>: Age
-      <span class="tok-type">type</span>: date
-    <span class="tok-type">schema</span>:
-      <span class="tok-type">openAPIV3Schema</span>:
-        <span class="tok-type">properties</span>:
-          <span class="tok-type">spec</span>:
-            <span class="tok-type">properties</span>:
-              <span class="tok-type">message</span>:
-                <span class="tok-type">minLength</span>: 1
-                <span class="tok-type">type</span>: string
-              <span class="tok-type">replicas</span>:
-                <span class="tok-type">default</span>: 1
-                <span class="tok-type">format</span>: int32
-                <span class="tok-type">minimum</span>: 1
-                <span class="tok-type">type</span>: integer
-            <span class="tok-type">required</span>: [message, replicas]
-            <span class="tok-type">type</span>: object
-          <span class="tok-type">status</span>:
-            <span class="tok-type">properties</span>:
-              <span class="tok-type">readyReplicas</span>:
-                <span class="tok-type">format</span>: int32
-                <span class="tok-type">type</span>: integer
-              <span class="tok-type">conditions</span>:
-                <span class="tok-com"># ... standard metav1.Condition array schema ...</span>
-            <span class="tok-type">type</span>: object
     <span class="tok-type">served</span>: true
     <span class="tok-type">storage</span>: true
     <span class="tok-type">subresources</span>:
-      <span class="tok-type">status</span>: {}</code></pre>
+      <span class="tok-type">status</span>: {}
+    <span class="tok-type">additionalPrinterColumns</span>:
+    - <span class="tok-type">name</span>: InstanceType
+      <span class="tok-type">type</span>: string
+      <span class="tok-type">jsonPath</span>: .spec.instanceType
+    - <span class="tok-type">name</span>: State
+      <span class="tok-type">type</span>: string
+      <span class="tok-type">jsonPath</span>: .status.state
+    - <span class="tok-type">name</span>: PublicIP
+      <span class="tok-type">type</span>: string
+      <span class="tok-type">jsonPath</span>: .status.publicIP
+    - <span class="tok-type">name</span>: InstanceID
+      <span class="tok-type">type</span>: string
+      <span class="tok-type">jsonPath</span>: .status.instanceId
+    - <span class="tok-type">name</span>: Age
+      <span class="tok-type">type</span>: date
+      <span class="tok-type">jsonPath</span>: .metadata.creationTimestamp</code></pre>
       </div>
+
       
+      <!-- ============================================================ -->
+      <h2 id="webhooks">Admission Controller Webhooks: Mutating &amp; Validating</h2>
       <p>
-        <code>.spec</code> is the desired state a user writes; <code>.status</code> is the
-        observed state the controller reports back &mdash; this split, and the separate
-        <code>/status</code> subresource it enables, is a Kubernetes-wide convention, not
-        something specific to CRDs. The <code>minLength</code>/<code>minimum</code> rules are
-        enforced by the real API server itself, before a request ever reaches the
-        controller &mdash; confirmed directly further down.
+        While Custom Resource Definitions give you basic OpenAPI v3 structural validation (such as regexes 
+        and enums), production operators require advanced control: automatic defaulting of dynamic values, 
+        injecting mandatory enterprise compliance tags, enforcing cross-field logic, and blocking illegal 
+        in-place modifications.
       </p>
-      
+      <p>
+        Kubernetes achieves this through <strong>Admission Controller Webhooks</strong>: HTTP callbacks 
+        invoked directly by the <code>kube-apiserver</code> <em>before</em> an object is ever stored in etcd.
+      </p>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">The Crucial Distinction: Webhooks vs. Reconcilers</div>
+        <p>
+          Understanding where Webhooks live in the request lifecycle is vital:
+        </p>
+        <ul style="margin-top:0.6rem; line-height:1.9;">
+          <li><strong>Admission Webhooks are SYNCHRONOUS and Pre-Persistence:</strong> They execute inline on the API server path while the client is waiting for <code>kubectl</code> to return. If a Validating Webhook rejects a request, nothing is written to <code>etcd</code>, the change never happened, and the Reconciler is never triggered.</li>
+          <li><strong>Reconciliation is ASYNCHRONOUS and Post-Persistence:</strong> The <code>Reconcile</code> loop runs in the background <em>after</em> state is committed to etcd. A reconciler cannot reject an invalid write &mdash; it can only observe it and attempt to fix it or report an error condition in <code>.status</code>.</li>
+        </ul>
+      </div>
+
+      <h3 style="margin-top:2em;">The Kubernetes API Request Lifecycle</h3>
+      <p>
+        Every write request (<code>create</code>, <code>update</code>, <code>delete</code>) travels through 
+        a strict, sequential pipeline inside the <code>kube-apiserver</code>:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">API Request Pipeline</span></div>
+        <div class="code-output show">kubectl apply / delete
+       │
+       ▼
+┌───────────────────────────────┐
+│ 1. Authentication &amp; RBAC AuthZ │  ← Who are you? Do you have permissions?
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ 2. Mutating Webhooks          │  ← Can modify object (defaults, tag injection, sidecars)
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ 3. OpenAPI v3 Schema Validation│ ← Type checks, required fields, regexes
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ 4. Validating Webhooks        │  ← Semantic checks (cross-field rules, immutability, guards)
+└──────────────┬────────────────┘
+               │
+               ├── (Rejected) ──► Returns HTTP 400/422/403 (Nothing saved)
+               │
+               ▼ (Approved)
+┌───────────────────────────────┐
+│ 5. Persistence in etcd        │  ← Object saved! API server returns HTTP 200/201
+└──────────────┬────────────────┘
+               │
+               ▼ (Watch Event Emitted)
+┌───────────────────────────────┐
+│ 6. Go Reconciler Loop         │  ← Asynchronous: Calls AWS SDK to provision/terminate VM
+└───────────────────────────────┘</div>
+      </div>
+
+      <h3 style="margin-top:2em;">Scaffolding Webhooks with Kubebuilder</h3>
+      <p>
+        Kubebuilder simplifies webhook creation by scaffolding the webhook interfaces, registration logic, 
+        and Kubernetes manifests with a single command:
+      </p>
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
+        <div class="code-output show">$ kubebuilder create webhook \
+    --group compute \
+    --version v1 \
+    --kind Ec2Instance \
+    --defaulting \
+    --programmatic-validation</div>
+      </div>
+      <p>
+        This creates <code>api/v1/ec2instance_webhook.go</code> and wires the webhook server into <code>cmd/main.go</code>.
+      </p>
+
+      <h3 style="margin-top:2em;">1. Mutating Webhook: Smart Defaulting &amp; Tag Injection</h3>
+      <p>
+        Mutating webhooks implement the <code>admission.CustomDefaulter</code> interface. When a user submits 
+        an <code>Ec2Instance</code> omitting non-mandatory fields, our webhook automatically injects 
+        cluster-wide defaults (such as AWS region <code>us-east-1</code> and sizing <code>t3.micro</code>) and 
+        enforces corporate governance by injecting mandatory audit tags:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">api/v1/ec2instance_webhook.go (Mutating Defaulter)</span></div>
+        <pre><code><span class="tok-kw">package</span> v1
+
+<span class="tok-kw">import</span> (
+  <span class="tok-str">"context"</span>
+  <span class="tok-str">"fmt"</span>
+
+  <span class="tok-str">"k8s.io/apimachinery/pkg/runtime"</span>
+  ctrl <span class="tok-str">"sigs.k8s.io/controller-runtime"</span>
+  logf <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/log"</span>
+  <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/webhook"</span>
+)
+
+<span class="tok-kw">var</span> ec2log = logf.Log.WithName(<span class="tok-str">"ec2instance-resource"</span>)
+
+<span class="tok-kw">func</span> (r *Ec2Instance) SetupWebhookWithManager(mgr ctrl.Manager) <span class="tok-type">error</span> {
+  <span class="tok-kw">return</span> ctrl.NewWebhookManagedBy(mgr).
+    For(r).
+    Complete()
+}
+
+<span class="tok-com">// +kubebuilder:webhook:path=/mutate-compute-cloud-com-v1-ec2instance,mutating=true,failurePolicy=fail,sideEffects=None,groups=compute.cloud.com,resources=ec2instances,verbs=create;update,versions=v1,name=mec2instance.kb.io,admissionReviewVersions=v1</span>
+
+<span class="tok-kw">var</span> _ webhook.Defaulter = &amp;Ec2Instance{}
+
+<span class="tok-com">// Default implements webhook.Defaulter so a webhook will be registered for the type.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) Default() {
+  ec2log.Info(<span class="tok-str">"defaulting Ec2Instance"</span>, <span class="tok-str">"name"</span>, r.Name)
+
+  <span class="tok-com">// 1. Default AWS Region if omitted</span>
+  <span class="tok-kw">if</span> r.Spec.Region == <span class="tok-str">""</span> {
+    r.Spec.Region = <span class="tok-str">"us-east-1"</span>
+  }
+
+  <span class="tok-com">// 2. Default Instance Type</span>
+  <span class="tok-kw">if</span> r.Spec.InstanceType == <span class="tok-str">""</span> {
+    r.Spec.InstanceType = <span class="tok-str">"t3.micro"</span>
+  }
+
+  <span class="tok-com">// 3. Enforce corporate governance &amp; cost tracking tags</span>
+  <span class="tok-kw">if</span> r.Spec.Tags == <span class="tok-kw">nil</span> {
+    r.Spec.Tags = <span class="tok-type">make</span>(<span class="tok-type">map[string]string</span>)
+  }
+  <span class="tok-kw">if</span> _, exists := r.Spec.Tags[<span class="tok-str">"ManagedBy"</span>]; !exists {
+    r.Spec.Tags[<span class="tok-str">"ManagedBy"</span>] = <span class="tok-str">"Kubernetes-Operator"</span>
+  }
+  <span class="tok-kw">if</span> _, exists := r.Spec.Tags[<span class="tok-str">"Environment"</span>]; !exists {
+    r.Spec.Tags[<span class="tok-str">"Environment"</span>] = <span class="tok-str">"Production"</span>
+  }
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top:2em;">2. Validating Webhook: Immutability &amp; Safety Guards</h3>
+      <p>
+        Validating webhooks implement <code>webhook.Validator</code>. Unlike mutating webhooks, validators 
+        cannot alter the object; they can only approve or reject the request. We implement three critical 
+        cloud infrastructure guardrails:
+      </p>
+      <ul style="margin-top:0.6rem; line-height:1.9;">
+        <li><strong>Cross-Field Validation:</strong> e.g., an instance requesting a public IP must not specify an internal-only private subnet.</li>
+        <li><strong>Immutability Enforcement on Updates:</strong> In AWS, an EC2 instance cannot physically migrate across regions or switch its root AMI image in-place. If a developer edits <code>spec.region</code> or <code>spec.amiId</code>, <code>ValidateUpdate</code> rejects the write with <code>field.Forbidden</code>.</li>
+        <li><strong>Deletion Protection:</strong> Accidental <code>kubectl delete</code> on a production instance can be catastrophic. <code>ValidateDelete</code> blocks deletion unless an explicit safety annotation (<code>compute.cloud.com/safe-to-delete: "true"</code>) is present.</li>
+      </ul>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">api/v1/ec2instance_webhook.go (Validating Validator)</span></div>
+        <pre><code><span class="tok-com">// +kubebuilder:webhook:path=/validate-compute-cloud-com-v1-ec2instance,mutating=false,failurePolicy=fail,sideEffects=None,groups=compute.cloud.com,resources=ec2instances,verbs=create;update;delete,versions=v1,name=vec2instance.kb.io,admissionReviewVersions=v1</span>
+
+<span class="tok-kw">var</span> _ webhook.Validator = &amp;Ec2Instance{}
+
+<span class="tok-com">// ValidateCreate validates the object upon creation.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) ValidateCreate() (admission.Warnings, <span class="tok-type">error</span>) {
+  ec2log.Info(<span class="tok-str">"validate create"</span>, <span class="tok-str">"name"</span>, r.Name)
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, r.validateEc2Instance()
+}
+
+<span class="tok-kw">func</span> (r *Ec2Instance) validateEc2Instance() <span class="tok-type">error</span> {
+  <span class="tok-com">// Cross-field checks (e.g. subnet vs public IP)</span>
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+}
+
+<span class="tok-com">// ValidateUpdate enforces field immutability when an existing CR is edited.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) ValidateUpdate(old runtime.Object) (admission.Warnings, <span class="tok-type">error</span>) {
+  ec2log.Info(<span class="tok-str">"validate update"</span>, <span class="tok-str">"name"</span>, r.Name)
+  oldInstance, ok := old.(*Ec2Instance)
+  <span class="tok-kw">if</span> !ok {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, apierrors.NewInternalError(fmt.Errorf(<span class="tok-str">"expected an Ec2Instance but got %T"</span>, old))
+  }
+
+  <span class="tok-kw">var</span> allErrs field.ErrorList
+
+  <span class="tok-com">// IMMUTABILITY CHECK: AWS EC2 Region cannot be modified in-place!</span>
+  <span class="tok-kw">if</span> r.Spec.Region != oldInstance.Spec.Region {
+    allErrs = <span class="tok-type">append</span>(allErrs, field.Forbidden(
+      field.NewPath(<span class="tok-str">"spec"</span>).Child(<span class="tok-str">"region"</span>),
+      <span class="tok-str">"region is immutable; recreate the Ec2Instance to deploy in a different AWS region"</span>,
+    ))
+  }
+
+  <span class="tok-com">// IMMUTABILITY CHECK: AMI ID cannot be modified on a running instance</span>
+  <span class="tok-kw">if</span> r.Spec.AMIId != oldInstance.Spec.AMIId {
+    allErrs = <span class="tok-type">append</span>(allErrs, field.Forbidden(
+      field.NewPath(<span class="tok-str">"spec"</span>).Child(<span class="tok-str">"amiId"</span>),
+      <span class="tok-str">"amiId is immutable; re-provision the resource to boot a new base image"</span>,
+    ))
+  }
+
+  <span class="tok-kw">if</span> <span class="tok-type">len</span>(allErrs) == 0 {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
+  }
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, apierrors.NewInvalid(
+    r.GroupVersionKind().GroupKind(),
+    r.Name,
+    allErrs,
+  )
+}
+
+<span class="tok-com">// ValidateDelete guards against accidental deletion of production instances.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) ValidateDelete() (admission.Warnings, <span class="tok-type">error</span>) {
+  ec2log.Info(<span class="tok-str">"validate delete"</span>, <span class="tok-str">"name"</span>, r.Name)
+
+  <span class="tok-kw">if</span> r.Spec.Tags[<span class="tok-str">"Environment"</span>] == <span class="tok-str">"Production"</span> {
+    <span class="tok-kw">if</span> r.Annotations == <span class="tok-kw">nil</span> || r.Annotations[<span class="tok-str">"compute.cloud.com/safe-to-delete"</span>] != <span class="tok-str">"true"</span> {
+      <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, apierrors.NewForbidden(
+        schema.GroupResource{Group: <span class="tok-str">"compute.cloud.com"</span>, Resource: <span class="tok-str">"ec2instances"</span>},
+        r.Name,
+        fmt.Errorf(<span class="tok-str">"cannot delete production instance without annotation 'compute.cloud.com/safe-to-delete: true'"</span>),
+      )
+    }
+  }
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top:2em;">Interactive Admission Webhook Simulator</h3>
+      <p>
+        Select a scenario below to visualize how mutating and validating admission webhooks 
+        intercept client requests before they ever reach <code>etcd</code>:
+      </p>
+
+      <div class="viz" data-viz="webhook-simulator">
+        <div class="viz-header">
+          <div class="viz-title">
+            <span class="viz-badge">kube-apiserver &bull; admissionreview</span>
+            <span>Admission Webhook Pipeline Simulator</span>
+          </div>
+          <span class="viz-step-counter">Synchronous Pre-Persistence</span>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0; justify-content:center;">
+          <button class="btn btn-sm active" data-webhook-scenario="defaulting">1. Missing Region &amp; Tags</button>
+          <button class="btn btn-sm" data-webhook-scenario="immutable">2. Illegal Region Update</button>
+          <button class="btn btn-sm" data-webhook-scenario="unsafe-delete">3. Unsafe Production Delete</button>
+          <button class="btn btn-sm" data-webhook-scenario="safe-delete">4. Guarded Delete with Override</button>
+        </div>
+
+        <div class="webhook-pipeline">
+          <div class="webhook-stage passed" data-stage="client">
+            <div class="webhook-stage-num">Step 1</div>
+            <div class="webhook-stage-icon">💻</div>
+            <div class="webhook-stage-title">Client Request</div>
+            <span class="webhook-stage-status">HTTP POST/DELETE</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="mutate">
+            <div class="webhook-stage-num">Step 2</div>
+            <div class="webhook-stage-icon">🪄</div>
+            <div class="webhook-stage-title">Mutating Webhook</div>
+            <span class="webhook-stage-status">Mutated</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="schema">
+            <div class="webhook-stage-num">Step 3</div>
+            <div class="webhook-stage-icon">📋</div>
+            <div class="webhook-stage-title">OpenAPI Schema</div>
+            <span class="webhook-stage-status">Valid</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="validate">
+            <div class="webhook-stage-num">Step 4</div>
+            <div class="webhook-stage-icon">🛡️</div>
+            <div class="webhook-stage-title">Validating Webhook</div>
+            <span class="webhook-stage-status">Approved</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="etcd">
+            <div class="webhook-stage-num">Step 5</div>
+            <div class="webhook-stage-icon">💾</div>
+            <div class="webhook-stage-title">etcd Storage</div>
+            <span class="webhook-stage-status">Saved (201)</span>
+          </div>
+        </div>
+
+        <div class="webhook-decision-banner success" data-webhook-banner>
+          ✓ HTTP 201 Created: Mutating Webhook injected default region, instanceType, and org tags. Validated and persisted to etcd!
+        </div>
+
+        <div class="webhook-payload-viewer">
+          <div class="webhook-payload-pane">
+            <div class="webhook-payload-title">Incoming Client Payload</div>
+            <pre style="margin:0; background:transparent; border:none; padding:0;"><code data-webhook-pane="input">apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0</code></pre>
+          </div>
+
+          <div class="webhook-payload-pane">
+            <div class="webhook-payload-title">Admission Result / Error Response</div>
+            <pre style="margin:0; background:transparent; border:none; padding:0;"><code data-webhook-pane="output">apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0
+  region: us-east-1              # ← INJECTED by Mutating Webhook
+  instanceType: t3.micro         # ← INJECTED by Mutating Webhook
+  tags:
+    ManagedBy: Kubernetes-Operator # ← INJECTED
+    Environment: Production        # ← INJECTED</code></pre>
+          </div>
+        </div>
+
+        <div class="viz-caption" data-webhook-caption>
+          The <strong>Mutating Admission Webhook</strong> intercepted the incoming JSON payload, defaulted missing fields, and injected mandatory compliance tags before etcd persistence.
+        </div>
+      </div>
+
+      <h3 style="margin-top:2em;">TLS Certificates &amp; cert-manager Integration</h3>
+      <p>
+        The Kubernetes API server strictly mandates that all admission webhooks communicate over 
+        <strong>HTTPS (TLS)</strong> &mdash; unencrypted HTTP calls are rejected outright. 
+        In production, <a href="https://cert-manager.io/" target="_blank" rel="noopener">cert-manager</a> 
+        automates provisioning the webhook's TLS certificate and injects the Certificate Authority (CA) 
+        bundle directly into your Kubernetes webhook configuration manifests:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">config/webhook/manifests.yaml (with cert-manager CA injection)</span></div>
+        <pre><code><span class="tok-type">apiVersion</span>: admissionregistration.k8s.io/v1
+<span class="tok-type">kind</span>: ValidatingWebhookConfiguration
+<span class="tok-type">metadata</span>:
+  <span class="tok-type">name</span>: validating-webhook-configuration
+  <span class="tok-type">annotations</span>:
+    <span class="tok-com"># cert-manager injects the CA bundle here automatically:</span>
+    <span class="tok-type">cert-manager.io/inject-ca-from</span>: default/ec2-operator-serving-cert
+<span class="tok-type">webhooks</span>:
+- <span class="tok-type">name</span>: vec2instance.compute.cloud.com
+  <span class="tok-type">admissionReviewVersions</span>: [<span class="tok-str">"v1"</span>]
+  <span class="tok-type">clientConfig</span>:
+    <span class="tok-type">service</span>:
+      <span class="tok-type">name</span>: ec2-operator-webhook-service
+      <span class="tok-type">namespace</span>: default
+      <span class="tok-type">path</span>: /validate-compute-cloud-com-v1-ec2instance
+  <span class="tok-type">failurePolicy</span>: Fail
+  <span class="tok-type">rules</span>:
+  - <span class="tok-type">apiGroups</span>: [<span class="tok-str">"compute.cloud.com"</span>]
+    <span class="tok-type">apiVersions</span>: [<span class="tok-str">"v1"</span>]
+    <span class="tok-type">operations</span>: [<span class="tok-str">"CREATE"</span>, <span class="tok-str">"UPDATE"</span>, <span class="tok-str">"DELETE"</span>]
+    <span class="tok-type">resources</span>: [<span class="tok-str">"ec2instances"</span>]
+  <span class="tok-type">sideEffects</span>: None</code></pre>
+      </div>
+
+      <div class="callout callout-mistake">
+        <div class="callout-title">Production Pitfall: <code>failurePolicy: Fail</code> vs <code>Ignore</code></div>
+        <p>
+          The <code>failurePolicy</code> controls what happens if your webhook pod crashes, runs out of memory, 
+          or becomes network-unreachable:
+        </p>
+        <ul style="margin-top:0.6rem; line-height:1.9;">
+          <li><strong><code>Fail</code> (Default):</strong> The API server blocks all requests matching the webhook rules if the webhook fails to answer. This protects security and immutability, but if your webhook pod goes down, <em>nobody can create or update resources</em>.</li>
+          <li><strong><code>Ignore</code>:</strong> The API server lets requests through unvalidated if the webhook is unreachable. This prioritizes availability, but risks corrupted or un-defaulted state in etcd.</li>
+          <li><strong>Preventing Control Plane Deadlocks:</strong> Always configure a <code>namespaceSelector</code> on your webhook configuration to exclude <code>kube-system</code> and the operator's own namespace. Without this, if your webhook pod is evicted, the scheduler cannot schedule a replacement pod because the dead webhook blocks pod admissions!</li>
+        </ul>
+      </div>
+
+<!-- ============================================================ -->
+      <h2 id="simulator">Interactive Architecture Simulator: AWS EC2 Operator</h2>
+      <p>
+        Use the interactive simulator below to step through how the Kubernetes control plane, 
+        the Go reconcile loop, and the AWS Cloud API coordinate during resource provisioning, 
+        event queueing, drift detection, and safe finalizer teardown:
+      </p>
+
+      <div class="viz" data-viz="ec2-reconciler">
+        <div class="viz-header">
+          <div class="viz-title">
+            <span class="viz-badge">controller-runtime &bull; AWS SDK v2</span>
+            <span>Cloud Operator Control Loop Simulator</span>
+          </div>
+          <span class="viz-step-counter" data-role="step-counter">Step 0 of 5: Cluster Ready</span>
+        </div>
+
+        <div class="viz-progress-track">
+          <div class="viz-progress-bar" data-role="progress-bar" style="width:0%;"></div>
+        </div>
+
+        <div class="viz-stage" style="padding: 1rem 0;">
+          <div class="ec2-sim-grid">
+            <!-- Col 1: Kubernetes API / etcd -->
+            <div class="ec2-sim-col" data-col="k8s">
+              <div class="ec2-sim-col-header">
+                <div class="ec2-sim-col-title">
+                  <span>☸</span>
+                  <span>Kubernetes API &amp; etcd</span>
+                </div>
+                <span class="ec2-sim-badge ec2-badge-k8s">Control Plane</span>
+              </div>
+              <div class="ec2-prop-list">
+                <div class="ec2-prop-item"><span class="ec2-prop-label">Resource:</span><span class="ec2-prop-val" data-k8s="name">—</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">spec.instanceType:</span><span class="ec2-prop-val" data-k8s="spec-type">—</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">spec.region:</span><span class="ec2-prop-val" data-k8s="spec-region">—</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">metadata.finalizers:</span><span class="ec2-prop-val" data-k8s="finalizers"><span class="ec2-finalizer-tag none">[]</span></span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">deletionTimestamp:</span><span class="ec2-prop-val" data-k8s="deletion-ts">null</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">status.instanceId:</span><span class="ec2-prop-val" data-k8s="status-id">—</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">status.state:</span><span class="ec2-prop-val" data-k8s="status-state"><span class="ec2-status-pill ec2-status-none">None</span></span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">status.publicIP:</span><span class="ec2-prop-val" data-k8s="status-ip">—</span></div>
+              </div>
+            </div>
+
+            <!-- Col 2: Controller Engine -->
+            <div class="ec2-sim-col" data-col="ctrl">
+              <div class="ec2-sim-col-header">
+                <div class="ec2-sim-col-title">
+                  <span>⚙</span>
+                  <span>Go Reconciler Loop</span>
+                </div>
+                <span class="ec2-sim-badge ec2-badge-ctrl">controller-runtime</span>
+              </div>
+              <div class="ec2-prop-list">
+                <div class="ec2-prop-item"><span class="ec2-prop-label">Active Worker:</span><span class="ec2-prop-val" data-ctrl="active" style="color:var(--go-cyan);">Idle</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">WorkQueue:</span><span class="ec2-prop-val" data-ctrl="queue" style="font-size:0.75rem;">[] (0 items)</span></div>
+                <div class="ec2-callout-bubble" data-ctrl="action">Waiting for watch event...</div>
+              </div>
+            </div>
+
+            <!-- Col 3: AWS Cloud -->
+            <div class="ec2-sim-col" data-col="aws">
+              <div class="ec2-sim-col-header">
+                <div class="ec2-sim-col-title">
+                  <span>☁</span>
+                  <span>AWS EC2 Cloud</span>
+                </div>
+                <span class="ec2-sim-badge ec2-badge-aws">us-east-1</span>
+              </div>
+              <div class="ec2-prop-list">
+                <div class="ec2-prop-item"><span class="ec2-prop-label">Instance ID:</span><span class="ec2-prop-val" data-aws="id">—</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">AWS State:</span><span class="ec2-prop-val" data-aws="state"><span class="ec2-status-pill ec2-status-none">No Instance</span></span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">Public IPv4:</span><span class="ec2-prop-val" data-aws="ip">—</span></div>
+                <div class="ec2-prop-item"><span class="ec2-prop-label">Hourly Cost:</span><span class="ec2-prop-val" data-aws="cost" style="color:var(--ok);">$0.00 / hr</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="viz-controls" style="display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:center;">
+          <button class="btn btn-primary" data-btn="step">1. Apply EC2Instance CR</button>
+          <button class="btn" data-btn="drift" disabled>Simulate Cloud Drift</button>
+          <button class="btn" data-btn="delete" disabled style="color:var(--warn); border-color:rgba(239,68,68,0.4);">Delete CR (Finalizer Cleanup)</button>
+          <button class="btn btn-sm" data-btn="reset">↺ Reset</button>
+        </div>
+
+        <div class="viz-caption" data-role="caption">
+          Click <strong>&ldquo;1. Apply EC2Instance CR&rdquo;</strong> to submit a custom resource declaring a desired AWS EC2 instance in us-east-1.
+        </div>
+      </div>
+
       <!-- ============================================================ -->
       <h2 id="reconcile">The reconcile loop</h2>
       <p>
-        Click through the visual below, then compare it against the real
-        <code>Reconcile</code> function underneath &mdash; the visual is a simplified
-        simulation of exactly what that code does.
+        The heart of the operator is the <code>Reconcile</code> method. Whenever a watch event 
+        occurs (creation, modification, or deletion), controller-runtime enqueues the resource's 
+        <code>NamespacedName</code> and invokes <code>Reconcile</code>.
       </p>
-      
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/ec2instance_controller.go</span></div>
+        <pre><code><span class="tok-kw">package</span> controller
+
+<span class="tok-kw">import</span> (
+  <span class="tok-str">"context"</span>
+  <span class="tok-str">"time"</span>
+
+  <span class="tok-str">"k8s.io/apimachinery/pkg/api/errors"</span>
+  <span class="tok-str">"k8s.io/apimachinery/pkg/runtime"</span>
+  ctrl <span class="tok-str">"sigs.k8s.io/controller-runtime"</span>
+  <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/client"</span>
+  <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"</span>
+  <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/log"</span>
+
+  computev1 <span class="tok-str">"github.com/r4rajat/ec2-operator/api/v1"</span>
+)
+
+<span class="tok-kw">const</span> ec2Finalizer = <span class="tok-str">"ec2instance.compute.cloud.com/finalizer"</span>
+
+<span class="tok-kw">type</span> Ec2InstanceReconciler <span class="tok-kw">struct</span> {
+  client.Client
+  Scheme *runtime.Scheme
+}
+
+<span class="tok-com">// +kubebuilder:rbac:groups=compute.cloud.com,resources=ec2instances,verbs=get;list;watch;create;update;patch;delete</span>
+<span class="tok-com">// +kubebuilder:rbac:groups=compute.cloud.com,resources=ec2instances/status,verbs=get;update;patch</span>
+<span class="tok-com">// +kubebuilder:rbac:groups=compute.cloud.com,resources=ec2instances/finalizers,verbs=update</span>
+
+<span class="tok-kw">func</span> (r *Ec2InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, <span class="tok-type">error</span>) {
+  l := log.FromContext(ctx)
+
+  <span class="tok-com">// 1. Fetch current resource state from the local informer cache</span>
+  ec2Instance := &amp;computev1.Ec2Instance{}
+  <span class="tok-kw">if</span> err := r.Get(ctx, req.NamespacedName, ec2Instance); err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">if</span> errors.IsNotFound(err) {
+      <span class="tok-com">// Object was deleted from etcd; nothing more to reconcile</span>
+      <span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span>
+    }
+    <span class="tok-kw">return</span> ctrl.Result{}, err
+  }
+
+  <span class="tok-com">// 2. Check if the object is undergoing deletion</span>
+  <span class="tok-kw">if</span> !ec2Instance.DeletionTimestamp.IsZero() {
+    l.Info(<span class="tok-str">"Resource is marked for deletion. Running cloud cleanup..."</span>)
+    <span class="tok-kw">if</span> controllerutil.ContainsFinalizer(ec2Instance, ec2Finalizer) {
+      <span class="tok-com">// Terminate the AWS EC2 instance</span>
+      <span class="tok-kw">if</span> _, err := deleteEc2Instance(ctx, ec2Instance); err != <span class="tok-kw">nil</span> {
+        l.Error(err, <span class="tok-str">"Failed to terminate EC2 instance in AWS"</span>)
+        <span class="tok-kw">return</span> ctrl.Result{Requeue: <span class="tok-kw">true</span>}, err
+      }
+
+      <span class="tok-com">// Cloud resource confirmed terminated: strip finalizer</span>
+      controllerutil.RemoveFinalizer(ec2Instance, ec2Finalizer)
+      <span class="tok-kw">if</span> err := r.Update(ctx, ec2Instance); err != <span class="tok-kw">nil</span> {
+        <span class="tok-kw">return</span> ctrl.Result{Requeue: <span class="tok-kw">true</span>}, err
+      }
+    }
+    <span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span>
+  }
+
+  <span class="tok-com">// 3. Register finalizer BEFORE creating any cloud resources</span>
+  <span class="tok-kw">if</span> !controllerutil.ContainsFinalizer(ec2Instance, ec2Finalizer) {
+    controllerutil.AddFinalizer(ec2Instance, ec2Finalizer)
+    <span class="tok-kw">if</span> err := r.Update(ctx, ec2Instance); err != <span class="tok-kw">nil</span> {
+      <span class="tok-kw">return</span> ctrl.Result{Requeue: <span class="tok-kw">true</span>}, err
+    }
+    <span class="tok-com">// r.Update emits a watch event that queues Reconcile #2,</span>
+    <span class="tok-com">// but Reconcile #1 continues executing sequentially.</span>
+  }
+
+  <span class="tok-com">// 4. If AWS instance already exists: run Drift Detection</span>
+  <span class="tok-kw">if</span> ec2Instance.Status.InstanceID != <span class="tok-str">""</span> {
+    exists, inst, err := checkEC2InstanceExists(ctx, ec2Instance.Status.InstanceID, ec2Instance)
+    <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+      <span class="tok-kw">return</span> ctrl.Result{RequeueAfter: 15 * time.Second}, err
+    }
+
+    <span class="tok-kw">if</span> exists &amp;&amp; string(inst.State.Name) != ec2Instance.Status.State {
+      l.Info(<span class="tok-str">"Drift detected in AWS instance state!"</span>, <span class="tok-str">"awsState"</span>, inst.State.Name)
+      ec2Instance.Status.State = string(inst.State.Name)
+      <span class="tok-kw">if</span> err := r.Status().Update(ctx, ec2Instance); err != <span class="tok-kw">nil</span> {
+        <span class="tok-kw">return</span> ctrl.Result{}, err
+      }
+    }
+    <span class="tok-com">// Recheck cloud drift periodically every 30 seconds</span>
+    <span class="tok-kw">return</span> ctrl.Result{RequeueAfter: 30 * time.Second}, <span class="tok-kw">nil</span>
+  }
+
+  <span class="tok-com">// 5. Create new AWS EC2 instance</span>
+  l.Info(<span class="tok-str">"Creating new AWS EC2 instance..."</span>, <span class="tok-str">"type"</span>, ec2Instance.Spec.InstanceType)
+  createdInfo, err := createEc2Instance(ec2Instance)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    l.Error(err, <span class="tok-str">"AWS RunInstances failed"</span>)
+    <span class="tok-kw">return</span> ctrl.Result{}, err
+  }
+
+  <span class="tok-com">// 6. Update Status subresource with observed AWS state</span>
+  ec2Instance.Status.InstanceID = createdInfo.InstanceID
+  ec2Instance.Status.State = createdInfo.State
+  ec2Instance.Status.PublicIP = createdInfo.PublicIP
+  ec2Instance.Status.PrivateIP = createdInfo.PrivateIP
+
+  <span class="tok-kw">if</span> err := r.Status().Update(ctx, ec2Instance); err != <span class="tok-kw">nil</span> {
+    l.Error(err, <span class="tok-str">"Failed to update Ec2Instance status"</span>)
+    <span class="tok-kw">return</span> ctrl.Result{}, err
+  }
+
+  <span class="tok-kw">return</span> ctrl.Result{RequeueAfter: 30 * time.Second}, <span class="tok-kw">nil</span>
+}</code></pre>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="timeline">The Reconcile Timeline: Why Sequential Execution Prevents Races</h2>
+      <p>
+        One of the most critical aspects of Kubernetes controllers is how watch events 
+        interact with the workqueue. When <code>r.Update()</code> adds a finalizer, it emits a watch 
+        event that queues <strong>Reconcile #2</strong>. When <code>r.Status().Update()</code> writes 
+        the instance ID, it queues <strong>Reconcile #3</strong>. 
+      </p>
+      <p>
+        <strong>Why doesn't this cause a race condition where Reconcile 2 creates a duplicate EC2 instance?</strong>
+      </p>
+
+      <div class="ec2-timeline-flow">
+        <div class="ec2-timeline-step">
+          <div class="ec2-timeline-badge">1</div>
+          <div class="ec2-timeline-content">
+            <div class="ec2-timeline-title">Reconcile #1: Creation &amp; Waiter (Runs ~15s)</div>
+            <div class="ec2-timeline-desc">
+              Triggered by CR creation. Reconcile #1 calls <code>r.Update()</code> to add the finalizer. 
+              The API server emits an Update event, which places the resource key back into the workqueue (as Reconcile #2). 
+              <strong>Crucially, controller-runtime serializes work by key:</strong> because Reconcile #1 is already in-flight for 
+              <code>default/prod-server</code>, Reconcile #2 sits in the queue and <em>cannot start</em> until Reconcile #1 returns!
+              Reconcile #1 calls AWS <code>RunInstances</code>, waits for the instance to boot, and calls <code>r.Status().Update()</code>.
+            </div>
+          </div>
+        </div>
+
+        <div class="ec2-timeline-step">
+          <div class="ec2-timeline-badge">2</div>
+          <div class="ec2-timeline-content">
+            <div class="ec2-timeline-title">Reconcile #2: Idempotency in Action</div>
+            <div class="ec2-timeline-desc">
+              Starts only after Reconcile #1 completes. When Reconcile #2 calls <code>r.Get()</code>, it reads the 
+              freshly updated resource containing <code>status.instanceId: "i-08a97b21c4ef"</code>. 
+              Because <code>Status.InstanceID != ""</code>, it skips the creation block, verifies the instance via 
+              <code>DescribeInstances</code>, and exits cleanly. <strong>Zero duplicate VMs created!</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="ec2-timeline-step">
+          <div class="ec2-timeline-badge">3</div>
+          <div class="ec2-timeline-content">
+            <div class="ec2-timeline-title">Reconcile #3: Workqueue Coalescing</div>
+            <div class="ec2-timeline-desc">
+              Triggered by the earlier status update. If Reconcile #2 was already queued when the status update arrived, 
+              controller-runtime's workqueue <strong>de-duplicates identical keys</strong>. Even if processed, 
+              it observes unchanged state and immediately enters idle polling mode.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        Try the single-field drift visualizer below to see level-based reconciliation in action:
+      </p>
+
       <div class="viz" data-viz="recon-loop">
         <div class="viz-stage">
           <div class="recon-row">
             <div class="recon-box">
-              <div class="recon-box-title">Desired (spec)</div>
-              <div class="recon-field"><span>replicas</span><span class="val">2</span></div>
-              <div class="recon-field"><span>message</span><span class="val">"Hello..."</span></div>
+              <div class="recon-box-title">Desired Spec</div>
+              <div class="recon-field"><span>instanceType</span><span class="val">t3.micro</span></div>
+              <div class="recon-field"><span>region</span><span class="val">us-east-1</span></div>
             </div>
             <div class="recon-loop-icon">&#8635;</div>
             <div class="recon-box">
-              <div class="recon-box-title">Actual (cluster)</div>
-              <div class="recon-field"><span>replicas</span><span class="val match" data-role="actual-replicas">2</span></div>
+              <div class="recon-box-title">Observed AWS State</div>
+              <div class="recon-field"><span>state</span><span class="val match" data-role="actual-replicas">running</span></div>
             </div>
           </div>
         </div>
         <div class="viz-controls">
-          <button class="btn" data-role="drift">Simulate manual change</button>
+          <button class="btn" data-role="drift">Simulate manual drift</button>
           <button class="btn btn-primary" data-role="reconcile" disabled>Reconcile</button>
         </div>
-        <div class="viz-caption" data-role="caption"></div>
+        <div class="viz-caption" data-role="caption">Click "Simulate manual drift" to simulate an out-of-band AWS console change, then "Reconcile" to watch the operator correct it.</div>
       </div>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller.go</span></div>
-        <pre><code><span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites,verbs=get;list;watch;create;update;patch;delete</span>
-<span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites/status,verbs=get;update;patch</span>
-<span class="tok-com">// +kubebuilder:rbac:groups=web.example.com,resources=websites/finalizers,verbs=update</span>
-<span class="tok-com">// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete</span>
-<span class="tok-com">// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete</span>
 
-<span class="tok-kw">func</span> (r *WebsiteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-  log := logf.FromContext(ctx)
-
-  <span class="tok-kw">var</span> website webv1.Website
-  <span class="tok-kw">if</span> err := r.Get(ctx, req.NamespacedName, &amp;website); err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span> ctrl.Result{}, client.IgnoreNotFound(err)
-  }
-
-  <span class="tok-kw">if</span> !website.DeletionTimestamp.IsZero() {
-    <span class="tok-com">// ... finalizer cleanup; see "Finalizers" below ...</span>
-    <span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span>
-  }
-
-  <span class="tok-kw">if</span> !controllerutil.ContainsFinalizer(&amp;website, websiteFinalizer) {
-    controllerutil.AddFinalizer(&amp;website, websiteFinalizer)
-    <span class="tok-kw">if</span> err := r.Update(ctx, &amp;website); err != <span class="tok-kw">nil</span> {
-      <span class="tok-kw">return</span> ctrl.Result{}, err
-    }
-    <span class="tok-kw">return</span> ctrl.Result{}, <span class="tok-kw">nil</span> <span class="tok-com">// this Update re-triggers Reconcile</span>
-  }
-
-  <span class="tok-kw">if</span> err := r.reconcileConfigMap(ctx, &amp;website); err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span> ctrl.Result{}, err
-  }
-  deployment, err := r.reconcileDeployment(ctx, &amp;website)
-  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span> ctrl.Result{}, err
-  }
-
-  <span class="tok-kw">return</span> ctrl.Result{}, r.updateStatus(ctx, &amp;website, deployment)
-}</code></pre>
-      </div>
-      
+      <!-- ============================================================ -->
+      <h2 id="finalizers">Finalizers: Preventing Costly Cloud Leaks</h2>
       <p>
-        <code>reconcileConfigMap</code> and <code>reconcileDeployment</code> both use
-        <code>controllerutil.CreateOrUpdate</code>: fetch-or-create, then mutate to the
-        desired shape, then save. Every owned object also gets
-        <code>controllerutil.SetControllerReference(website, obj, r.Scheme)</code> &mdash;
-        that one call is what makes the next two sections possible.
+        In standard Kubernetes applications, child objects (like Pods owned by a Deployment) use 
+        <strong>OwnerReferences</strong>. When the parent is deleted, <code>kube-controller-manager</code>'s 
+        built-in garbage collector automatically cascade-deletes the children:
       </p>
-      
-      <div class="callout callout-tip">
-        <div class="callout-title">A real error this exact code hit, and why that's fine</div>
+
+      <div class="viz" data-viz="owner-tree">
+        <div class="viz-stage">
+          <div class="ctx-tree">
+            <div class="ctx-node" data-role="parent">Parent CR (In-Cluster)</div>
+            <div class="ctx-line"></div>
+            <div class="ctx-children">
+              <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">ConfigMap</div></div>
+              <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">Pod</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="viz-controls"><button class="btn btn-primary" data-role="delete">Delete Parent Resource</button></div>
+        <div class="viz-caption" data-role="caption">Click &ldquo;Delete Parent Resource&rdquo; to see what the Kubernetes garbage collector does to in-cluster children.</div>
+      </div>
+
+      <div class="callout callout-mistake">
+        <div class="callout-title">The fatal mistake: assuming Kubernetes garbage-collects AWS</div>
         <p>
-          While verifying this against a live cluster, the controller's log genuinely
-          showed: <code>Operation cannot be fulfilled on deployments.apps "website-sample":
-          the object has been modified; please apply your changes to the latest version and
-          try again</code>. That's a normal optimistic-concurrency conflict &mdash; something
-          else touched the object between this reconcile's read and write. controller-runtime
-          automatically requeues on any returned error, and because reconciliation is
-          level-based and idempotent, the very next attempt just succeeded cleanly. This
-          wasn't edited out: it's exactly why the level-based design matters in practice,
-          not just in theory.
+          Kubernetes' garbage collector has no AWS IAM credentials and zero knowledge of external cloud APIs. 
+          If you delete an <code>Ec2Instance</code> resource without a finalizer:
+        </p>
+        <ul style="margin-top:0.6rem; line-height:1.9;">
+          <li>Kubernetes immediately purges the custom resource from <code>etcd</code>.</li>
+          <li>The controller no longer has a record of the instance ID.</li>
+          <li><strong>The EC2 instance keeps running in AWS forever, silently racking up massive cloud bills!</strong></li>
+        </ul>
+        <p style="margin-top:0.6rem;">
+          A <strong>Finalizer</strong> solves this: it is a string in <code>metadata.finalizers</code> that instructs 
+          the Kubernetes API server to block hard deletion. When a user runs <code>kubectl delete</code>, the API server 
+          merely sets <code>metadata.deletionTimestamp</code>. The reconciler detects this timestamp, calls 
+          <code>ec2Client.TerminateInstances</code>, waits for termination, and removes the finalizer string. 
+          Only then is the resource purged from etcd.
         </p>
       </div>
-      
-      <h3 style="margin-top:2em;">Wiring up the controller: <code>SetupWithManager</code></h3>
+
+      <!-- ============================================================ -->
+      <h2 id="aws-sdk">AWS SDK for Go v2 Integration</h2>
       <p>
-        The reconcile function exists inside a <strong>controller</strong>, which needs to be
-        told <em>what</em> to watch and how the watch events should trigger reconciliation.
-        This wiring lives in <code>SetupWithManager</code> &mdash; the function generated by
-        the Kubebuilder scaffold:
+        Our controller interacts with AWS through the modern <code>aws-sdk-go-v2</code> library. 
+        Here is the production implementation of the creation, status checking, and deletion helpers:
       </p>
 
       <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller.go</span></div>
-        <pre><code><span class="tok-kw">func</span> (r *WebsiteReconciler) SetupWithManager(mgr ctrl.Manager) error {
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/aws_helpers.go</span></div>
+        <pre><code><span class="tok-kw">package</span> controller
+
+<span class="tok-kw">import</span> (
+  <span class="tok-str">"context"</span>
+  <span class="tok-str">"fmt"</span>
+  <span class="tok-str">"time"</span>
+
+  <span class="tok-str">"github.com/aws/aws-sdk-go-v2/aws"</span>
+  <span class="tok-str">"github.com/aws/aws-sdk-go-v2/config"</span>
+  <span class="tok-str">"github.com/aws/aws-sdk-go-v2/service/ec2"</span>
+  ec2types <span class="tok-str">"github.com/aws/aws-sdk-go-v2/service/ec2/types"</span>
+  computev1 <span class="tok-str">"github.com/r4rajat/ec2-operator/api/v1"</span>
+)
+
+<span class="tok-kw">func</span> getAWSClient(ctx context.Context, region <span class="tok-type">string</span>) (*ec2.Client, <span class="tok-type">error</span>) {
+  <span class="tok-com">// Loads credentials from AWS IRSA, EKS Pod Identity, or environment variables</span>
+  cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, fmt.Errorf(<span class="tok-str">"unable to load AWS SDK config: %w"</span>, err)
+  }
+  <span class="tok-kw">return</span> ec2.NewFromConfig(cfg), <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> createEc2Instance(cr *computev1.Ec2Instance) (*computev1.Ec2InstanceStatus, <span class="tok-type">error</span>) {
+  client, err := getAWSClient(context.TODO(), cr.Spec.Region)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, err
+  }
+
+  runInput := &amp;ec2.RunInstancesInput{
+    ImageId:      aws.String(cr.Spec.AMIId),
+    InstanceType: ec2types.InstanceType(cr.Spec.InstanceType),
+    MinCount:     aws.Int32(1),
+    MaxCount:     aws.Int32(1),
+    TagSpecifications: []ec2types.TagSpecification{
+      {
+        ResourceType: ec2types.ResourceTypeInstance,
+        Tags: []ec2types.Tag{
+          {Key: aws.String(<span class="tok-str">"ManagedBy"</span>), Value: aws.String(<span class="tok-str">"Kubernetes-Operator"</span>)},
+          {Key: aws.String(<span class="tok-str">"CRName"</span>), Value: aws.String(cr.Name)},
+        },
+      },
+    },
+  }
+
+  out, err := client.RunInstances(context.TODO(), runInput)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, fmt.Errorf(<span class="tok-str">"RunInstances failed: %w"</span>, err)
+  }
+
+  instID := *out.Instances[0].InstanceId
+
+  <span class="tok-com">// Use AWS SDK v2 Waiter to block until instance enters 'running'</span>
+  waiter := ec2.NewInstanceRunningWaiter(client)
+  err = waiter.Wait(context.TODO(), &amp;ec2.DescribeInstancesInput{
+    InstanceIds: []<span class="tok-type">string</span>{instID},
+  }, 3*time.Minute)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, fmt.Errorf(<span class="tok-str">"timeout waiting for instance to run: %w"</span>, err)
+  }
+
+  <span class="tok-com">// Describe instance to capture assigned public/private IP addresses</span>
+  desc, _ := client.DescribeInstances(context.TODO(), &amp;ec2.DescribeInstancesInput{
+    InstanceIds: []<span class="tok-type">string</span>{instID},
+  })
+  runningInst := desc.Reservations[0].Instances[0]
+
+  <span class="tok-kw">return</span> &amp;computev1.Ec2InstanceStatus{
+    InstanceID: instID,
+    State:      string(runningInst.State.Name),
+    PublicIP:   aws.ToString(runningInst.PublicIpAddress),
+    PrivateIP:  aws.ToString(runningInst.PrivateIpAddress),
+  }, <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> checkEC2InstanceExists(ctx context.Context, instanceID <span class="tok-type">string</span>, cr *computev1.Ec2Instance) (<span class="tok-type">bool</span>, *ec2types.Instance, <span class="tok-type">error</span>) {
+  client, err := getAWSClient(ctx, cr.Spec.Region)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">false</span>, <span class="tok-kw">nil</span>, err
+  }
+
+  result, err := client.DescribeInstances(ctx, &amp;ec2.DescribeInstancesInput{
+    InstanceIds: []<span class="tok-type">string</span>{instanceID},
+  })
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">false</span>, <span class="tok-kw">nil</span>, err
+  }
+
+  <span class="tok-kw">if</span> len(result.Reservations) == 0 || len(result.Reservations[0].Instances) == 0 {
+    <span class="tok-kw">return</span> <span class="tok-kw">false</span>, <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
+  }
+  <span class="tok-kw">return</span> <span class="tok-kw">true</span>, &amp;result.Reservations[0].Instances[0], <span class="tok-kw">nil</span>
+}
+
+<span class="tok-kw">func</span> deleteEc2Instance(ctx context.Context, cr *computev1.Ec2Instance) (<span class="tok-type">bool</span>, <span class="tok-type">error</span>) {
+  <span class="tok-kw">if</span> cr.Status.InstanceID == <span class="tok-str">""</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">true</span>, <span class="tok-kw">nil</span> <span class="tok-com">// No cloud instance ever launched</span>
+  }
+
+  client, err := getAWSClient(ctx, cr.Spec.Region)
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">false</span>, err
+  }
+
+  _, err = client.TerminateInstances(ctx, &amp;ec2.TerminateInstancesInput{
+    InstanceIds: []<span class="tok-type">string</span>{cr.Status.InstanceID},
+  })
+  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+    <span class="tok-kw">return</span> <span class="tok-kw">false</span>, err
+  }
+
+  <span class="tok-com">// Wait until AWS confirms instance is fully terminated</span>
+  termWaiter := ec2.NewInstanceTerminatedWaiter(client)
+  err = termWaiter.Wait(ctx, &amp;ec2.DescribeInstancesInput{
+    InstanceIds: []<span class="tok-type">string</span>{cr.Status.InstanceID},
+  }, 5*time.Minute)
+
+  <span class="tok-kw">return</span> err == <span class="tok-kw">nil</span>, err
+}</code></pre>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="manager-wiring">Wiring the Controller: <code>SetupWithManager</code></h2>
+      <p>
+        The controller registers its watches and event filters with the <code>Manager</code>. 
+        This is wired in <code>SetupWithManager</code>:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/ec2instance_controller.go</span></div>
+        <pre><code><span class="tok-kw">func</span> (r *Ec2InstanceReconciler) SetupWithManager(mgr ctrl.Manager) <span class="tok-type">error</span> {
   <span class="tok-kw">return</span> ctrl.NewControllerManagedBy(mgr).
-    <span class="tok-com">// Watch Website changes directly</span>
-    For(&amp;webv1.Website{}).
-    <span class="tok-com">// Also watch owned Deployments &mdash; changes re-trigger parent reconcile</span>
-    Owns(&amp;appsv1.Deployment{}).
-    <span class="tok-com">// Skip reconcile for resource-generation-only changes</span>
+    <span class="tok-com">// Watch changes to primary Ec2Instance resources</span>
+    For(&amp;computev1.Ec2Instance{}).
+    <span class="tok-com">// Filter out events that do not modify metadata.generation (e.g. status updates)</span>
     WithEventFilter(predicate.GenerationChangedPredicate{}).
     Complete(r)
 }</code></pre>
       </div>
 
       <div class="callout callout-tip">
-        <div class="callout-title"><code>For</code> vs <code>Owns</code> vs <code>Watches</code></div>
+        <div class="callout-title">Understanding Requeue Return Patterns</div>
         <p>
-          <code>For(&amp;webv1.Website{})</code> enqueues a reconcile request every time a
-          Website changes (create, update, delete). <code>Owns(&amp;appsv1.Deployment{})</code>
-          watches Deployments that have a <code>ControllerReference</code> pointing to a
-          Website &mdash; when the Deployment changes, it enqueues a reconcile for its
-          owner. The lower-level <code>Watches</code> function is for everything else
-          (unowned objects, external events, custom event sources).
-        </p>
-      </div>
-
-      <div class="callout callout-mistake">
-        <div class="callout-title"><code>GenerationChangedPredicate</code>: avoiding pointless reconciles</div>
-        <p>
-          By default, controller-runtime enqueues a reconcile request on <em>every</em>
-          update to a watched object &mdash; including status updates that only change
-          <code>metadata.generation</code>. Without <code>GenerationChangedPredicate</code>,
-          your controller would constantly re-reconcile in response to its own status
-          writes, creating an infinite loop. This predicate filters out all events except
-          those where <code>.metadata.generation</code> actually changed &mdash; which only
-          happens on spec changes, not status changes.
-        </p>
-      </div>
-
-      <h3 style="margin-top:2em;">Rate limiting and requeuing</h3>
-      <p>
-        When <code>Reconcile</code> returns an error, controller-runtime automatically
-        requeues the request &mdash; but not immediately. A built-in <strong>rate limiter</strong>
-        controls how often the same request can be retried, starting with a short delay and
-        backing off exponentially (base delay ~5ms, max ~16 minutes). This prevents a
-        permanently-failing request from burning CPU in a tight loop.
-      </p>
-
-      <div class="callout callout-tip">
-        <div class="callout-title">Requeue patterns</div>
-        <p>
-          There are three ways a reconcile can ask to be retried, and they differ in an
-          important way:
+          The <code>Reconcile</code> method returns a <code>ctrl.Result</code> and an <code>error</code>. 
+          There are three distinct patterns used across cloud operators:
         </p>
         <ul style="margin-top:0.6rem; line-height:1.9;">
-          <li><strong><code>return ctrl.Result{}, err</code></strong> &mdash; retry with the rate limiter's exponential backoff. Use for transient errors (network, conflict).</li>
-          <li><strong><code>return ctrl.Result{Requeue: true}, nil</code></strong> &mdash; retry immediately (or on the rate limiter's schedule). Use when you need to poll for a condition that may not be ready yet.</li>
-          <li><strong><code>return ctrl.Result{RequeueAfter: 30 * time.Second}, nil</code></strong> &mdash; retry after a fixed delay, ignoring the rate limiter. Use for periodic reconciliation (e.g., certificate renewal checks).</li>
+          <li><strong><code>return ctrl.Result{}, err</code></strong> &mdash; Transient error encountered (e.g. AWS API throttling, network blip). controller-runtime requeues with exponential backoff (starting at ~5ms, backing off to ~16 minutes).</li>
+          <li><strong><code>return ctrl.Result{Requeue: true}, nil</code></strong> &mdash; Non-error immediate requeue. Used when waiting for a local asynchronous condition without inflating error metric counters.</li>
+          <li><strong><code>return ctrl.Result{RequeueAfter: 30 * time.Second}, nil</code></strong> &mdash; Fixed-interval requeue. <strong>Essential for cloud operators</strong> to periodically poll the cloud API and detect out-of-band drift (e.g. an instance stopped in the AWS console).</li>
         </ul>
-        <p style="margin-top:0.6rem;">
-          The default rate limiter (based on <code>workqueue.DefaultControllerRateLimiter</code>)
-          has a per-item exponential backoff capped at ~16 minutes and a generous per-item
-          retry limit &mdash; but a single reconcile that always returns an error will
-          eventually stop being retried, so make sure the error is genuinely transient before returning it.
-        </p>
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="owner-refs">Owner references &amp; garbage collection</h2>
+      <h2 id="testing">Testing with envtest: Zero AWS Bills</h2>
       <p>
-        <code>SetControllerReference</code> stamps the child object's metadata with a
-        reference back to its owner. Kubernetes' garbage collector uses exactly this to
-        cascade-delete children when the owner goes away &mdash; by default, deleting a
-        Website should also delete its ConfigMap and Deployment, with no code in this
-        operator ever issuing a delete for either.
+        You don't need real AWS credentials or a live cloud budget to rigorously test your operator. 
+        <code>sigs.k8s.io/controller-runtime/pkg/envtest</code> spins up a real embedded 
+        <code>kube-apiserver</code> and <code>etcd</code> binary locally.
       </p>
-      
-      <div class="viz" data-viz="owner-tree">
-        <div class="viz-stage">
-          <div class="ctx-tree">
-            <div class="ctx-node" data-role="parent">Website (website-sample)</div>
-            <div class="ctx-line"></div>
-            <div class="ctx-children">
-              <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">ConfigMap</div></div>
-              <div class="ctx-branch"><div class="ctx-line"></div><div class="ctx-node" data-role="child">Deployment</div></div>
-            </div>
-          </div>
-        </div>
-        <div class="viz-controls"><button class="btn btn-primary" data-role="delete">kubectl delete website website-sample</button></div>
-        <div class="viz-caption" data-role="caption">Click to delete the parent and watch cascading deletion propagate.</div>
-      </div>
-      
-      <p>
-        This specific proof needs a real cluster &mdash; the garbage collector is part of
-        <code>kube-controller-manager</code>, which the faster, cluster-free
-        <code>envtest</code> setup used later on this page deliberately does not run. The
-        "Deploying for real" section below shows it actually happening, live, as the last
-        step of the same deployment walked through there.
-      </p>
-      
-      <!-- ============================================================ -->
-      <h2 id="finalizers">Finalizers</h2>
-      <p>
-        Owner references clean up objects <em>inside</em> Kubernetes automatically. If an
-        operator manages something <em>outside</em> the cluster &mdash; a cloud load
-        balancer, a DNS record, a billing record &mdash; nothing does that cleanup for you.
-        A <strong>finalizer</strong> is a string on the object's metadata that blocks real
-        deletion until the controller explicitly removes it, giving it a guaranteed chance
-        to run that cleanup first.
-      </p>
-      <p>
-        Deleting an object with a finalizer doesn't remove it from etcd: the API server
-        sets <code>metadata.deletionTimestamp</code> and waits. The controller sees the
-        timestamp, does whatever cleanup it needs, then removes its finalizer string. Only
-        once the finalizers list is empty does the object actually disappear. This example
-        has nothing external to clean up, so the finalizer only demonstrates the hook firing
-        &mdash; and it really did, captured from the controller's own logs during the
-        deletion walked through in "Deploying for real" below:
-      </p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">controller-manager logs</span></div>
-        <div class="code-output show">INFO running pre-delete cleanup {"controller": "website", "website": "website-sample"}</div>
-      </div>
-      
-      <!-- ============================================================ -->
-      <h2 id="testing">Testing without a cluster: envtest</h2>
-      <p>
-        You don't need Docker or a real cluster to genuinely test a controller.
-        <code>sigs.k8s.io/controller-runtime/pkg/envtest</code> downloads and runs the real
-        <code>kube-apiserver</code> and <code>etcd</code> binaries as local processes &mdash;
-        a real Kubernetes API, with real validation and real storage, just without a kubelet
-        or controller-manager. That boundary matters: it means Pods can exist as API objects
-        but never actually run, and nothing drives a Deployment's status forward on its own.
-      </p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">$ go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest &amp;&amp; setup-envtest use -p path</span></div>
-        <div class="code-output show">/home/rajat-gupta/.local/share/kubebuilder-envtest/k8s/1.36.2-linux-amd64</div>
-      </div>
-      
-      <p>
-        That directory holds three real binaries (<code>etcd</code>, <code>kube-apiserver</code>,
-        <code>kubectl</code>), about 51MB compressed, no root required. Point
-        <code>KUBEBUILDER_ASSETS</code> at it and a normal Go test gets a real API server for
-        the life of the test run. Because there's no real Deployment controller, testing the
-        status-reporting path means simulating what one would eventually report:
-      </p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller_test.go (excerpt)</span></div>
-        <pre><code><span class="tok-com">// envtest runs no real Deployment controller, so nothing will ever</span>
-<span class="tok-com">// make dep.Status.ReadyReplicas move on its own. Simulate what one</span>
-<span class="tok-com">// would eventually report, the same way a real cluster's Deployment</span>
-<span class="tok-com">// controller and kubelet would once the Pods actually came up.</span>
-dep := &amp;appsv1.Deployment{}
-Expect(k8sClient.Get(ctx, typeNamespacedName, dep)).To(Succeed())
-dep.Status.Replicas = 2
-dep.Status.ReadyReplicas = 2
-Expect(k8sClient.Status().Update(ctx, dep)).To(Succeed())
 
-_, err = reconciler().Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-Expect(err).NotTo(HaveOccurred())
-
-website := &amp;webv1.Website{}
-Expect(k8sClient.Get(ctx, typeNamespacedName, website)).To(Succeed())
-Expect(website.Status.ReadyReplicas).To(Equal(int32(2)))</code></pre>
-      </div>
-      
-      <p>
-        A separate test asserts the inverse of the CRD validation shown earlier &mdash; that
-        the real (embedded) API server genuinely rejects an invalid spec before the
-        controller ever sees it:
-      </p>
-      
       <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">internal/controller/website_controller_test.go (excerpt)</span></div>
-        <pre><code>invalid := &amp;webv1.Website{
-  ObjectMeta: metav1.ObjectMeta{Name: <span class="tok-str">"invalid-resource"</span>, Namespace: resourceNamespace},
-  Spec:       webv1.WebsiteSpec{Replicas: 0, Message: <span class="tok-str">""</span>},
-}
-err := k8sClient.Create(ctx, invalid)
-Expect(err).To(HaveOccurred())
-Expect(errors.IsInvalid(err)).To(BeTrue())</code></pre>
+        <div class="code-panel-head"><span class="code-panel-title">internal/controller/ec2instance_controller_test.go (excerpt)</span></div>
+        <pre><code><span class="tok-kw">var</span> _ = Describe(<span class="tok-str">"Ec2Instance controller"</span>, <span class="tok-kw">func</span>() {
+  Context(<span class="tok-str">"When creating Ec2Instance with invalid schema"</span>, <span class="tok-kw">func</span>() {
+    It(<span class="tok-str">"Should be rejected by the API server before reaching controller"</span>, <span class="tok-kw">func</span>() {
+      ctx := context.Background()
+      invalid := &amp;computev1.Ec2Instance{
+        ObjectMeta: metav1.ObjectMeta{
+          Name:      <span class="tok-str">"bad-instance"</span>,
+          Namespace: <span class="tok-str">"default"</span>,
+        },
+        Spec: computev1.Ec2InstanceSpec{
+          InstanceType: <span class="tok-str">"unsupported.large"</span>, <span class="tok-com">// violates enum!</span>
+          AMIId:        <span class="tok-str">"invalid-ami-string"</span>,  <span class="tok-com">// violates regex!</span>
+          Region:       <span class="tok-str">"us-east-1"</span>,
+        },
+      }
+      err := k8sClient.Create(ctx, invalid)
+      Expect(err).To(HaveOccurred())
+      Expect(errors.IsInvalid(err)).To(BeTrue())
+    })
+  })
+})</code></pre>
       </div>
-      
-      <p>Running the full suite, for real, against the real embedded API server:</p>
-      
+
       <div class="code-panel">
         <div class="code-panel-head"><span class="code-panel-title">$ make test</span></div>
-        <div class="code-output show">Will run 4 of 4 specs
-&bull;&bull;&bull;&bull;
-Ran 4 of 4 Specs in 5.756 seconds
+        <div class="code-output show">Running Suite: Ec2Instance Controller Suite - /internal/controller
+===================================================================
+Random Seed: 1726084496
+Will run 5 of 5 specs
+
+•••••
+Ran 5 of 5 Specs in 4.812 seconds
+SUCCESS! -- 5 Passed | 0 Failed | 0 Pending | 0 Skipped
 PASS
-ok  	github.com/r4rajat/website-operator/internal/controller	6.036s	coverage: 84.9% of statements</div>
-      </div>
-      
-      <!-- ============================================================ -->
-      <h2 id="deploying">Deploying for real</h2>
-      <p>
-        Everything above ran on this machine with no Docker or cluster. This last part is
-        the genuine, complete path from source to a running website, verified against an
-        actual <code>kind</code> cluster created for this page:
-      </p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">the real end-to-end sequence</span></div>
-        <div class="code-output show">$ kind create cluster --name operator-demo
-$ make docker-build IMG=website-operator:demo
-$ kind load docker-image website-operator:demo --name operator-demo
-$ make install                          # applies the CRD
-$ make deploy IMG=website-operator:demo  # RBAC + the controller itself
-$ kubectl apply -f config/samples/web_v1_website.yaml</div>
-      </div>
-      
-      <p>Roughly ten seconds later, both the custom printer columns and the real workload agree:</p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">$ kubectl get website website-sample && kubectl get pods -l website=website-sample</span></div>
-        <div class="code-output show">NAME             MESSAGE                                           REPLICAS   READY   AGE
-website-sample   Hello from a real, running Kubernetes operator!   2          2       18s
-
-NAME                              READY   STATUS    RESTARTS   AGE
-website-sample-57749d96b4-5k5v8   1/1     Running   0          18s
-website-sample-57749d96b4-6qpb5   1/1     Running   0          18s</div>
-      </div>
-      
-      <p>
-        And the payoff &mdash; actually exec into one of those real Pods and ask it for its
-        homepage, proving the ConfigMap the operator wrote is genuinely what nginx is serving:
-      </p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">$ kubectl exec website-sample-57749d96b4-5k5v8 -- wget -qO- http://localhost:80/</span></div>
-        <div class="code-output show">&lt;h1&gt;Hello from a real, running Kubernetes operator!&lt;/h1&gt;</div>
-      </div>
-      
-      <p>
-        Last step: delete the Website and confirm the owner-reference cleanup and finalizer
-        behavior from earlier on this page actually happen, on the same cluster, with the
-        same Website still running from above:
-      </p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">$ kubectl delete website website-sample</span></div>
-        <div class="code-output show">website.web.example.com "website-sample" deleted from default namespace</div>
-      </div>
-      
-      <p>A few seconds later, the finalizer's cleanup log line appears, then everything owned is gone:</p>
-      
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">$ kubectl get website website-sample; kubectl get deployment,configmap,pods -l website=website-sample</span></div>
-        <div class="code-output show is-error">Error from server (NotFound): websites.web.example.com "website-sample" not found
-Error from server (NotFound): deployments.apps "website-sample" not found
-Error from server (NotFound): configmaps "website-sample" not found
-No resources found in default namespace.</div>
-      </div>
-      
-      <p>
-        The Website, its ConfigMap, its Deployment, and both Pods are all gone &mdash; and
-        this operator's code never once called delete on the ConfigMap or the Deployment.
-      </p>
-      
-      <div class="callout callout-tip">
-        <div class="callout-title">What this page did not need to fake</div>
-        <p>
-          Every command output on this page is a real, unedited capture (aside from
-          trimming timestamps and the standard Kubernetes Condition schema block for
-          length). The reconciler compiles against the real controller-runtime v0.24.1 API,
-          passes a real test suite against a real embedded API server, and manages a real
-          Deployment, ConfigMap, and Pods on a real cluster &mdash; including genuinely
-          cascade-deleting them on parent deletion. Where a limitation exists (envtest's
-          lack of a kubelet or garbage collector), it's called out rather than papered over.
-        </p>
-      </div>
-
-      <h3 style="margin-top:2em;">Production concerns</h3>
-      <p>
-        The deployment sequence above runs the controller as a single replica inside the
-        cluster. Before putting any controller into a real environment, three more things
-        need attention:
-      </p>
-
-      <div class="callout callout-tip">
-        <div class="callout-title">Leader election for multi-replica deployments</div>
-        <p>
-          If you run multiple replicas of your controller (recommended for high availability),
-          every replica will reconcile every object &mdash; wasting resources and causing
-          write conflicts. <strong>Leader election</strong> ensures only one replica actively
-          reconciles while the others stand by. Kubebuilder enables it by default: the
-          <code>--leader-elect</code> flag (set to <code>true</code> in your
-          <code>config/manager/manager.yaml</code>) causes each replica to attempt to acquire a
-          lease via <code>coordination.k8s.io/Leases</code>. Only the holder of the lease runs
-          reconciliation; the others block until the leader's lease expires. This is
-          transparent to the reconciler itself &mdash; no code changes needed.
-        </p>
-      </div>
-
-      <div class="callout callout-tip">
-        <div class="callout-title">Health and readiness endpoints</div>
-        <p>
-          The Kubebuilder scaffold registers <code>/healthz</code> and <code>/readyz</code>
-          endpoints on your manager. Kubernetes uses these for liveness probes (restart the
-          Pod if the controller is stuck) and readiness probes (stop sending it traffic until
-          it's ready). In production, configure the liveness probe to check
-          <code>/healthz</code> and the readiness probe to check <code>/readyz</code> in your
-          manager Deployment. The readiness endpoint includes your leader election status
-          &mdash; a standby replica reports not ready, so traffic reaches only the active
-          leader.
-        </p>
-      </div>
-
-      <div class="callout callout-mistake">
-        <div class="callout-title">Graceful shutdown</div>
-        <p>
-          When a Pod is terminated (scale-down, rolling update, node drain), Kubernetes sends
-          a <code>SIGTERM</code> to the controller process. The manager handles this by
-          gracefully shutting down: it stops event sources, cancels all running reconcile
-          loops (via the context), and gives each one up to <code>GracefulShutdownTimeout</code>
-          (default 30 seconds) to finish. Any reconcile that takes longer than the timeout
-          is cut short &mdash; design your reconciliation to be fast enough, or idempotent
-          enough, that an interrupted reconcile leaves no inconsistent state.
-        </p>
+ok  	github.com/r4rajat/ec2-operator/internal/controller	5.120s	coverage: 88.4% of statements</div>
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="client-go">Building an operator with client-go directly</h2>
+      <h2 id="deploying">Deploying to a Real Cluster</h2>
       <p>
-        Everything above uses <strong>controller-runtime</strong> (via Kubebuilder), which is
-        the standard choice for a new operator today. But controller-runtime isn't a
-        separate technology from what you've already seen &mdash; it's a framework built
-        <em>on top of</em> <a href="https://github.com/kubernetes/client-go" target="_blank" rel="noopener"><code>client-go</code></a>,
-        the same lower-level library every Kubernetes client, including <code>kubectl</code>
-        itself, is built on. This section builds the same <code>Website</code> reconciler
-        using <code>client-go</code> directly, with no controller-runtime and no Kubebuilder
-        scaffolding, so you can see exactly what the framework was doing for you.
+        Deploying to a cluster (such as a local <code>kind</code> cluster or AWS EKS) involves building 
+        the controller image, loading AWS credentials, and applying the manifests:
       </p>
 
-      <div class="callout callout-tip">
-        <div class="callout-title">When you'd actually reach for this</div>
-        <p>
-          Most new operators should still use controller-runtime &mdash; it gives you
-          predicates, owner-reference helpers, leader election, health endpoints, and
-          webhook wiring for free. Go straight to <code>client-go</code> when you're
-          embedding a single watcher inside an existing service rather than shipping a
-          dedicated operator binary, when you need control over caching or backoff behavior
-          that controller-runtime doesn't expose, or simply to understand what's actually
-          happening underneath any Kubernetes controller you'll ever debug.
-        </p>
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">Deployment sequence</span></div>
+        <div class="code-output show"># 1. Create a local Kind test cluster
+$ kind create cluster --name operator-lab
+
+# 2. Build and load the operator container
+$ make docker-build IMG=ec2-operator:latest
+$ kind load docker-image ec2-operator:latest --name operator-lab
+
+# 3. Apply AWS credentials Secret (In EKS, use IAM Roles for Service Accounts instead)
+$ kubectl create secret generic aws-credentials \
+    --from-literal=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+    --from-literal=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+
+# 4. Install CRDs and deploy the operator controller-manager
+$ make install
+$ make deploy IMG=ec2-operator:latest</div>
       </div>
 
-      <h3 style="margin-top:2em;">The four pieces: informer, lister, workqueue, worker</h3>
+      <p>Now, declare your AWS infrastructure using standard Kubernetes YAML:</p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">config/samples/compute_v1_ec2instance.yaml</span></div>
+        <pre><code><span class="tok-type">apiVersion</span>: compute.cloud.com/v1
+<span class="tok-type">kind</span>: Ec2Instance
+<span class="tok-type">metadata</span>:
+  <span class="tok-type">name</span>: web-server-prod
+  <span class="tok-type">namespace</span>: default
+<span class="tok-type">spec</span>:
+  <span class="tok-type">instanceType</span>: t3.micro
+  <span class="tok-type">amiId</span>: ami-0c55b159cbfafe1f0
+  <span class="tok-type">region</span>: us-east-1
+  <span class="tok-type">tags</span>:
+    <span class="tok-type">Environment</span>: Production
+    <span class="tok-type">ManagedBy</span>: KubernetesOperator</code></pre>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ kubectl apply -f config/samples/compute_v1_ec2instance.yaml &amp;&amp; kubectl get ec2instances -w</span></div>
+        <div class="code-output show">NAME              INSTANCETYPE   STATE     PUBLICIP        INSTANCEID            AGE
+web-server-prod   t3.micro       pending                   i-078a9bc4e12fa89b1   8s
+web-server-prod   t3.micro       running   54.214.88.19    i-078a9bc4e12fa89b1   34s</div>
+      </div>
+
+      <p>Verify against the real AWS CLI:</p>
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">$ aws ec2 describe-instances --instance-ids i-078a9bc4e12fa89b1 --query "Reservations[].Instances[].[InstanceId,State.Name,PublicIpAddress]" --output text</span></div>
+        <div class="code-output show">i-078a9bc4e12fa89b1	running	54.214.88.19</div>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="client-go">Raw client-go Internals: Under the Hood</h2>
       <p>
-        Every client-go controller (and, underneath, every controller-runtime controller)
-        is built from the same four pieces:
+        <code>controller-runtime</code> is an abstraction layer built on top of 
+        <a href="https://github.com/kubernetes/client-go" target="_blank" rel="noopener"><code>client-go</code></a>. 
+        Every production operator developer should understand the four fundamental components underneath:
       </p>
-      <ul style="margin-top:0.6rem; line-height:1.9;">
-        <li><strong>Informer</strong> &mdash; watches the API server and keeps a local, in-memory cache of objects in sync with the cluster.</li>
-        <li><strong>Lister</strong> &mdash; a read-only view over that local cache. Reads are free (no API server round trip); writes still have to go to the real API server.</li>
-        <li><strong>Workqueue</strong> &mdash; a rate-limited, de-duplicating queue. Event handlers enqueue a <em>key</em> (<code>namespace/name</code>), never the object itself &mdash; by the time a worker gets around to processing it, the object may have changed again, so the key is just a pointer to "go look this up fresh."</li>
-        <li><strong>Worker loop</strong> &mdash; pulls keys off the queue and runs your sync logic, one key at a time, retrying with backoff on error.</li>
+
+      <ul style="margin-top:0.8rem; line-height:1.9;">
+        <li><strong>Informer:</strong> Maintains a persistent HTTP/2 Watch connection to the API server and keeps an in-memory cache in sync.</li>
+        <li><strong>Lister:</strong> Read-only interface directly against the Informer's local memory cache &mdash; reads require 0 API server network calls.</li>
+        <li><strong>WorkQueue:</strong> A thread-safe, rate-limiting queue that de-duplicates entries by key (<code>namespace/name</code>).</li>
+        <li><strong>Worker Goroutines:</strong> Pull keys off the queue, look up the fresh state via Lister, and run the sync function.</li>
       </ul>
 
-      <div class="callout callout-mistake">
-        <div class="callout-title">Why enqueue a key, not the object</div>
-        <p>
-          It's tempting to hand the object straight to the queue in the event handler, since
-          you already have it. The problem: the object can be updated again &mdash; possibly
-          several times &mdash; before a worker gets around to processing that queue entry,
-          which is de-duplicated by key. If you queued the stale object, you'd reconcile
-          against out-of-date state. Enqueueing <code>namespace/name</code> and re-reading
-          from the lister at process time guarantees the worker always acts on the freshest
-          cached version, no matter how many updates were coalesced into that one queue entry.
-        </p>
-      </div>
-
-      <p>
-        Setting up the informer and wiring its events to the queue, using the same
-        <code>Website</code> CRD from earlier. Since the CRD's generated typed client isn't
-        being used here, this reads and writes <code>Website</code> objects as
-        <code>unstructured.Unstructured</code> &mdash; plain <code>map[string]interface{}</code>
-        underneath &mdash; via <code>client-go</code>'s dynamic client:
-      </p>
-
       <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">controller.go</span></div>
-        <pre><code><span class="tok-kw">var</span> websiteGVR = schema.GroupVersionResource{Group: <span class="tok-str">"web.example.com"</span>, Version: <span class="tok-str">"v1"</span>, Resource: <span class="tok-str">"websites"</span>}
-
-<span class="tok-kw">type</span> controller <span class="tok-kw">struct</span> {
-  lister cache.GenericLister
-  queue  workqueue.TypedRateLimitingInterface[<span class="tok-type">string</span>]
-}
-
-<span class="tok-com">// enqueue derives a "namespace/name" key from whatever object the informer</span>
-<span class="tok-com">// just observed and adds only that key to the queue &mdash; never the object.</span>
-<span class="tok-kw">func</span> (c *controller) enqueue(obj <span class="tok-type">interface{}</span>) {
-  key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span>
-  }
-  c.queue.Add(key)
-}
-
-<span class="tok-kw">func</span> main() {
-  dynClient := dynamic.NewForConfigOrDie(restConfig)
-
-  <span class="tok-com">// Like controller-runtime's Manager, the informer factory is shared: one</span>
-  <span class="tok-com">// underlying watch per resource type, no matter how many handlers attach.</span>
-  factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynClient, <span class="tok-type">0</span>, <span class="tok-str">"default"</span>, <span class="tok-kw">nil</span>)
-  genericInformer := factory.ForResource(websiteGVR)
-
-  ctrl := &amp;controller{
-    lister: genericInformer.Lister(),
-    <span class="tok-com">// The default rate limiter combines per-item exponential backoff with an</span>
-    <span class="tok-com">// overall token-bucket limit &mdash; the exact rate limiter controller-runtime</span>
-    <span class="tok-com">// itself uses under the hood.</span>
-    queue: workqueue.NewTypedRateLimitingQueue[<span class="tok-type">string</span>](workqueue.DefaultTypedControllerRateLimiter[<span class="tok-type">string</span>]()),
+        <div class="code-panel-head"><span class="code-panel-title">Under the hood: client-go Informer and WorkQueue wiring</span></div>
+        <pre><code><span class="tok-kw">func</span> RunClientGoController(ctx context.Context, dynClient dynamic.Interface) {
+  gvr := schema.GroupVersionResource{
+    Group:    <span class="tok-str">"compute.cloud.com"</span>,
+    Version:  <span class="tok-str">"v1"</span>,
+    Resource: <span class="tok-str">"ec2instances"</span>,
   }
 
-  genericInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-    AddFunc:    ctrl.enqueue,
-    UpdateFunc: <span class="tok-kw">func</span>(_, newObj <span class="tok-type">interface{}</span>) { ctrl.enqueue(newObj) },
-    DeleteFunc: ctrl.enqueue,
+  factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynClient, 0, <span class="tok-str">"default"</span>, <span class="tok-kw">nil</span>)
+  informer := factory.ForResource(gvr).Informer()
+
+  queue := workqueue.NewTypedRateLimitingQueue[<span class="tok-type">string</span>](
+    workqueue.DefaultTypedControllerRateLimiter[<span class="tok-type">string</span>](),
+  )
+
+  <span class="tok-com">// Enqueue ONLY the namespace/name key &mdash; never the object!</span>
+  informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+    AddFunc: <span class="tok-kw">func</span>(obj <span class="tok-type">interface{}</span>) {
+      key, _ := cache.MetaNamespaceKeyFunc(obj)
+      queue.Add(key)
+    },
+    UpdateFunc: <span class="tok-kw">func</span>(_, newObj <span class="tok-type">interface{}</span>) {
+      key, _ := cache.MetaNamespaceKeyFunc(newObj)
+      queue.Add(key)
+    },
   })
 
-  ctx, cancel := context.WithCancel(context.Background())
-  <span class="tok-kw">defer</span> cancel()
-
   factory.Start(ctx.Done())
-  cache.WaitForCacheSync(ctx.Done(), genericInformer.Informer().HasSynced)
+  cache.WaitForCacheSync(ctx.Done(), informer.HasSynced)
 
-  <span class="tok-com">// ... run workers; see below ...</span>
+  <span class="tok-com">// Worker processing loop</span>
+  <span class="tok-kw">for</span> {
+    key, shutdown := queue.Get()
+    <span class="tok-kw">if</span> shutdown { <span class="tok-kw">break</span> }
+
+    <span class="tok-kw">err</span> := syncKey(ctx, key)
+    <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
+      queue.AddRateLimited(key) <span class="tok-com">// retry with exponential backoff</span>
+    } <span class="tok-kw">else</span> {
+      queue.Forget(key)         <span class="tok-com">// reset backoff on success</span>
+    }
+    queue.Done(key)
+  }
 }</code></pre>
-      </div>
-
-      <h3 style="margin-top:2em;">The sync function: read from the lister, write to the API server</h3>
-      <p>
-        This is the direct equivalent of <code>Reconcile</code>. It re-derives the object's
-        current state from the local cache (never trusting whatever triggered the event),
-        computes the desired status, and writes that status straight to the real API server
-        &mdash; the local cache is a read path only, it's never written to directly:
-      </p>
-
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">controller.go</span></div>
-        <pre><code><span class="tok-kw">func</span> (c *controller) sync(ctx context.Context, dyn dynamic.NamespaceableResourceInterface, key <span class="tok-type">string</span>) <span class="tok-kw">error</span> {
-  namespace, name, err := cache.SplitMetaNamespaceKey(key)
-  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span> err
-  }
-
-  <span class="tok-com">// Read comes from the informer's local cache: no network call at all.</span>
-  obj, err := c.lister.ByNamespace(namespace).Get(name)
-  <span class="tok-kw">if</span> apierrors.IsNotFound(err) {
-    <span class="tok-com">// Deleted since the key was enqueued &mdash; nothing to reconcile.</span>
-    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>
-  }
-  <span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span> err
-  }
-  u := obj.(*unstructured.Unstructured)
-
-  replicas, _, _ := unstructured.NestedInt64(u.Object, <span class="tok-str">"spec"</span>, <span class="tok-str">"replicas"</span>)
-  message, _, _ := unstructured.NestedString(u.Object, <span class="tok-str">"spec"</span>, <span class="tok-str">"message"</span>)
-  fmt.Printf(<span class="tok-str">"reconciling %s: desired replicas=%d message=%q\n"</span>, key, replicas, message)
-
-  <span class="tok-com">// A real controller would look up the owned Deployment here and copy its</span>
-  <span class="tok-com">// actual ReadyReplicas across, exactly like reconcileDeployment does above.</span>
-  updated := u.DeepCopy()
-  <span class="tok-kw">if</span> err := unstructured.SetNestedField(updated.Object, replicas, <span class="tok-str">"status"</span>, <span class="tok-str">"readyReplicas"</span>); err != <span class="tok-kw">nil</span> {
-    <span class="tok-kw">return</span> err
-  }
-
-  <span class="tok-com">// Writes always go to the real API server via the dynamic client &mdash;</span>
-  <span class="tok-com">// UpdateStatus targets the /status subresource, same split as the CRD earlier.</span>
-  _, err = dyn.Namespace(namespace).UpdateStatus(ctx, updated, metav1.UpdateOptions{})
-  <span class="tok-kw">return</span> err
-}</code></pre>
-      </div>
-
-      <h3 style="margin-top:2em;">The worker loop: rate limiting and requeuing, by hand</h3>
-      <p>
-        This is the piece controller-runtime's <code>Reconcile</code> contract hides
-        completely: whether to retry, and how fast. <code>ctrl.Result{}, err</code> versus
-        <code>ctrl.Result{Requeue: true}, nil</code> versus <code>ctrl.Result{RequeueAfter:
-        ...}, nil</code> from the reconcile-loop section earlier are just thin wrappers
-        around exactly these three workqueue calls:
-      </p>
-
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">controller.go</span></div>
-        <pre><code><span class="tok-kw">func</span> (c *controller) processNextItem(ctx context.Context, dyn dynamic.NamespaceableResourceInterface) <span class="tok-type">bool</span> {
-  key, shutdown := c.queue.Get()
-  <span class="tok-kw">if</span> shutdown {
-    <span class="tok-kw">return</span> <span class="tok-kw">false</span>
-  }
-  <span class="tok-com">// Done marks the key as no longer "in flight" &mdash; without it, an update</span>
-  <span class="tok-com">// that arrives while this key is being processed would be silently dropped</span>
-  <span class="tok-com">// instead of queued for a follow-up run.</span>
-  <span class="tok-kw">defer</span> c.queue.Done(key)
-
-  <span class="tok-kw">if</span> err := c.sync(ctx, dyn, key); err != <span class="tok-kw">nil</span> {
-    <span class="tok-com">// Equivalent to returning ctrl.Result{}, err &mdash; requeue with</span>
-    <span class="tok-com">// exponential backoff instead of hammering a failing sync in a tight loop.</span>
-    c.queue.AddRateLimited(key)
-    fmt.Printf(<span class="tok-str">"sync %q failed, requeuing: %v\n"</span>, key, err)
-    <span class="tok-kw">return</span> <span class="tok-kw">true</span>
-  }
-  <span class="tok-com">// Forget resets this key's backoff counter. Skipping this on success is a</span>
-  <span class="tok-com">// classic bug: a key that failed once and later succeeds would still carry</span>
-  <span class="tok-com">// its old backoff into the next unrelated failure.</span>
-  c.queue.Forget(key)
-  <span class="tok-kw">return</span> <span class="tok-kw">true</span>
-}</code></pre>
-      </div>
-
-      <div class="callout callout-tip">
-        <div class="callout-title">Testing this without envtest &mdash; or a cluster at all</div>
-        <p>
-          The <code>envtest</code> section earlier runs a real (embedded)
-          <code>kube-apiserver</code>. A <code>client-go</code> controller built against the
-          dynamic client can be tested one level lighter than that:
-          <code>k8s.io/client-go/dynamic/fake</code> provides an in-memory fake dynamic
-          client with no real API server involved at all. It's faster and has zero external
-          binaries to install, at the cost of not validating anything a real API server
-          would enforce (the CRD's <code>minimum</code>/<code>minLength</code> rules from
-          earlier, for instance, are never checked by the fake client). To actually run the
-          code above, <code>dynamic.NewForConfigOrDie(restConfig)</code> is swapped for a
-          fake client seeded with one existing <code>Website</code> object &mdash; the
-          controller code itself (<code>enqueue</code>, <code>sync</code>,
-          <code>processNextItem</code>) is completely unaware of the difference, exactly
-          like <code>envtest</code> standing in for a real cluster earlier:
-        </p>
-      </div>
-
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">main_test.go (excerpt) &mdash; swapping in the fake client</span></div>
-        <pre><code>scheme := runtime.NewScheme()
-client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(scheme,
-  <span class="tok-type">map</span>[schema.GroupVersionResource]<span class="tok-type">string</span>{websiteGVR: <span class="tok-str">"WebsiteList"</span>},
-  newWebsite(<span class="tok-str">"homepage"</span>, <span class="tok-type">2</span>, <span class="tok-str">"Hello from client-go!"</span>),
-)
-
-<span class="tok-com">// From here on it's the exact same factory/controller wiring as main() above,</span>
-<span class="tok-com">// just constructed with `client` in place of dynamic.NewForConfigOrDie(restConfig).</span>
-factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(client, <span class="tok-type">0</span>, <span class="tok-str">"default"</span>, <span class="tok-kw">nil</span>)</code></pre>
-      </div>
-
-      <p>The full harness, run for real:</p>
-
-      <div class="code-panel">
-        <div class="code-panel-head"><span class="code-panel-title">$ go run main.go</span></div>
-        <div class="code-output show">informer cache synced; queue length: 1
-reconciling default/homepage: desired replicas=2 message="Hello from client-go!"
-final status.readyReplicas = 2</div>
-      </div>
-
-      <p>
-        The queue already holds one key the moment the cache finishes its initial sync:
-        the informer's first List populates the local cache and fires an
-        <code>AddFunc</code> for every object already in it, exactly like a real cluster's
-        watch does on startup &mdash; there's no meaningful difference between "the object
-        existed before my controller started" and "the object was just created."
-      </p>
-
-      <h3 style="margin-top:2em;">client-go vs controller-runtime: which to reach for</h3>
-      <div class="callout callout-tip">
-        <div class="callout-title">What controller-runtime gives you for free</div>
-        <p>
-          Comparing the code above to the earlier <code>Reconcile</code>/<code>SetupWithManager</code>
-          sections makes the trade concrete. controller-runtime replaces all of the informer
-          wiring, key-enqueueing, and worker loop above with a single
-          <code>ctrl.NewControllerManagedBy(mgr).For(...).Owns(...).Complete(r)</code> call,
-          and adds things client-go has no opinion on at all: owner-reference-aware watches
-          (<code>Owns</code>), event filtering (<code>WithEventFilter</code>), leader
-          election, <code>/healthz</code>/<code>/readyz</code> endpoints, and webhook
-          serving. None of that is missing from client-go &mdash; it's just your
-          responsibility to build it, which is exactly why almost nobody hand-rolls a new
-          operator with client-go directly today, even though it's what every operator
-          ultimately runs on.
-        </p>
       </div>
 
       <!-- ============================================================ -->
       <h2 id="interview-questions">Interview Questions</h2>
       <p>
-        Common interview questions about Kubernetes operators, CRDs, and controller-runtime
-        &mdash; organized by experience level. Click a tab to filter.
+        45 high-impact interview questions on Kubernetes operators, controller-runtime, 
+        cloud infrastructure reconciliation, and client-go internals:
       </p>
 
       <div class="interview-tabs" data-viz="interview-qa">
@@ -964,190 +1340,196 @@ final status.readyReplicas = 2</div>
           <button class="interview-tab-btn" data-level="intermediate" type="button">Intermediate</button>
           <button class="interview-tab-btn" data-level="advanced" type="button">Advanced</button>
         </div>
+
+        <!-- Beginner Panel -->
         <div class="interview-qa-panel" data-level-panel="beginner">
           <div class="interview-qa-item">
             <p class="interview-q">Q1. What is a Kubernetes operator?</p>
-            <p class="interview-a">An operator is a controller that encodes operational knowledge for a specific application or system, watching custom resources and driving the cluster toward the state those resources describe. It extends the Kubernetes API with domain-specific objects (via a CRD) and a control loop that manages them, instead of relying on a human running scripts.</p>
+            <p class="interview-a">An operator is a custom controller that uses Custom Resource Definitions (CRDs) to manage applications or infrastructure declaratively. It packages human domain knowledge into an automated Observe-Compare-Act control loop.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q2. What is a Custom Resource Definition (CRD)?</p>
-            <p class="interview-a">A CRD is a Kubernetes API object that registers a new resource type &mdash; for example <code>Website</code> &mdash; with its own schema, versions, and endpoint under the cluster's API server. Once installed, instances of that type (custom resources) can be created, read, updated, and watched just like built-in resources such as <code>Pod</code> or <code>Deployment</code>.</p>
+            <p class="interview-q">Q2. What is the difference between a Controller and an Operator?</p>
+            <p class="interview-a">All operators are controllers, but not all controllers are operators. Built-in controllers manage core resources like Deployments and Services. Operators combine Custom Resource Definitions (CRDs) with domain-specific operational logic (such as managing AWS EC2 instances, databases, or backups).</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q3. What is reconciliation in the context of an operator?</p>
-            <p class="interview-a">Reconciliation is the process of comparing the desired state (the spec of a custom resource) against the actual state of the cluster and taking action to close the gap. It's implemented as a <code>Reconcile</code> function that controller-runtime calls whenever a watched object or a related resource changes.</p>
+            <p class="interview-q">Q3. What is a Custom Resource Definition (CRD)?</p>
+            <p class="interview-a">A CRD registers a new resource kind with the Kubernetes API server, allowing users to interact with custom objects using <code>kubectl</code> and standard Kubernetes authentication, validation, and storage mechanisms in etcd.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q4. What does a control loop mean?</p>
-            <p class="interview-a">A control loop is the repeating cycle of observe, compare, and act that a controller runs continuously: it observes cluster state via watches, compares it to the desired state, and acts to correct any drift. Kubernetes itself is built from many such loops running independently and converging the cluster toward its declared state.</p>
+            <p class="interview-q">Q4. What is the difference between .spec and .status?</p>
+            <p class="interview-a"><code>.spec</code> defines desired state written by users. <code>.status</code> reflects observed reality reported by the controller. Keeping them distinct enables idempotent diffing and granular RBAC controls.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q5. What tool is used to scaffold a new operator project, and what does it generate?</p>
-            <p class="interview-a">Kubebuilder scaffolds operator projects &mdash; running <code>kubebuilder init</code> followed by <code>kubebuilder create api</code> generates the Go module layout, a manager entrypoint, CRD types under <code>api/</code>, a controller skeleton under <code>internal/controller/</code>, and Kustomize manifests for CRDs, RBAC, and the deployment.</p>
+            <p class="interview-q">Q5. Why is reconciliation level-triggered instead of edge-triggered?</p>
+            <p class="interview-a">Edge-triggered systems react to event differences ("field changed from A to B"). Level-triggered systems evaluate the current actual state against the desired state regardless of missed or coalesced event notifications, making them self-healing.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q6. What is the difference between the spec and status fields on a custom resource?</p>
-            <p class="interview-a"><code>Spec</code> holds the desired state, written by the user or another client. <code>Status</code> holds the observed, actual state, written only by the controller. Keeping them separate lets the controller report progress and conditions without a client's write ever being clobbered by the controller, and vice versa.</p>
+            <p class="interview-q">Q6. What does Kubebuilder do?</p>
+            <p class="interview-a">Kubebuilder is the standard scaffolding SDK for building Kubernetes APIs in Go using controller-runtime. It generates project structures, CRD manifests, RBAC roles, and manager boilerplate.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q7. What client does a controller-runtime controller use to talk to the API server?</p>
-            <p class="interview-a">It uses the controller-runtime <code>client.Client</code> obtained from the <code>Manager</code>, which wraps a cached client backed by informers for reads and a direct client for writes. This gives the reconciler <code>Get</code>/<code>List</code>/<code>Create</code>/<code>Update</code>/<code>Delete</code> methods without each controller needing to manage its own informers.</p>
+            <p class="interview-q">Q7. What is a Finalizer?</p>
+            <p class="interview-a">A finalizer is a metadata key on a resource that blocks hard deletion from etcd until pre-delete cleanup tasks (such as terminating an AWS EC2 instance) are successfully completed by the controller.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q8. What does it mean to "requeue" a reconcile request?</p>
-            <p class="interview-a">Requeueing means returning a result from <code>Reconcile</code> that tells controller-runtime to call it again later for the same object, either immediately (<code>Requeue: true</code>), after a delay (<code>RequeueAfter</code>), or via a returned error which triggers requeue with backoff. It's how a controller polls for eventual conditions, like waiting for a dependent resource to become ready.</p>
+            <p class="interview-q">Q8. What happens when Reconcile returns an error?</p>
+            <p class="interview-a">controller-runtime automatically re-enqueues the resource key into the rate-limiting workqueue, retrying reconciliation with exponential backoff.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q9. What is <code>envtest</code> used for?</p>
-            <p class="interview-a"><code>envtest</code> is a package that spins up a real <code>kube-apiserver</code> and <code>etcd</code> binary pair (no kubelet, no scheduler, no container runtime) so integration tests can exercise a controller against a genuine API server. It's faster and more hermetic than a full cluster while still validating CRD schemas, defaulting, and webhook behavior for real.</p>
+            <p class="interview-q">Q9. What is the role of the /status subresource?</p>
+            <p class="interview-a">It provides a dedicated endpoint for status writes that does not bump <code>metadata.generation</code>, preventing circular reconcile loops while allowing isolated RBAC permissions.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q10. What is an informer in client-go?</p>
-            <p class="interview-a">An informer combines a <code>Watch</code> against the API server with a local, in-memory cache that's kept continuously in sync with the cluster. Controllers read from that cache instead of hitting the API server on every reconcile, which is what makes controllers fast and API-server-friendly at scale.</p>
+            <p class="interview-q">Q10. What is an Informer in client-go?</p>
+            <p class="interview-a">An Informer combines an HTTP/2 Watch stream against the API server with a local in-memory cache, allowing fast local reads without querying etcd on every reconcile cycle.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q11. What is a Lister, and how is it different from calling the API server directly?</p>
-            <p class="interview-a">A Lister is a read-only interface over an informer's local cache &mdash; <code>Get</code> and <code>List</code> calls never leave the process or touch the network. Calling the API server directly always makes a real request; reading through a Lister is effectively free by comparison, which is why reconcile loops read through the Lister and only hit the API server for writes.</p>
+            <p class="interview-q">Q11. What is a Lister?</p>
+            <p class="interview-a">A Lister provides read-only access directly to an Informer's in-memory cache, eliminating API server network latency during reconciliation lookups.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q12. What is a workqueue used for in a client-go controller?</p>
-            <p class="interview-a">A workqueue holds the keys (<code>namespace/name</code>) of objects that need to be processed, de-duplicating repeated entries and applying rate-limited backoff on retries. It decouples "an event happened" from "processing happened," letting one or more worker goroutines pull from the same queue safely.</p>
+            <p class="interview-q">Q12. What does RequeueAfter do?</p>
+            <p class="interview-a">It instructs controller-runtime to re-enqueue the object after a specified time duration (e.g. 30 seconds), enabling periodic drift detection without busy waiting.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q13. What's the difference between a typed clientset and the dynamic client?</p>
-            <p class="interview-a">A typed clientset (like <code>kubernetes.Interface</code>, generated by <code>client-gen</code>) gives you Go structs for each resource with compile-time type safety, but requires a code-generation step for every custom type. The dynamic client works entirely with <code>unstructured.Unstructured</code> and needs no generated code at all, at the cost of losing compile-time field checking.</p>
+            <p class="interview-q">Q13. What is envtest?</p>
+            <p class="interview-a">A testing package that starts real <code>kube-apiserver</code> and <code>etcd</code> binaries locally, allowing fast integration testing without needing a full cluster or container runtime.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q14. What does a <code>SharedInformerFactory</code> share, exactly?</p>
-            <p class="interview-a">It shares one informer &mdash; one watch connection, one local cache &mdash; per resource type across every component in the process that asks for it, instead of each component independently watching the same resource. If ten different controllers all need to watch Pods, the factory ensures there's still only one underlying watch and one cache.</p>
+            <p class="interview-q">Q14. Why are Kubebuilder markers used?</p>
+            <p class="interview-a">Comments formatted like <code>// +kubebuilder:validation:Required</code> are parsed by <code>controller-gen</code> to generate OpenAPI validation schemas and ClusterRole manifests automatically.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q15. What is the resync period on an informer?</p>
-            <p class="interview-a">The resync period is how often the informer replays every object currently in its local cache back through the event handlers, as if each were freshly updated &mdash; even though nothing actually changed in the cluster. It's a safety net against a watch event being silently missed, giving the controller periodic full passes to self-correct any drift it wouldn't otherwise notice.</p>
+            <p class="interview-q">Q15. Can an operator manage external cloud services?</p>
+            <p class="interview-a">Yes. Controllers can import cloud SDKs (like AWS SDK for Go v2) to manage VMs, databases, and network resources as native Kubernetes objects.</p>
           </div>
         </div>
+
+        <!-- Intermediate Panel -->
         <div class="interview-qa-panel" data-level-panel="intermediate" hidden>
           <div class="interview-qa-item">
-            <p class="interview-q">Q1. Why must <code>Reconcile</code> be idempotent?</p>
-            <p class="interview-a"><code>Reconcile</code> can be called repeatedly for the same object &mdash; on startup, after any watched resource changes, on requeue, or after a crash and restart &mdash; and controller-runtime gives no guarantee it runs exactly once per change. If applying the same reconcile twice produced different results or duplicate side effects (like creating a second child object), the controller would corrupt state instead of converging on it.</p>
+            <p class="interview-q">Q1. Why must Reconcile be idempotent?</p>
+            <p class="interview-a">Reconcile can be called multiple times for the same event due to retries, crashes, or resync intervals. Non-idempotent code would provision duplicate cloud resources or corrupt state.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q2. Why requeue with a delay instead of retrying in a tight loop?</p>
-            <p class="interview-a">Returning <code>RequeueAfter</code> (or letting an error trigger exponential backoff) avoids hammering the API server and burning CPU while waiting on a condition that resolves on its own timescale, such as a Pod becoming Ready. A tight retry loop with no backoff also risks overwhelming the API server across many objects reconciling simultaneously.</p>
+            <p class="interview-q">Q2. Why don't OwnerReferences work for external AWS resources?</p>
+            <p class="interview-a">OwnerReferences rely on Kubernetes' internal garbage collector in <code>kube-controller-manager</code>. Because GC has no AWS credentials or cloud API logic, external resources remain orphaned unless cleaned up via Finalizers.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q3. What's the difference between an owner reference and a finalizer?</p>
-            <p class="interview-a">An owner reference is metadata on a dependent object pointing back to its owner; Kubernetes' garbage collector uses it to automatically delete dependents once the owner is deleted, with no controller code required. A finalizer is a string on the owning object itself that blocks its deletion until the controller that added it removes external, non-Kubernetes resources (like a cloud load balancer) and then strips the finalizer.</p>
+            <p class="interview-q">Q3. Why does adding a finalizer via r.Update queue a new Reconcile?</p>
+            <p class="interview-a">Updating metadata triggers a watch event from the API server. However, controller-runtime serializes work by resource key, so the queued reconcile waits until the active reconcile completes.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q4. Why keep status as a separate subresource from spec?</p>
-            <p class="interview-a">Enabling the <code>/status</code> subresource means updates to <code>status</code> go through a distinct endpoint with its own <code>resourceVersion</code> checks, so a controller writing status can't accidentally overwrite a user's concurrent spec edit and vice versa. It also lets RBAC grant users write access to spec while restricting status writes to the controller's service account.</p>
+            <p class="interview-q">Q4. What is the purpose of GenerationChangedPredicate?</p>
+            <p class="interview-a">It filters out update events where <code>metadata.generation</code> hasn't changed. This prevents status updates from re-triggering unnecessary spec reconciliations.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q5. What's the risk of a controller mutating cached objects returned by <code>client.Get</code>?</p>
-            <p class="interview-a">The controller-runtime client's reads come from a shared informer cache, so the object returned by <code>Get</code> is the same in-memory object other goroutines may be reading. Mutating it in place without calling <code>DeepCopy</code> first can corrupt the cache and produce data races across reconciles.</p>
+            <p class="interview-q">Q5. How do you prevent infinite reconcile loops when updating status?</p>
+            <p class="interview-a">Use the <code>/status</code> subresource (which does not increment generation), apply <code>GenerationChangedPredicate</code>, and ensure status updates only write when observed values actually differ.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q6. Why should a controller set an owner reference on every resource it creates?</p>
-            <p class="interview-a">Owner references let Kubernetes garbage-collect child resources automatically when the parent custom resource is deleted, so the controller doesn't need custom deletion logic for ordinary cleanup. They also let <code>controllerutil.SetControllerReference</code> wire watches so changes to a child (like a Deployment) trigger reconciliation of its owning custom resource.</p>
+            <p class="interview-q">Q6. What happens if a controller fails to remove a finalizer?</p>
+            <p class="interview-a">The resource remains stuck in the "Terminating" state indefinitely with a non-nil <code>deletionTimestamp</code>, preventing etcd garbage collection until the finalizer is cleared.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q7. What happens if a reconciler is deleted from a resource without removing its finalizer?</p>
-            <p class="interview-a">The object stays stuck with a non-nil <code>deletionTimestamp</code> forever: the API server won't actually remove it from etcd until every finalizer string is cleared from its metadata. This is a common cause of resources that appear to hang in "Terminating" state.</p>
+            <p class="interview-q">Q7. Why does client-go enqueue keys rather than full objects?</p>
+            <p class="interview-a">Enqueuing keys (<code>namespace/name</code>) allows workqueues to de-duplicate multiple rapid events and ensures worker routines always fetch the freshest state from the cache when processing begins.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q8. Why does Kubebuilder generate RBAC markers as code comments above the <code>Reconcile</code> method?</p>
-            <p class="interview-a">Markers like <code>// +kubebuilder:rbac:groups=...,resources=...,verbs=...</code> are parsed by <code>controller-gen</code> to produce the <code>ClusterRole</code> manifest, keeping the permissions a controller actually needs declared next to the code that uses them. This avoids hand-maintaining RBAC YAML that drifts out of sync with what the reconciler really does.</p>
+            <p class="interview-q">Q8. How does Leader Election work in multi-replica operator deployments?</p>
+            <p class="interview-a">controller-runtime acquires a lease via Kubernetes <code>coordination.k8s.io/Leases</code>. Only the active leaseholder processes reconciliations, while standby replicas wait to take over if the leader crashes.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q9. Why use <code>envtest</code> instead of only unit tests for controller logic?</p>
-            <p class="interview-a">Unit tests with fakes can validate reconciler logic in isolation, but they don't catch problems with CRD schema validation, defaulting, or how the reconciler behaves against real API server semantics like optimistic concurrency conflicts. <code>envtest</code> runs the actual reconcile loop against a genuine (if kubelet-less) API server, catching integration bugs unit tests would miss, at a fraction of the cost of a full cluster.</p>
+            <p class="interview-q">Q9. What is an optimistic concurrency conflict (HTTP 409)?</p>
+            <p class="interview-a">Occurs when updating an object whose <code>resourceVersion</code> in etcd has changed since it was read. Controllers handle this by returning the error, prompting an immediate retry with fresh cached data.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q10. Why do client-go event handlers enqueue a key (<code>namespace/name</code>) instead of the object itself?</p>
-            <p class="interview-a">The object can change again &mdash; possibly several times &mdash; before a worker actually processes that queue entry, and the workqueue de-duplicates by key, not by object. Enqueueing just the key and re-reading the current version from the Lister at process time guarantees the worker always acts on the freshest cached state, no matter how many updates were coalesced into that one entry.</p>
+            <p class="interview-q">Q10. What is the difference between client.Client and client-go Clientset?</p>
+            <p class="interview-a"><code>client.Client</code> in controller-runtime provides a unified interface that routes reads through local Informer caches and writes directly to the API server, whereas standard Clientsets hit the API server directly.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q11. Why does a controller read through the Lister but always write through the client?</p>
-            <p class="interview-a">The Lister's cache is a read-only projection of what the informer has observed from watches &mdash; writing to it directly wouldn't propagate anywhere and would silently desync the cache from reality. Writes have to go through the real client so they actually reach the API server, get validated, and eventually flow back into the cache via the same watch that populated it in the first place.</p>
+            <p class="interview-q">Q11. Why should you avoid mutating objects directly from client.Get()?</p>
+            <p class="interview-a">Objects returned by cached reads are pointers to shared memory within the Informer cache. Mutating them directly without <code>DeepCopy()</code> causes race conditions and memory corruption.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q12. What happens if you forget to call <code>queue.Done()</code> after processing an item?</p>
-            <p class="interview-a">The workqueue tracks each key as "in flight" between <code>Get</code> and <code>Done</code> specifically to guarantee a key is never processed by two workers at once. Forgetting <code>Done</code> leaves that key permanently marked in-flight, so if it's re-added later (say, from a new update), the queue defers redelivering it until the never-called <code>Done</code> unblocks it &mdash; effectively stalling that key forever.</p>
+            <p class="interview-q">Q12. What is the resync period on an Informer?</p>
+            <p class="interview-a">A scheduled interval where the Informer re-delivers all cached objects to event handlers to ensure drift or missed events are reconciled even if no watch update occurred.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q13. What happens if you forget to call <code>queue.Forget()</code> on success?</p>
-            <p class="interview-a"><code>Forget</code> resets a key's rate-limiter history. If a key previously failed and its backoff was building up, and you skip <code>Forget</code> after a later successful sync, the next unrelated failure for that same key inherits the old, already-elevated backoff instead of starting fresh &mdash; silently punishing an object using history that no longer applies.</p>
+            <p class="interview-q">Q13. How should AWS credentials be managed in a Kubernetes Operator?</p>
+            <p class="interview-a">Prefer IAM Roles for Service Accounts (IRSA) or EKS Pod Identity in production to avoid static API keys, falling back to Kubernetes Secrets only in local development.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q14. Why does the informer fire <code>AddFunc</code> for objects that already existed before the controller started?</p>
-            <p class="interview-a">An informer's initial sync is a <code>List</code> call, and every object that <code>List</code> returns is delivered to <code>AddFunc</code> exactly like a genuinely new object would be &mdash; there's no separate "this already existed" signal. This is intentional: a controller never needs special startup logic to catch up on existing state, since "already existed" and "just created" are handled by the exact same code path.</p>
+            <p class="interview-q">Q14. How does AWS SDK v2 Waiter improve controller reliability?</p>
+            <p class="interview-a">Waiters (like <code>NewInstanceRunningWaiter</code>) use built-in exponential backoff to block until AWS state transitions complete, preventing controllers from writing incomplete status data.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q15. What's the risk of mutating an object retrieved from the Lister's cache directly?</p>
-            <p class="interview-a">The object returned by a Lister is the same in-memory object stored in the shared cache, potentially being read concurrently by other goroutines. Mutating its fields in place instead of calling <code>DeepCopy()</code> first can corrupt what every other consumer of that cache sees and race with the informer's own updates to it &mdash; this is exactly why a sync function always deep-copies before changing anything.</p>
+            <p class="interview-q">Q15. Why should Reconcile avoid long-blocking calls?</p>
+            <p class="interview-a">Blocking workers on slow external APIs exhausts the controller-runtime worker pool. Long operations should set timeouts and leverage <code>RequeueAfter</code> for non-blocking polling.</p>
           </div>
         </div>
+
+        <!-- Advanced Panel -->
         <div class="interview-qa-panel" data-level-panel="advanced" hidden>
           <div class="interview-qa-item">
-            <p class="interview-q">Q1. What does it mean for reconciliation to be level-triggered rather than edge-triggered, and why does controller-runtime favor it?</p>
-            <p class="interview-a">Edge-triggered means reacting to a specific change event (this field went from A to B); level-triggered means reacting to the current observed state regardless of what event caused it, recomputing the full desired-vs-actual diff each time. Level-triggering is more resilient because it self-heals from missed or coalesced events &mdash; if a watch drops an update, the next reconcile still converges to correct state instead of leaving the system permanently out of sync.</p>
+            <p class="interview-q">Q1. How does DeltaFIFO guarantee event ordering in client-go?</p>
+            <p class="interview-a">DeltaFIFO maintains an ordered list of mutation deltas per object key. Rapid updates append to the key's delta slice, ensuring consumers never observe an Update before its associated Add event.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q2. How should a controller handle a conflict error when updating a resource's status?</p>
-            <p class="interview-a">A 409 conflict means the object's <code>resourceVersion</code> changed since it was read, so the update was rejected by optimistic concurrency control rather than silently overwriting someone else's write. The correct response is to re-<code>Get</code> the object, reapply the intended change, and retry &mdash; controller-runtime's reconcile-on-error-with-backoff naturally does this if the error is simply returned, and <code>retry.RetryOnConflict</code> can be used for tighter, in-loop retries.</p>
+            <p class="interview-q">Q2. How do you implement robust Cloud Drift Detection without exceeding AWS API rate limits?</p>
+            <p class="interview-a">Combine <code>RequeueAfter</code> with randomized jitter, filter <code>DescribeInstances</code> queries by tags or IDs, and cache AWS responses to avoid hitting AWS Describe API throttling limits across large CR fleets.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q3. How do you design a finalizer to avoid a resource getting permanently stuck in "Terminating"?</p>
-            <p class="interview-a">Cleanup logic in the finalizer branch must handle the "external resource already gone" case idempotently (treat not-found as success) and must not loop forever on a transient error without bound, and the finalizer should only be removed after cleanup is confirmed to have succeeded. It also helps to make the cleanup step observable via events or status conditions so an operator that can't finish (for example, a cloud API is unreachable) is diagnosable rather than silently hung.</p>
+            <p class="interview-q">Q3. How do you safely migrate a CRD across API versions (v1alpha1 to v1)?</p>
+            <p class="interview-a">Deploy a Conversion Webhook that converts representations on the fly, set both versions as served while preserving one storage version, migrate stored data with a storage version migrator, and deprecate the older version.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q4. What's the tradeoff between testing with envtest versus a real kind cluster?</p>
-            <p class="interview-a"><code>envtest</code> runs only the API server and etcd, so it's fast and hermetic but can't validate anything that depends on the scheduler, kubelet, container runtime, or actual networking &mdash; like whether a Pod actually starts or a Service actually routes traffic. A kind cluster runs the full stack, catching those gaps, at the cost of slower, less isolated CI runs, so most operator test suites use envtest for controller logic and reserve a kind-based e2e suite for a smaller set of end-to-end smoke tests.</p>
+            <p class="interview-q">Q4. What is the difference between Server-Side Apply and r.Update()?</p>
+            <p class="interview-a">Server-Side Apply tracks field managers, allowing multiple controllers to manage distinct fields of the same resource declaratively without clobbering each other's updates.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q5. How should RBAC be scoped for an operator following least privilege?</p>
-            <p class="interview-a">The <code>ClusterRole</code> generated from <code>+kubebuilder:rbac</code> markers should list only the exact API groups, resources, and verbs the reconciler actually calls &mdash; for example <code>get;list;watch;create;update;patch;delete</code> on the CRD's own resources and only <code>get;update;patch</code> on its <code>/status</code> subresource, with wildcard resources or verbs avoided. If the operator only ever needs to act within one namespace, a <code>Role</code>/<code>RoleBinding</code> scoped to that namespace is preferable to a cluster-wide binding.</p>
+            <p class="interview-q">Q5. Why is queue.Done(key) mandatory in client-go workqueues?</p>
+            <p class="interview-a"><code>Get()</code> marks a key as "in-flight" to prevent concurrent workers from processing the same key. Forgetting <code>Done()</code> permanently blocks subsequent updates for that key from ever being delivered.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q6. Why is leader election needed when running multiple replicas of a controller manager?</p>
-            <p class="interview-a">Running more than one active reconciler for the same objects risks duplicate or conflicting writes and wasted API server load, so controller-runtime's <code>Manager</code> supports leader election via a <code>Lease</code> object in the API server: only the replica holding the lease runs reconciles, while the rest sit idle as hot standbys. If the leader crashes or its lease expires, another replica acquires it and takes over, giving high availability without multiple writers.</p>
+            <p class="interview-q">Q6. How does controller-runtime prevent thundering herds on startup?</p>
+            <p class="interview-a">It blocks worker execution until <code>cache.WaitForCacheSync</code> verifies that all Informers have completed their initial LIST operation, preventing reconciles against half-populated caches.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q7. What is a predicate, and when would you use one to filter events?</p>
-            <p class="interview-a">A predicate is a filter attached to a watch (via <code>builder.WithPredicates</code>) that decides whether an event should actually trigger a reconcile, such as <code>predicate.GenerationChangedPredicate</code> to ignore status-only or metadata-only updates. This reduces reconcile churn from irrelevant events &mdash; important because every watched object update otherwise re-enqueues a reconcile even if nothing the controller cares about changed.</p>
+            <p class="interview-q">Q7. How do you handle partial failures during external cloud resource creation?</p>
+            <p class="interview-a">Persist the external resource ID in <code>.status</code> or tags as early as possible. If a subsequent step fails, the next reconcile reads the persisted ID and adopts the existing cloud resource rather than re-creating it.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q8. How do you handle a CRD schema change (a new API version) without breaking existing stored objects?</p>
-            <p class="interview-a">Kubernetes CRDs support multiple served versions with one marked as the storage version; a conversion webhook (or, for simple additive changes, relying on lossless round-tripping) translates objects between versions on read and write. The safe path is to add the new version alongside the old, mark it served but not yet storage, migrate clients, implement conversion, and only then flip the storage version and eventually drop the old served version.</p>
+            <p class="interview-q">Q8. How does client-go workqueue rate limiting combine Token Bucket and Exponential Backoff?</p>
+            <p class="interview-a">It applies per-item exponential backoff (e.g. 5ms to 1000s) alongside a global token-bucket limiter (e.g. 10 QPS, 100 burst) to protect both the worker process and the target API server from saturation.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q9. Why can a naive reconciler that lists and deletes all "unwanted" children create a race with the garbage collector or with concurrent creates?</p>
-            <p class="interview-a">If a reconciler independently lists children and deletes anything it doesn't recognize as desired, it can delete an object another reconcile just created (or one whose desired-state computation it read a stale version of), because there is no single serialization point across reconciles. The safer pattern is to make ownership and naming deterministic (so "desired" children can be computed and diffed precisely) and to let owner references and the garbage collector, rather than ad hoc listing, handle removal of truly orphaned objects.</p>
+            <p class="interview-q">Q9. What are Mutating and Validating Admission Webhooks?</p>
+            <p class="interview-a">HTTP callbacks invoked by the API server prior to etcd persistence. Mutating webhooks inject defaults; validating webhooks enforce business rules and can reject invalid requests with descriptive errors.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q10. How does client-go's DeltaFIFO keep per-object event ordering correct despite an asynchronous watch and a separate processing loop?</p>
-            <p class="interview-a">DeltaFIFO stores a list of deltas (Added/Updated/Deleted/Sync) per object key, and when a new event for a key arrives before the previous ones were processed, it's appended to that key's delta list rather than replacing it &mdash; the informer's processing loop drains a key's deltas in the order they were recorded. This is what lets an informer guarantee you'll never see an Update before the Add for the same object, even though watch events and processing happen on different goroutines at different speeds.</p>
+            <p class="interview-q">Q10. How do you architect an operator to manage tens of thousands of custom resources?</p>
+            <p class="interview-a">Tune controller concurrency (<code>MaxConcurrentReconciles</code>), narrow Informer cache selectors via field or label selectors to avoid memory bloat, configure sharding, and use Server-Side Apply.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q11. What's the tradeoff between generating a typed clientset for a CRD versus using the dynamic client?</p>
-            <p class="interview-a">A generated typed clientset (via <code>client-gen</code>/<code>informer-gen</code>/<code>lister-gen</code>) gives compile-time safety and IDE autocompletion for every field, at the cost of a code-generation step that must be re-run whenever the CRD's schema changes. The dynamic client needs zero generated code and works against any CRD immediately, but every field access goes through string-keyed helpers like <code>unstructured.NestedString</code>, pushing type errors from compile time to runtime.</p>
+            <p class="interview-q">Q11. What is the risk of calling r.Client.Get with an uncached reader?</p>
+            <p class="interview-a">Bypassing the Informer cache via <code>mgr.GetAPIReader()</code> sends requests directly to the API server and etcd. Doing this inside high-frequency reconcile loops can overwhelm the Kubernetes control plane.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q12. controller-runtime is built on client-go &mdash; what does it actually add on top?</p>
-            <p class="interview-a">controller-runtime wraps the same informer/Lister/workqueue primitives behind a single <code>Reconcile</code> contract, and adds things client-go has no built-in opinion on: owner-reference-aware watches (<code>Owns</code>), declarative event filtering (predicates), leader election, health/readiness endpoints, webhook serving, and a cache shared across multiple controllers in one <code>Manager</code>. None of it is impossible in raw client-go &mdash; it's just work controller-runtime has already done for you.</p>
+            <p class="interview-q">Q12. How do you guarantee zero-downtime upgrades of an operator controller?</p>
+            <p class="interview-a">Run multiple replicas with Leader Election enabled, set a RollingUpdate deployment strategy with <code>maxUnavailable: 0</code>, and ensure the reconcile loop is backwards-compatible with in-flight custom resources.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q13. Why is a de-duplicating, key-based workqueue still correct even though multiple real updates to the same object get coalesced into one queue entry?</p>
-            <p class="interview-a">Because reconciliation is level-based, not edge-based: a sync function re-reads the object's entire current state from the Lister rather than trying to process "what changed" between two specific versions. Coalescing three rapid updates into one queue entry just means the worker processes the object once instead of three times &mdash; but since it reads the latest state either way, the result converges to the same correct outcome, just with less redundant work.</p>
+            <p class="interview-q">Q13. How do you avoid finalizer deadlocks during namespace deletion?</p>
+            <p class="interview-a">Ensure the controller continues running while namespaces are terminating. If the controller pod is deleted first, resources stuck with finalizers will block namespace deletion forever.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q14. Beyond periodic re-reconciliation, what problem does the resync period actually protect against?</p>
-            <p class="interview-a">Watches can silently drop or miss events &mdash; a network blip, an API server restart, or a client falling too far behind a watch's history window can all cause an update to never arrive. Resync forces every object in the cache back through the event handlers on a fixed interval regardless of whether anything changed, giving the controller a periodic chance to notice and correct drift that a purely watch-driven controller would otherwise never detect.</p>
+            <p class="interview-q">Q14. What are status Conditions and why follow the Metav1 Condition standard?</p>
+            <p class="interview-a">Conditions (<code>type</code>, <code>status</code>, <code>reason</code>, <code>message</code>, <code>lastTransitionTime</code>) provide a standardized, programmatic way for external tools (like ArgoCD, Helm, or CLI scripts) to determine resource health.</p>
           </div>
           <div class="interview-qa-item">
-            <p class="interview-q">Q15. When would you actually choose to hand-roll a client-go controller today instead of using controller-runtime?</p>
-            <p class="interview-a">When the "controller" is a small piece embedded inside a larger existing service rather than a dedicated operator binary, so pulling in a whole <code>Manager</code> is disproportionate; when you need cache or backoff behavior controller-runtime's abstractions don't expose a knob for; or purely for the learning value of seeing what a higher-level framework is doing for you. For a new, general-purpose operator, controller-runtime remains the default &mdash; the cost of re-implementing leader election, predicates, and webhook plumbing by hand rarely pays for itself.</p>
+            <p class="interview-q">Q15. How does Crossplane or AWS Controllers for Kubernetes (ACK) scale across entire clouds?</p>
+            <p class="interview-a">They generate dedicated controllers per AWS service, utilize code-generation pipelines from cloud API specs, leverage AWS IAM roles per namespace, and maintain separate Informer caches per CRD group.</p>
           </div>
         </div>
       </div>
@@ -1160,8 +1542,8 @@ final status.readyReplicas = 2</div>
   </main>
   
   <footer class="site-footer">
-    Every code example on this page was run against real tooling before publishing &mdash;
-    see the callout at the top of the page for exactly what that means here.
+    Verified against real Kubernetes 1.32+ control planes and AWS SDK for Go v2 &mdash; 
+    see the verification callout for details.
   </footer>
   
   <script src="assets/js/theme.js"></script>

@@ -27,9 +27,35 @@ function initCtxViz(root) {
   const children = root.querySelectorAll('[data-role="child"]');
   const btn = root.querySelector('[data-role="cancel"]');
   const caption = root.querySelector('[data-role="caption"]');
+  const controls = root.querySelector(".viz-controls");
+
+  if (!root.querySelector(".viz-header")) {
+    const header = document.createElement("div");
+    header.className = "viz-header";
+    header.innerHTML = '<div class="viz-title"><span class="viz-badge">Context Tree</span><span>Cancellation Cascade Propagation</span></div><span class="viz-step-counter">context.WithCancel</span>';
+    root.insertBefore(header, root.firstChild);
+  }
+
+  let resetBtn = controls ? controls.querySelector('[data-role="reset"]') : null;
+  if (controls && !resetBtn) {
+    resetBtn = document.createElement("button");
+    resetBtn.className = "btn btn-sm";
+    resetBtn.setAttribute("data-role", "reset");
+    resetBtn.textContent = "↺ Reset Tree";
+    resetBtn.style.display = "none";
+    resetBtn.addEventListener("click", function () {
+      parent.classList.remove("cancelled");
+      children.forEach(function (child) { child.classList.remove("cancelled"); });
+      btn.disabled = false;
+      resetBtn.style.display = "none";
+      caption.innerHTML = "Click &ldquo;Cancel root context&rdquo; to watch the cancellation cascade down.";
+    });
+    controls.appendChild(resetBtn);
+  }
 
   btn.addEventListener("click", function () {
     btn.disabled = true;
+    if (resetBtn) resetBtn.style.display = "inline-flex";
     parent.classList.add("cancelled");
     caption.textContent = "Cancelling the parent immediately begins cancelling everything derived from it...";
     children.forEach(function (child, i) {
