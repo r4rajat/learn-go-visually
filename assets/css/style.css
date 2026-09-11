@@ -2170,3 +2170,11 @@ footer.site-footer a:hover {
 .ptr-low { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
 .ptr-mid { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
 .ptr-high { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+/* Anchor target glow effect */
+:target {
+  scroll-margin-top: 5.5rem;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 24px rgba(0, 173, 216, 0.4) !important;
+  transition: all 0.3s ease;
+}

@@ -489,7 +489,7 @@ function initStackQueueViz(root) {
 
 /* ---------- 4. Phase Filter for the 30-Day Grid ---------- */
 function initDSAPhaseFilter() {
-  var filterButtons = document.querySelectorAll('.dsa-phase-btn');
+  var filterButtons = document.querySelectorAll('.dsa-phase-filter .dsa-phase-btn');
   var cards = document.querySelectorAll('.dsa-card');
   var searchInput = document.querySelector('#dsa-search-input');
   var counterEl = document.querySelector('#dsa-visible-count');
