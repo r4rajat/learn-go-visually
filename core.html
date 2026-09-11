@@ -10,7 +10,7 @@
 <body>
 
 <header class="site-header">
-  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <a class="brand" href="index.html"><span class="brand-badge">Go</span> <span>Learn Go, Visually</span></a>
   <nav class="nav-links">
     <a href="index.html">Home</a>
     <a href="basics.html">Basics</a>
@@ -58,14 +58,14 @@
       <div class="viz-stage">
         <div class="obj-row">
           <div class="obj-col">
-            <div class="obj-col-title">original</div>
+            <div class="obj-col-title">Original (Stack 0x2040)</div>
             <div class="obj-box" data-role="original">Counter{count: 0}</div>
-            <div class="obj-note">what IncByPointer() mutates</div>
+            <div class="obj-note">Mutated in-place by IncByPointer via &amp;c</div>
           </div>
           <div class="obj-col">
-            <div class="obj-col-title">copy (inside IncByValue)</div>
+            <div class="obj-col-title">Local Copy (Stack 0x2080)</div>
             <div class="obj-box ghost" data-role="ghost">Counter{count: 0}</div>
-            <div class="obj-note">discarded the moment the method returns</div>
+            <div class="obj-note">Shallow copy created by IncByValue &mdash; discarded on return</div>
           </div>
         </div>
       </div>
@@ -241,11 +241,50 @@ Sales</div>
 
     <div class="viz" data-viz="slice-header">
       <div class="viz-stage">
+        <!-- Slice Headers Representation -->
+        <div style="display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; margin-bottom:1.4rem;">
+          <div style="border:1px solid var(--border); border-radius:var(--radius); padding:0.8rem 1.1rem; background:var(--bg); min-width:180px; box-shadow:var(--shadow-sm);">
+            <div style="font-size:0.75rem; font-weight:750; text-transform:uppercase; color:var(--accent); letter-spacing:0.05em; margin-bottom:0.45rem;">
+              SliceHeader: a
+            </div>
+            <div style="font-family:var(--font-mono); font-size:0.84rem; display:flex; flex-direction:column; gap:0.25rem;">
+              <div style="display:flex; justify-content:space-between;"><span>Data:</span><strong style="color:var(--accent);">0x1040 &rarr;</strong></div>
+              <div style="display:flex; justify-content:space-between;"><span>Len:</span><strong>3</strong></div>
+              <div style="display:flex; justify-content:space-between;"><span>Cap:</span><strong>3</strong></div>
+            </div>
+          </div>
+
+          <div style="border:1px solid var(--border); border-radius:var(--radius); padding:0.8rem 1.1rem; background:var(--bg); min-width:180px; box-shadow:var(--shadow-sm);">
+            <div style="font-size:0.75rem; font-weight:750; text-transform:uppercase; color:var(--warn); letter-spacing:0.05em; margin-bottom:0.45rem;">
+              SliceHeader: b := a[:2]
+            </div>
+            <div style="font-family:var(--font-mono); font-size:0.84rem; display:flex; flex-direction:column; gap:0.25rem;">
+              <div style="display:flex; justify-content:space-between;"><span>Data:</span><strong style="color:var(--warn);">0x1040 &rarr;</strong></div>
+              <div style="display:flex; justify-content:space-between;"><span>Len:</span><strong>2</strong></div>
+              <div style="display:flex; justify-content:space-between;"><span>Cap:</span><strong>3</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center; font-size:0.75rem; font-weight:750; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.06em; margin-bottom:0.5rem;">
+          Shared Backing Array in Memory (Contiguous)
+        </div>
+
+        <!-- Addresses -->
+        <div style="display:flex; gap:0.4rem; justify-content:center; margin-bottom:0.25rem;">
+          <div style="width:48px; text-align:center; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted);">0x1040</div>
+          <div style="width:48px; text-align:center; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted);">0x1048</div>
+          <div style="width:48px; text-align:center; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted);">0x1050</div>
+        </div>
+
+        <!-- Cells -->
         <div class="array-row">
           <div class="array-cell">1</div>
           <div class="array-cell">2</div>
           <div class="array-cell">3</div>
         </div>
+
+        <!-- Labels -->
         <div class="array-brackets">
           <div class="array-bracket-label show-a">a[0]</div>
           <div class="array-bracket-label show-a">a[1]</div>
@@ -254,7 +293,7 @@ Sales</div>
         <div class="array-brackets">
           <div class="array-bracket-label show-b">b[0]</div>
           <div class="array-bracket-label show-b">b[1]</div>
-          <div class="array-bracket-label"></div>
+          <div class="array-bracket-label" style="font-size:0.65rem; color:var(--text-muted);">(cap only)</div>
         </div>
       </div>
       <div class="viz-controls"><button class="btn btn-primary" data-role="mutate">Run b[0] = 99</button></div>

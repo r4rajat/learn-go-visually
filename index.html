@@ -3,14 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Learn Go, Visually</title>
-<meta name="description" content="An interactive, visual introduction to the Go programming language — from your first variable to goroutines, channels, and buffered channels.">
+<title>Learn Go, Visually — Master Go with Interactive Visualizations</title>
+<meta name="description" content="An interactive, visual guide to mastering the Go programming language — memory diagrams, goroutines, channels, and verified Go 1.26 code examples.">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
 <header class="site-header">
-  <a class="brand" href="index.html"><span class="dot"></span> Learn Go, Visually</a>
+  <a class="brand" href="index.html">
+    <span class="brand-badge">Go</span>
+    <span>Learn Go, Visually</span>
+  </a>
   <nav class="nav-links">
     <a href="index.html" class="active">Home</a>
     <a href="basics.html">Basics</a>
@@ -26,98 +29,435 @@
 </header>
 
 <main>
-  <div class="page">
-    <span class="eyebrow">Go, from zero</span>
-    <h1>Understand Go by watching it happen.</h1>
-    <p class="lede">
-      Every concept here is taught three ways at once: a plain-English explanation,
-      an interactive visual you can click through at your own pace, and a real,
-      verified Go code example you can open and run for yourself. No prior
-      programming experience assumed.
-    </p>
+  <!-- Ambient background glow mesh (DSA-30 style) -->
+  <div class="hero-glow-layer">
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+    <div class="glow-orb-3"></div>
+  </div>
 
-    <div class="roadmap">
+  <div class="page-wide">
 
-      <div class="roadmap-group">
-        <div class="roadmap-group-title">Basics</div>
-        <div class="roadmap-nodes">
-          <a class="roadmap-node" href="basics.html#hello"><span class="status-dot"></span> Hello, Go</a>
-          <a class="roadmap-node" href="basics.html#variables"><span class="status-dot"></span> Variables &amp; types</a>
-          <a class="roadmap-node" href="basics.html#control-flow"><span class="status-dot"></span> Control flow</a>
-          <a class="roadmap-node" href="basics.html#functions"><span class="status-dot"></span> Functions</a>
-        </div>
+    <!-- ──────────────────────── HERO ──────────────────────── -->
+    <section class="hero-wrapper text-center" style="text-align:center;">
+      <div class="pulse-badge">
+        <span class="pulse-beacon">
+          <span class="ping"></span>
+          <span class="dot"></span>
+        </span>
+        <span>Go 1.26 Verified · 100% Visual · Zero Fluff</span>
       </div>
 
-      <div class="roadmap-group">
-        <div class="roadmap-group-title">Core</div>
-        <div class="roadmap-nodes">
-          <a class="roadmap-node" href="core.html#structs"><span class="status-dot"></span> Structs &amp; methods</a>
-          <a class="roadmap-node" href="core.html#slices"><span class="status-dot"></span> Slices &amp; maps</a>
-          <a class="roadmap-node" href="core.html#interfaces"><span class="status-dot"></span> Interfaces</a>
-          <a class="roadmap-node" href="core.html#errors"><span class="status-dot"></span> Error handling</a>
-        </div>
+      <h1 class="hero-title">
+        Understand Go by <span class="gradient-text">watching it happen.</span>
+      </h1>
+
+      <p class="hero-subhead">
+        Pointers, backing arrays, goroutines, and channels &mdash; visualized as interactive
+        memory layouts and runtime state machines. Every single code example is verified against
+        the real Go 1.26 toolchain.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-pill" href="basics.html" style="padding:0.7em 1.6em; font-size:1rem;">
+          Start with the Basics &rarr;
+        </a>
+        <a class="btn btn-pill" href="concurrency.html" style="padding:0.7em 1.5em; font-size:1rem;">
+          Jump to Concurrency ⚡
+        </a>
+        <a class="btn btn-pill" href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener" style="padding:0.7em 1.3em;">
+          GitHub Repository ⭐
+        </a>
       </div>
 
-      <div class="roadmap-group">
-        <div class="roadmap-group-title">Concurrency</div>
-        <div class="roadmap-nodes">
-          <a class="roadmap-node" href="concurrency.html#goroutines"><span class="status-dot"></span> Goroutines</a>
-          <a class="roadmap-node" href="concurrency.html#unbuffered"><span class="status-dot"></span> Channels</a>
-          <a class="roadmap-node" href="concurrency.html#buffered"><span class="status-dot"></span> Buffered channels</a>
-          <a class="roadmap-node" href="concurrency.html#closed"><span class="status-dot"></span> Closing channels</a>
-          <a class="roadmap-node" href="concurrency.html#select"><span class="status-dot"></span> Select</a>
-        </div>
+      <div class="hero-meta-bar">
+        <span class="hero-meta-item">✔ Pure static site (no build step)</span>
+        <span class="hero-meta-item">✔ Interactive steppers</span>
+        <span class="hero-meta-item">✔ 100% Go Playground verified</span>
+        <span class="hero-meta-item">✔ Free forever</span>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── STAT STRIP ──────────────────────── -->
+    <section class="stat-strip">
+      <div class="stat-card">
+        <div class="stat-number">8</div>
+        <div class="stat-label">In-depth Modules</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">25+</div>
+        <div class="stat-label">Interactive Visuals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">1.26</div>
+        <div class="stat-label">Verified Go Toolchain</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Build Steps &amp; Dependencies</div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── LIVE INTERACTIVE SHOWCASE ──────────────────────── -->
+    <section style="margin: 3.5rem 0;">
+      <div style="text-align:center; margin-bottom:1.5rem;">
+        <span class="eyebrow">Try It Live</span>
+        <h2 style="margin:0.2em 0 0.4em;">Watch Concurrency in Action</h2>
+        <p style="max-width:640px; margin:0 auto; font-size:1.02rem;">
+          In Go, the <code>go</code> keyword spins up an ultra-lightweight goroutine (~2KB initial stack).
+          Click <strong>Run comparison</strong> to see sequential tasks wait in line while concurrent goroutines finish in parallel.
+        </p>
       </div>
 
-      <div class="roadmap-group">
-        <div class="roadmap-group-title">Advanced</div>
-        <div class="roadmap-nodes">
-          <a class="roadmap-node" href="advanced.html#generics"><span class="status-dot"></span> Generics</a>
-          <a class="roadmap-node" href="advanced.html#context"><span class="status-dot"></span> Context</a>
-          <a class="roadmap-node" href="advanced.html#testing"><span class="status-dot"></span> Testing</a>
+      <div class="viz" data-viz="goroutines" style="max-width:820px; margin:0 auto;">
+        <div class="viz-header">
+          <div class="viz-title">
+            <span class="viz-badge">Runtime Visualizer</span>
+            <span>Sequential vs. Concurrent Execution</span>
+          </div>
+          <span class="viz-step-counter">3 concurrent tasks</span>
         </div>
+        <div class="viz-stage">
+          <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:260px;">
+              <div style="font-size:0.78rem; font-weight:750; color:var(--text-dim); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.05em; display:flex; justify-content:space-between;">
+                <span>Sequential (1 thread)</span>
+                <span style="font-family:var(--font-mono); color:var(--warn);">T1 + T2 + T3</span>
+              </div>
+              <div data-panel="sequential">
+                <div class="lane-row"><span class="lane-label">worker 1</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+                <div class="lane-row"><span class="lane-label">worker 2</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+                <div class="lane-row"><span class="lane-label">worker 3</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+              </div>
+            </div>
+            <div style="flex:1; min-width:260px;">
+              <div style="font-size:0.78rem; font-weight:750; color:var(--text-dim); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.05em; display:flex; justify-content:space-between;">
+                <span>Concurrent (goroutines)</span>
+                <span style="font-family:var(--font-mono); color:var(--ok);">max(T1, T2, T3)</span>
+              </div>
+              <div data-panel="concurrent">
+                <div class="lane-row"><span class="lane-label">go worker 1</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+                <div class="lane-row"><span class="lane-label">go worker 2</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+                <div class="lane-row"><span class="lane-label">go worker 3</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="viz-controls">
+          <button class="btn btn-primary" data-role="play">Run comparison ▶</button>
+        </div>
+        <div class="viz-caption" data-role="caption">Click &ldquo;Run comparison&rdquo; to benchmark the two execution models in real time.</div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── WHY LEARN VISUALLY ──────────────────────── -->
+    <section style="margin: 4.5rem 0 3.5rem;">
+      <div style="text-align:center; margin-bottom: 2rem;">
+        <span class="eyebrow">Visual Pedagogy</span>
+        <h2 style="margin:0.2em 0 0.4em;">Why text explanations aren't enough</h2>
+        <p style="max-width:620px; margin:0 auto;">
+          Go is deliberately simple in syntax, but its runtime behavior (memory allocation, slice headers, channel locks, scheduling) is full of subtle gotchas.
+        </p>
       </div>
 
-      <div class="roadmap-group">
-        <div class="roadmap-group-title">Applied Go</div>
-        <div class="roadmap-nodes">
-          <a class="roadmap-node" href="rest-api.html#setup"><span class="status-dot"></span> REST APIs with Gin</a>
-          <a class="roadmap-node" href="grpc-api.html#what-is-grpc"><span class="status-dot"></span> gRPC Services</a>
-          <a class="roadmap-node" href="operators.html#what-is-an-operator"><span class="status-dot"></span> Kubernetes Operators</a>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">🧠</div>
+          <div class="feature-title">Backing Arrays, Not Abstractions</div>
+          <p class="feature-desc">
+            A slice is a 3-word struct pointing to an array. When two slices point to the same memory, mutations silently bleed over. We show the exact memory addresses.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">⚡</div>
+          <div class="feature-title">Lock-Free Concurrency</div>
+          <p class="feature-desc">
+            Understand how unbuffered channel handshakes force synchronized rendezvous between goroutines, and how buffer queues hold items without blocking.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">🎯</div>
+          <div class="feature-title">The Nil Interface Trap</div>
+          <p class="feature-desc">
+            Why does <code>err != nil</code> return true even when the error pointer is nil? Seeing the two-word <code>(type, value)</code> interface tuple makes it crystal clear.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">🔍</div>
+          <div class="feature-title">Real Captured Output</div>
+          <p class="feature-desc">
+            Every code sample has its real compiler stdout captured verbatim. Panic stack traces, deadlocks, and benchmark numbers are 100% genuine.
+          </p>
         </div>
       </div>
+    </section>
 
-      <div class="roadmap-group">
-        <div class="roadmap-group-title">Interview Prep</div>
-        <div class="roadmap-nodes">
-          <a class="roadmap-node" href="coding-interview.html#data-structures"><span class="status-dot"></span> Coding Interview Questions</a>
+    <!-- ──────────────────────── CHECKPOINT QUIZ (DSA-30 style) ──────────────────────── -->
+    <section style="margin: 3.5rem 0;">
+      <div class="quiz-box" data-quiz="slice-quiz" data-correct="1" style="max-width:760px; margin:0 auto;">
+        <div class="quiz-header">
+          <span class="quiz-badge">Checkpoint Quiz</span>
+          <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">Test your Go intuition</span>
+        </div>
+        <div class="quiz-question">
+          You create a slice <code>a := []int{1, 2, 3}</code>, then take a sub-slice <code>b := a[:2]</code> and run <code>b[0] = 99</code>. What happens to <code>a[0]</code>?
+        </div>
+        <div class="quiz-options">
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">A</span>
+            <span><code>a[0]</code> remains <code>1</code> &mdash; sub-slicing copies the underlying elements to avoid mutation.</span>
+          </button>
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">B</span>
+            <span><code>a[0]</code> becomes <code>99</code> &mdash; slices share the same underlying backing array in memory.</span>
+          </button>
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">C</span>
+            <span>Go throws a compile error &mdash; sub-slices are read-only views by default.</span>
+          </button>
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">D</span>
+            <span>A runtime panic occurs because <code>b</code> was sliced with a half-open range.</span>
+          </button>
+        </div>
+        <div style="display:flex; gap:0.6rem;">
+          <button class="btn btn-primary btn-sm" data-role="quiz-check" disabled>Check Answer</button>
+          <button class="btn btn-sm" data-role="quiz-reset" style="display:none;">Try Again</button>
+        </div>
+        <div class="quiz-explanation">
+          <strong>Correct!</strong> In Go, sub-slicing <code>a[:2]</code> creates a new 24-byte <code>SliceHeader</code> struct containing <code>{Data: ptr, Len: 2, Cap: 3}</code>. The pointer points directly into <em>the same backing array</em> as <code>a</code>. Modifying <code>b[0]</code> mutates that shared memory, so <code>a[0]</code> also reads <code>99</code>.
         </div>
       </div>
+    </section>
 
-    </div>
+    <!-- ──────────────────────── COMPREHENSIVE ROADMAP ──────────────────────── -->
+    <section style="margin: 4.5rem 0 2rem;">
+      <div style="text-align:center; margin-bottom: 2.2rem;">
+        <span class="eyebrow">Structured Curriculum</span>
+        <h2 style="margin:0.2em 0 0.4em;">Complete Learning Roadmap</h2>
+        <p style="max-width:620px; margin:0 auto;">
+          Follow the step-by-step path from your first variable to distributed systems, Kubernetes operators, and high-frequency interview questions.
+        </p>
+      </div>
 
-    <p style="margin-top:2.5rem;">
-      <a class="btn btn-primary" href="basics.html">Start with the Basics &rarr;</a>
-    </p>
+      <div class="roadmap-grid">
 
-    <div class="callout callout-tip" style="margin-top:3rem;">
+        <!-- Module 1: Basics -->
+        <a class="roadmap-card" href="basics.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 01</span>
+              <span style="font-size:1.3rem;">🚀</span>
+            </div>
+            <h3 class="roadmap-card-title">Go Basics</h3>
+            <p class="roadmap-card-desc">
+              From zero to writing idiomatic Go. Variables, zero-values, control flow, functions, variable shadowing gotchas, and the defer LIFO stack.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Hello Go</span>
+              <span class="roadmap-pill">Zero Values</span>
+              <span class="roadmap-pill">Control Flow</span>
+              <span class="roadmap-pill">Shadowing</span>
+              <span class="roadmap-pill">Defer Stack</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Start Basics &rarr;</div>
+        </a>
+
+        <!-- Module 2: Core -->
+        <a class="roadmap-card" href="core.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 02</span>
+              <span style="font-size:1.3rem;">🧩</span>
+            </div>
+            <h3 class="roadmap-card-title">Core Go Concepts</h3>
+            <p class="roadmap-card-desc">
+              Structs &amp; method receivers, slices vs backing arrays, map internals, interface dynamic dispatch, and the classic nil interface trap.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Struct Receivers</span>
+              <span class="roadmap-pill">Slice Headers</span>
+              <span class="roadmap-pill">Maps</span>
+              <span class="roadmap-pill">Interfaces</span>
+              <span class="roadmap-pill">Nil Gotcha</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Explore Core &rarr;</div>
+        </a>
+
+        <!-- Module 3: Concurrency -->
+        <a class="roadmap-card" href="concurrency.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 03</span>
+              <span style="font-size:1.3rem;">⚡</span>
+            </div>
+            <h3 class="roadmap-card-title">Concurrency &amp; Channels</h3>
+            <p class="roadmap-card-desc">
+              Master Go's flagship superpower. Goroutines, unbuffered handshakes, buffered queues, channel closing semantics, select multiplexers, and worker pools.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Goroutines</span>
+              <span class="roadmap-pill">Unbuffered Chans</span>
+              <span class="roadmap-pill">Buffers</span>
+              <span class="roadmap-pill">Select</span>
+              <span class="roadmap-pill">Worker Pools</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Master Concurrency &rarr;</div>
+        </a>
+
+        <!-- Module 4: Advanced -->
+        <a class="roadmap-card" href="advanced.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 04</span>
+              <span style="font-size:1.3rem;">🔬</span>
+            </div>
+            <h3 class="roadmap-card-title">Advanced Go</h3>
+            <p class="roadmap-card-desc">
+              Type parameters (generics), type constraints, Context cancellation propagation trees, table-driven tests, and memory benchmarks.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Generics</span>
+              <span class="roadmap-pill">Type Constraints</span>
+              <span class="roadmap-pill">Context Trees</span>
+              <span class="roadmap-pill">Benchmarks</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Go Advanced &rarr;</div>
+        </a>
+
+        <!-- Module 5: Operators -->
+        <a class="roadmap-card" href="operators.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 05</span>
+              <span style="font-size:1.3rem;">☸️</span>
+            </div>
+            <h3 class="roadmap-card-title">Kubernetes Operators</h3>
+            <p class="roadmap-card-desc">
+              Building cloud-native controllers in Go. Reconcile loops, controller-runtime, client-go informers, workqueues, and owner-reference GC cascades.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Reconcile Loop</span>
+              <span class="roadmap-pill">CRDs</span>
+              <span class="roadmap-pill">client-go</span>
+              <span class="roadmap-pill">Workqueues</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Build Operators &rarr;</div>
+        </a>
+
+        <!-- Module 6: REST APIs -->
+        <a class="roadmap-card" href="rest-api.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 06</span>
+              <span style="font-size:1.3rem;">🌐</span>
+            </div>
+            <h3 class="roadmap-card-title">REST APIs with Gin</h3>
+            <p class="roadmap-card-desc">
+              Production HTTP services. Gin routing, request binding &amp; validation, middleware chaining, structured logging, and MongoDB integration.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Gin Engine</span>
+              <span class="roadmap-pill">HTTP Handlers</span>
+              <span class="roadmap-pill">Middleware</span>
+              <span class="roadmap-pill">MongoDB</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Build REST APIs &rarr;</div>
+        </a>
+
+        <!-- Module 7: gRPC -->
+        <a class="roadmap-card" href="grpc-api.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 07</span>
+              <span style="font-size:1.3rem;">📡</span>
+            </div>
+            <h3 class="roadmap-card-title">gRPC Microservices</h3>
+            <p class="roadmap-card-desc">
+              High-throughput RPC communication. Protocol buffers v3, code generation, unary RPCs, server streaming, client streaming, and bidirectional pipes.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Protobuf</span>
+              <span class="roadmap-pill">Unary RPC</span>
+              <span class="roadmap-pill">Streaming</span>
+              <span class="roadmap-pill">Interceptors</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Explore gRPC &rarr;</div>
+        </a>
+
+        <!-- Module 8: Coding Interview -->
+        <a class="roadmap-card" href="coding-interview.html">
+          <div>
+            <div class="roadmap-card-head">
+              <span class="roadmap-module-badge">Module 08</span>
+              <span style="font-size:1.3rem;">💡</span>
+            </div>
+            <h3 class="roadmap-card-title">Coding Interview Qs</h3>
+            <p class="roadmap-card-desc">
+              The high-frequency coding questions asked in Go engineering interviews. Data structures from scratch, concurrency patterns, and idiomatic algorithms.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Linked Lists</span>
+              <span class="roadmap-pill">Worker Pools</span>
+              <span class="roadmap-pill">LRU Cache</span>
+              <span class="roadmap-pill">Rate Limiter</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Practice Questions &rarr;</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ──────────────────────── CALLOUT BANNER ──────────────────────── -->
+    <div class="callout callout-tip" style="margin: 3.5rem 0;">
       <div class="callout-title">Already know some Go?</div>
       <p>
         Skip straight to <a href="concurrency.html">Concurrency</a> &mdash; goroutines and
         channels are usually the part of Go that intimidates people coming from other
-        languages the most, and the part where a picture genuinely helps more than a
-        paragraph. Total beginners should start with the Basics instead; everything after
-        it assumes you can read the code from the section before.
+        languages the most, and the part where an animated timeline genuinely helps more than a
+        paragraph. Total beginners should start with the <a href="basics.html">Basics</a> instead;
+        everything after it assumes you can read the code from the section before.
       </p>
     </div>
+
   </div>
 </main>
 
 <footer class="site-footer">
-  Every code example on this site is verified against a real Go toolchain before publishing,
-  and links out to the official Go Playground so you can run it yourself.
+  <div style="max-width:700px; margin:0 auto; line-height:1.8;">
+    <div style="margin-bottom:0.75rem; font-weight:700; color:var(--text);">
+      Learn Go, Visually &mdash; Open Source Go Learning Portal
+    </div>
+    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:1rem;">
+      Every code example on this site is compiled and verified against a real Go 1.26 toolchain before publishing,
+      and links out to the official Go Playground so you can run it yourself.
+    </p>
+    <div style="display:flex; justify-content:center; gap:1.2rem; font-size:0.86rem;">
+      <a href="https://learn-go.r4rajat.com">learn-go.r4rajat.com</a>
+      <span>&bull;</span>
+      <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
+      <span>&bull;</span>
+      <a href="basics.html">Basics</a>
+      <span>&bull;</span>
+      <a href="concurrency.html">Concurrency</a>
+      <span>&bull;</span>
+      <a href="operators.html">Operators</a>
+    </div>
+  </div>
 </footer>
 
 <script src="assets/js/theme.js"></script>
+<script src="assets/js/visuals.js"></script>
 </body>
 </html>
