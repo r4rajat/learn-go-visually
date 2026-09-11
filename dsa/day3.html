@@ -188,21 +188,37 @@
           <div class="dsa-viz-header">
             <div class="dsa-viz-title">
               <span aria-hidden="true" style="color:var(--accent); font-size:1.15rem;">⚡</span>
-              <span>Interactive Singly Linked List Simulation</span>
+              <span>Interactive Singly Linked List Simulation &amp; Node Pointer Anatomy</span>
             </div>
             <span class="dsa-viz-badge">Interactive Component</span>
           </div>
           <div class="dsa-viz-canvas">
 
-<div data-viz="dsa-linked-list" style="width:100%;">
+<div data-viz="dsa-linked-list" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+  <!-- Node Anatomy Schematic -->
+  <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1.5rem; flex-wrap:wrap; justify-content:center;">
+    <div style="display:flex; border:2px solid var(--accent); border-radius:6px; background:var(--bg-card); overflow:hidden; font-family:var(--font-mono); font-size:0.82rem;">
+      <div style="padding:0.4rem 0.8rem; border-right:2px solid var(--accent); font-weight:800; color:var(--text);">Val: 42 (8B)</div>
+      <div style="padding:0.4rem 0.8rem; background:var(--accent-bg); color:var(--accent); font-weight:750;">Next: 0x20A0 (8B)</div>
+    </div>
+    <span style="color:var(--accent); font-weight:900; font-size:1.2rem;">&rarr;</span>
+    <div style="display:flex; border:2px solid var(--accent); border-radius:6px; background:var(--bg-card); overflow:hidden; font-family:var(--font-mono); font-size:0.82rem;">
+      <div style="padding:0.4rem 0.8rem; border-right:2px solid var(--accent); font-weight:800; color:var(--text);">Val: 99 (8B)</div>
+      <div style="padding:0.4rem 0.8rem; background:var(--bg-sunken); color:var(--text-muted); font-weight:750;">Next: nil</div>
+    </div>
+  </div>
+
+  <!-- Interactive Visualizer -->
   <div class="ll-container" data-role="ll-container"></div>
   <div data-role="ll-msg" style="margin-top:0.75rem; font-size:0.85rem; display:none; font-family:var(--font-mono);"></div>
   <div class="dsa-viz-controls" style="margin-top:1rem;">
+    <input type="number" data-role="ll-input" placeholder="Val" class="predict-input" style="width:70px; padding:0.35rem 0.6rem; font-size:0.82rem;" />
     <button class="btn btn-sm btn-primary" data-role="btn-ll-insert-front" type="button">+ Insert Front O(1)</button>
     <button class="btn btn-sm" data-role="btn-ll-insert-end" type="button">+ Insert Tail O(n)</button>
     <button class="btn btn-sm btn-secondary" data-role="btn-ll-delete-front" type="button">- Delete Front O(1)</button>
-    <button class="btn btn-sm" data-role="btn-ll-reverse" type="button">↺ Reverse List</button>
-    <button class="btn btn-sm" data-role="btn-ll-reset" type="button">Reset</button>
+    <button class="btn btn-sm" data-role="btn-ll-search" type="button">&#128269; Search Val</button>
+    <button class="btn btn-sm" data-role="btn-ll-reverse" type="button">&#8634; Reverse List</button>
+    <button class="btn btn-sm btn-secondary" data-role="btn-ll-reset" type="button">Reset</button>
   </div>
 </div>
 

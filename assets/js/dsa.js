@@ -590,6 +590,50 @@ function initDSALinkedList(root) {
     });
   }
 
+  var btnSearch = root.querySelector('[data-role="btn-ll-search"]');
+  var btnRandom = root.querySelector('[data-role="btn-ll-random"]');
+
+  if (btnSearch) {
+    btnSearch.addEventListener('click', function() {
+      var targetVal = parseInt(valInput ? valInput.value : '30', 10);
+      if (isNaN(targetVal)) targetVal = 30;
+      var nodeBoxes = container.querySelectorAll('.ll-node-box');
+      var step = 0;
+      flash('Scanning nodes sequentially from HEAD for value ' + targetVal + '...', false);
+
+      function scanNext() {
+        if (step > 0 && step <= nodeBoxes.length) {
+          nodeBoxes[step - 1].classList.remove('scanning');
+        }
+        if (step < list.length) {
+          nodeBoxes[step].classList.add('scanning');
+          if (list[step] === targetVal) {
+            nodeBoxes[step].classList.remove('scanning');
+            nodeBoxes[step].classList.add('highlight');
+            flash('✓ Found value <code>' + targetVal + '</code> at index [' + step + '] in ' + (step + 1) + ' pointer hops — O(n) sequential access!', false);
+            setTimeout(function() { nodeBoxes[step].classList.remove('highlight'); }, 2200);
+            return;
+          }
+          step++;
+          setTimeout(scanNext, 450);
+        } else {
+          flash('✗ Value <code>' + targetVal + '</code> not found after traversing entire list to nil (0x0).', true);
+        }
+      }
+      scanNext();
+    });
+  }
+
+  if (btnRandom) {
+    btnRandom.addEventListener('click', function() {
+      list = Array.from({ length: 4 }, function() { return Math.floor(Math.random() * 89) + 10; });
+      highlighted = -1;
+      isNew = -1;
+      flash('Generated randomized linked list with 4 nodes.', false);
+      render();
+    });
+  }
+
   if (btnReset) {
     btnReset.addEventListener('click', function() {
       list = [10, 20, 30, 40];
@@ -605,27 +649,21 @@ function initDSALinkedList(root) {
 
 /* ---------- 6. Interactive Binary Tree Visualizer (Day 6) ---------- */
 function initDSABinaryTree(root) {
-  var nodes = [
-    { id: 50, x: 180, y: 35, left: 30, right: 70 },
-    { id: 30, x: 90,  y: 95, left: 20, right: 40 },
-    { id: 70, x: 270, y: 95, left: 60, right: 80 },
-    { id: 20, x: 50,  y: 155 },
-    { id: 40, x: 130, y: 155 },
-    { id: 60, x: 230, y: 155 },
-    { id: 80, x: 310, y: 155 }
-  ];
-
   var msgBox = root.querySelector('[data-role="tree-msg"]');
   var svgEl = root.querySelector('svg.tree-svg');
   var btnInorder = root.querySelector('[data-role="btn-tree-inorder"]');
   var btnPreorder = root.querySelector('[data-role="btn-tree-preorder"]');
   var btnPostorder = root.querySelector('[data-role="btn-tree-postorder"]');
+  var btnSearch = root.querySelector('[data-role="btn-tree-search"]');
   var btnReset = root.querySelector('[data-role="btn-tree-reset"]');
 
   function clearHighlight() {
     if (!svgEl) return;
     svgEl.querySelectorAll('.tree-node-circle').forEach(function(c) {
       c.classList.remove('active');
+    });
+    svgEl.querySelectorAll('.tree-edge-line, .tree-curve-line').forEach(function(l) {
+      l.classList.remove('active');
     });
   }
 
@@ -642,13 +680,12 @@ function initDSABinaryTree(root) {
         if (msgBox) {
           msgBox.innerHTML += '<span class="badge-difficulty badge-easy" style="margin-right:4px;">' + val + '</span> ';
         }
-      }, step * 400);
+      }, step * 380);
     });
   }
 
   if (btnInorder) {
     btnInorder.addEventListener('click', function() {
-      // Inorder for BST produces strictly sorted output
       highlightSequence([20, 30, 40, 50, 60, 70, 80], 'In-Order Traversal (Sorted: Left → Root → Right)');
     });
   }
@@ -662,6 +699,27 @@ function initDSABinaryTree(root) {
   if (btnPostorder) {
     btnPostorder.addEventListener('click', function() {
       highlightSequence([20, 40, 30, 60, 80, 70, 50], 'Post-Order Traversal (Left → Right → Root)');
+    });
+  }
+
+  if (btnSearch) {
+    btnSearch.addEventListener('click', function() {
+      clearHighlight();
+      var path = [50, 30, 40]; // Binary search path to 40
+      if (msgBox) {
+        msgBox.style.display = 'block';
+        msgBox.innerHTML = '<strong>BST Search for 40:</strong> ';
+      }
+      path.forEach(function(val, step) {
+        setTimeout(function() {
+          var circle = svgEl.querySelector('[data-node="' + val + '"]');
+          if (circle) circle.classList.add('active');
+          if (msgBox) {
+            var isEnd = step === path.length - 1;
+            msgBox.innerHTML += '<span class="badge-difficulty ' + (isEnd ? 'badge-medium' : 'badge-easy') + '" style="margin-right:4px;">' + val + (isEnd ? ' (Found!)' : ' &rarr;') + '</span> ';
+          }
+        }, step * 480);
+      });
     });
   }
 
@@ -794,13 +852,25 @@ function initDSASortingBars(root) {
   var arr = orig.slice();
   var i = 0, j = 0;
   var maxVal = 95;
+  var timer = null;
+  var comparisons = 0;
+  var swaps = 0;
 
   var container = root.querySelector('[data-role="sort-container"]');
   var msgBox = root.querySelector('[data-role="sort-msg"]');
   var btnStep = root.querySelector('[data-role="btn-sort-step"]');
+  var btnPlay = root.querySelector('[data-role="btn-sort-play"]');
+  var btnShuffle = root.querySelector('[data-role="btn-sort-shuffle"]');
   var btnReset = root.querySelector('[data-role="btn-sort-reset"]');
+  var statComps = root.querySelector('[data-role="sort-stat-comps"]');
+  var statSwaps = root.querySelector('[data-role="sort-stat-swaps"]');
 
-  function render(compA, compB, swapped) {
+  function updateStats() {
+    if (statComps) statComps.textContent = comparisons;
+    if (statSwaps) statSwaps.textContent = swaps;
+  }
+
+  function render(compA, compB, swapped, isDone) {
     if (!container) return;
     container.innerHTML = '';
 
@@ -816,7 +886,9 @@ function initDSASortingBars(root) {
       bar.className = 'sort-bar';
       bar.style.height = Math.max(12, (val / maxVal) * 140) + 'px';
 
-      if (idx === compA || idx === compB) {
+      if (isDone) {
+        bar.className += ' sorted';
+      } else if (idx === compA || idx === compB) {
         bar.className += swapped ? ' swapped' : ' comparing';
       }
 
@@ -829,65 +901,118 @@ function initDSASortingBars(root) {
       col.appendChild(idxLabel);
       container.appendChild(col);
     });
+    updateStats();
+  }
+
+  function stepSort() {
+    if (i < arr.length - 1) {
+      if (j < arr.length - 1 - i) {
+        var a = j, b = j + 1;
+        var didSwap = false;
+        comparisons++;
+        if (arr[a] > arr[b]) {
+          var tmp = arr[a];
+          arr[a] = arr[b];
+          arr[b] = tmp;
+          didSwap = true;
+          swaps++;
+        }
+        render(a, b, didSwap, false);
+        if (msgBox) {
+          msgBox.style.display = 'block';
+          msgBox.innerHTML = didSwap ?
+            'Comparing [' + a + '] and [' + b + ']: <strong>Swapped</strong> ' + arr[b] + ' and ' + arr[a] + '!' :
+            'Comparing [' + a + '] and [' + b + ']: In correct order, no swap needed.';
+        }
+        j++;
+        return true;
+      } else {
+        j = 0;
+        i++;
+        render(-1, -1, false, false);
+        return true;
+      }
+    } else {
+      render(-1, -1, false, true);
+      if (msgBox) {
+        msgBox.style.display = 'block';
+        msgBox.innerHTML = '🎉 <strong>Sorting Complete!</strong> Fully sorted with ' + comparisons + ' comparisons and ' + swaps + ' swaps.';
+        msgBox.style.color = 'var(--ok)';
+      }
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        if (btnPlay) btnPlay.textContent = 'Auto Play ▶';
+      }
+      return false;
+    }
   }
 
   if (btnStep) {
     btnStep.addEventListener('click', function() {
-      if (i < arr.length - 1) {
-        if (j < arr.length - 1 - i) {
-          var a = j, b = j + 1;
-          var didSwap = false;
-          if (arr[a] > arr[b]) {
-            var tmp = arr[a];
-            arr[a] = arr[b];
-            arr[b] = tmp;
-            didSwap = true;
-          }
-          render(a, b, didSwap);
-          if (msgBox) {
-            msgBox.style.display = 'block';
-            msgBox.innerHTML = didSwap ?
-              'Comparing [' + a + '] and [' + b + ']: <strong>Swapped</strong> ' + arr[b] + ' and ' + arr[a] + '!' :
-              'Comparing [' + a + '] and [' + b + ']: In correct order, no swap needed.';
-          }
-          j++;
-        } else {
-          j = 0;
-          i++;
-          render(-1, -1, false);
-        }
+      stepSort();
+    });
+  }
+
+  if (btnPlay) {
+    btnPlay.addEventListener('click', function() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        btnPlay.textContent = 'Auto Play ▶';
       } else {
-        render(-1, -1, false);
-        if (msgBox) {
-          msgBox.style.display = 'block';
-          msgBox.innerHTML = '🎉 <strong>Sorting Complete!</strong> Array is fully sorted.';
-          msgBox.style.color = 'var(--ok)';
-        }
+        btnPlay.textContent = 'Pause ⏸';
+        timer = setInterval(function() {
+          var keepGoing = stepSort();
+          if (!keepGoing) {
+            clearInterval(timer);
+            timer = null;
+            btnPlay.textContent = 'Auto Play ▶';
+          }
+        }, 220);
+      }
+    });
+  }
+
+  if (btnShuffle) {
+    btnShuffle.addEventListener('click', function() {
+      if (timer) { clearInterval(timer); timer = null; if (btnPlay) btnPlay.textContent = 'Auto Play ▶'; }
+      arr = Array.from({ length: 7 }, function() { return Math.floor(Math.random() * 80) + 15; });
+      orig = arr.slice();
+      i = 0; j = 0; comparisons = 0; swaps = 0;
+      render(-1, -1, false, false);
+      if (msgBox) {
+        msgBox.style.display = 'block';
+        msgBox.innerHTML = 'Generated fresh random array. Click Step or Auto Play to sort.';
+        msgBox.style.color = 'var(--text)';
       }
     });
   }
 
   if (btnReset) {
     btnReset.addEventListener('click', function() {
+      if (timer) { clearInterval(timer); timer = null; if (btnPlay) btnPlay.textContent = 'Auto Play ▶'; }
       arr = orig.slice();
-      i = 0; j = 0;
-      render(-1, -1, false);
+      i = 0; j = 0; comparisons = 0; swaps = 0;
+      render(-1, -1, false, false);
       if (msgBox) msgBox.style.display = 'none';
     });
   }
 
-  render(-1, -1, false);
+  render(-1, -1, false, false);
 }
 
 /* ---------- 9. Interactive Sliding Window Visualizer (Day 24) ---------- */
 function initDSASlidingWindow(root) {
   var s = ["a", "b", "c", "a", "b", "c", "b", "b"];
   var left = 0, right = 2;
+  var maxLen = 3;
 
   var container = root.querySelector('[data-role="sw-container"]');
   var msgBox = root.querySelector('[data-role="sw-msg"]');
   var btnExpand = root.querySelector('[data-role="btn-sw-expand"]');
   var btnShrink = root.querySelector('[data-role="btn-sw-shrink"]');
+  var btnWalkthrough = root.querySelector('[data-role="btn-sw-walkthrough"]');
   var btnReset = root.querySelector('[data-role="btn-sw-reset"]');
 
   function render() {
@@ -919,8 +1044,9 @@ function initDSASlidingWindow(root) {
     if (msgBox) {
       var sub = s.slice(left, right + 1).join('');
       var len = right - left + 1;
+      maxLen = Math.max(maxLen, len);
       msgBox.innerHTML =
-        'Window: <code>"' + sub + '"</code> &bull; Size: <strong>' + len + '</strong> &bull; Range: <code>[' + left + '..' + right + ']</code>';
+        'Window Substring: <code>"' + sub + '"</code> &bull; Current Size: <strong>' + len + '</strong> &bull; Range: <code>[' + left + '..' + right + ']</code> &bull; Max Unique Size: <strong>' + maxLen + '</strong>';
     }
   }
 
@@ -942,9 +1068,34 @@ function initDSASlidingWindow(root) {
     });
   }
 
+  if (btnWalkthrough) {
+    btnWalkthrough.addEventListener('click', function() {
+      // Step-by-step longest substring simulation
+      var steps = [
+        { l: 0, r: 0 },
+        { l: 0, r: 1 },
+        { l: 0, r: 2 }, // "abc"
+        { l: 1, r: 3 }, // duplicate 'a', shrink left to 1, expand to 3
+        { l: 2, r: 4 }, // "bca"
+        { l: 3, r: 5 }  // "cab"
+      ];
+      var stepIdx = 0;
+      var walkTimer = setInterval(function() {
+        if (stepIdx < steps.length) {
+          left = steps[stepIdx].l;
+          right = steps[stepIdx].r;
+          render();
+          stepIdx++;
+        } else {
+          clearInterval(walkTimer);
+        }
+      }, 600);
+    });
+  }
+
   if (btnReset) {
     btnReset.addEventListener('click', function() {
-      left = 0; right = 2;
+      left = 0; right = 2; maxLen = 3;
       render();
     });
   }

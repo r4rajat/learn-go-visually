@@ -188,46 +188,52 @@
           <div class="dsa-viz-header">
             <div class="dsa-viz-title">
               <span aria-hidden="true" style="color:var(--accent); font-size:1.15rem;">⚡</span>
-              <span>Binary Min-Heap: Tree &amp; Backing Array Representation</span>
+              <span>Binary Min-Heap: Tree &amp; 1D Slice Backing Array</span>
             </div>
             <span class="dsa-viz-badge">Dual View Visualizer</span>
           </div>
           <div class="dsa-viz-canvas">
 
 <div style="display:flex; flex-direction:column; align-items:center; gap:1.2rem; width:100%; max-width:620px;">
-  <!-- Tree Representation -->
+  <!-- Tree Representation with Curved Branches -->
   <svg class="dsa-svg" width="320" height="150" viewBox="0 0 320 150">
-    <line x1="160" y1="25" x2="90"  y2="75" class="tree-edge-line" />
-    <line x1="160" y1="25" x2="230" y2="75" class="tree-edge-line" />
-    <line x1="90"  y1="75" x2="50"  y2="125" class="tree-edge-line" />
-    <line x1="90"  y1="75" x2="130" y2="125" class="tree-edge-line" />
-    <line x1="230" y1="75" x2="190" y2="125" class="tree-edge-line" />
+    <path d="M 160 25 Q 120 45 90 75" class="tree-curve-line" />
+    <path d="M 160 25 Q 200 45 230 75" class="tree-curve-line" />
+    <path d="M 90 75 Q 65 95 50 125" class="tree-curve-line" />
+    <path d="M 90 75 Q 115 95 130 125" class="tree-curve-line" />
+    <path d="M 230 75 Q 205 95 190 125" class="tree-curve-line" />
 
     <circle cx="160" cy="25" r="16" class="tree-node-circle active" />
     <text x="160" y="25" class="tree-node-text">10</text>
+    <text x="160" y="8" style="font-size:9px; font-family:var(--font-mono); fill:var(--accent); text-anchor:middle;">[0]</text>
 
     <circle cx="90" cy="75" r="16" class="tree-node-circle" />
     <text x="90" y="75" class="tree-node-text">15</text>
+    <text x="90" y="58" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[1]</text>
 
     <circle cx="230" cy="75" r="16" class="tree-node-circle" />
     <text x="230" y="75" class="tree-node-text">20</text>
+    <text x="230" y="58" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[2]</text>
 
     <circle cx="50" cy="125" r="14" class="tree-node-circle" />
     <text x="50" y="125" class="tree-node-text">17</text>
+    <text x="50" y="145" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[3]</text>
 
     <circle cx="130" cy="125" r="14" class="tree-node-circle" />
     <text x="130" y="125" class="tree-node-text">25</text>
+    <text x="130" y="145" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[4]</text>
 
     <circle cx="190" cy="125" r="14" class="tree-node-circle" />
     <text x="190" y="125" class="tree-node-text">30</text>
+    <text x="190" y="145" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[5]</text>
   </svg>
 
   <!-- 1D Array Mapping -->
-  <div style="display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+  <div style="display:flex; flex-direction:column; align-items:center; gap:0.4rem; width:100%;">
     <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase;">
-      Complete Binary Tree Mapped Into 1D Slice (Parent at (i-1)/2, Left at 2i+1, Right at 2i+2)
+      Native Go Slice (Parent: (i-1)/2 &bull; Left: 2i+1 &bull; Right: 2i+2)
     </div>
-    <div style="display:flex; gap:4px;">
+    <div style="display:flex; gap:4px; overflow-x:auto; padding:4px 0;">
       <div style="display:flex; flex-direction:column; align-items:center;">
         <div class="array-cell touched" style="width:42px; height:42px; font-size:0.9rem;">10</div>
         <span style="font-size:9px; font-family:var(--font-mono); color:var(--accent);">[0] Min</span>
@@ -258,7 +264,7 @@
 
           </div>
           <div class="dsa-viz-caption">
-            <strong>Key Takeaway:</strong> In Go, <code>container/heap</code> manages binary heaps directly on top of native slices without allocating tree node pointer objects, ensuring zero-overhead cache performance.
+            <strong>Key Takeaway:</strong> In Go, <code>container/heap</code> manages binary heaps directly on top of native slices without allocating tree node pointer objects, ensuring cache locality and zero GC overhead.
           </div>
         </div>
 

@@ -194,36 +194,42 @@
           </div>
           <div class="dsa-viz-canvas">
 
-<div class="graph-svg-container">
-  <svg class="dsa-svg" width="340" height="200" viewBox="0 0 340 200">
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
-      </marker>
-    </defs>
-    <!-- Edges -->
-    <line x1="80" y1="50"  x2="180" y2="40" class="tree-edge-line" marker-end="url(#arrow)" />
-    <line x1="80" y1="50"  x2="100" y2="150" class="tree-edge-line" marker-end="url(#arrow)" />
-    <line x1="180" y1="40" x2="260" y2="90" class="tree-edge-line" marker-end="url(#arrow)" />
-    <line x1="100" y1="150" x2="200" y2="160" class="tree-edge-line" marker-end="url(#arrow)" />
-    <line x1="200" y1="160" x2="260" y2="90" class="tree-edge-line" marker-end="url(#arrow)" />
+<div style="display:flex; flex-direction:column; align-items:center; gap:1.2rem; width:100%;">
+  <div class="graph-svg-container">
+    <svg class="dsa-svg" width="360" height="190" viewBox="0 0 360 190">
+      <defs>
+        <marker id="graph-arr" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
+        </marker>
+      </defs>
+      <!-- Curved Edges -->
+      <path d="M 80 50 Q 130 25 180 40" class="tree-curve-line" marker-end="url(#graph-arr)" />
+      <path d="M 80 50 Q 75 105 100 150" class="tree-curve-line" marker-end="url(#graph-arr)" />
+      <path d="M 180 40 Q 230 50 260 90" class="tree-curve-line" marker-end="url(#graph-arr)" />
+      <path d="M 100 150 Q 150 170 200 160" class="tree-curve-line" marker-end="url(#graph-arr)" />
+      <path d="M 200 160 Q 240 135 260 90" class="tree-curve-line" marker-end="url(#graph-arr)" />
 
-    <!-- Nodes -->
-    <circle cx="80" cy="50" r="18" class="tree-node-circle active" />
-    <text x="80" y="50" class="tree-node-text">A</text>
+      <!-- Nodes -->
+      <circle cx="80" cy="50" r="18" class="tree-node-circle active" />
+      <text x="80" y="50" class="tree-node-text">A</text>
 
-    <circle cx="180" cy="40" r="18" class="tree-node-circle" />
-    <text x="180" y="40" class="tree-node-text">B</text>
+      <circle cx="180" cy="40" r="18" class="tree-node-circle" />
+      <text x="180" y="40" class="tree-node-text">B</text>
 
-    <circle cx="100" cy="150" r="18" class="tree-node-circle" />
-    <text x="100" y="150" class="tree-node-text">C</text>
+      <circle cx="100" cy="150" r="18" class="tree-node-circle" />
+      <text x="100" y="150" class="tree-node-text">C</text>
 
-    <circle cx="200" cy="160" r="18" class="tree-node-circle" />
-    <text x="200" y="160" class="tree-node-text">D</text>
+      <circle cx="200" cy="160" r="18" class="tree-node-circle" />
+      <text x="200" y="160" class="tree-node-text">D</text>
 
-    <circle cx="260" cy="90" r="18" class="tree-node-circle" />
-    <text x="260" y="90" class="tree-node-text">E</text>
-  </svg>
+      <circle cx="260" cy="90" r="18" class="tree-node-circle" />
+      <text x="260" y="90" class="tree-node-text">E</text>
+    </svg>
+  </div>
+  <!-- Adjacency List Overlay -->
+  <div style="font-family:var(--font-mono); font-size:0.8rem; background:var(--bg-sunken); padding:0.5rem 1rem; border-radius:6px; border:1px solid var(--border); color:var(--text);">
+    <code>adjList := map[string][]string{"A": {"B","C"}, "B": {"E"}, "C": {"D"}, "D": {"E"}, "E": {}}</code>
+  </div>
 </div>
 
           </div>

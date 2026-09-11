@@ -195,28 +195,28 @@
           <div class="dsa-viz-canvas">
 
 <div style="display:flex; gap:2.5rem; justify-content:center; align-items:center; width:100%; flex-wrap:wrap;">
-  <!-- Unoptimized Chain -->
+  <!-- Before Compression -->
   <div style="text-align:center;">
-    <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--danger); margin-bottom:6px;">Before Compression: O(n) Skewed Tree</div>
+    <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--danger); margin-bottom:6px; font-weight:750;">Before Compression: O(n) Skewed Chain</div>
     <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-      <div class="tree-node-circle active" style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:800; font-size:12px;">0</div>
+      <div class="tree-node-circle active" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:800; font-size:12px;">0</div>
       <div style="font-size:12px; color:var(--text-muted);">&uarr;</div>
-      <div class="tree-node-circle" style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">1</div>
+      <div class="tree-node-circle" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">1</div>
       <div style="font-size:12px; color:var(--text-muted);">&uarr;</div>
-      <div class="tree-node-circle" style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">2</div>
+      <div class="tree-node-circle" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">2</div>
     </div>
   </div>
 
-  <div style="font-size:1.8rem; color:var(--accent);">&rarr;</div>
+  <div style="font-size:1.8rem; color:var(--accent); font-weight:900;">&rarr;</div>
 
   <!-- After Path Compression -->
   <div style="text-align:center;">
-    <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--ok); margin-bottom:6px;">After Path Compression: O(&alpha;(n)) Flat Star</div>
+    <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--ok); margin-bottom:6px; font-weight:750;">After Compression: O(&alpha;(n)) Flat Star</div>
     <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-      <div class="tree-node-circle active" style="width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:800; font-size:13px;">0 (Root)</div>
-      <div style="display:flex; gap:1.2rem;">
-        <div style="display:flex; flex-direction:column; align-items:center;"><div style="font-size:10px; color:var(--ok);">&uarr;</div><div class="tree-node-circle" style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">1</div></div>
-        <div style="display:flex; flex-direction:column; align-items:center;"><div style="font-size:10px; color:var(--ok);">&uarr;</div><div class="tree-node-circle" style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">2</div></div>
+      <div class="tree-node-circle active" style="width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:800; font-size:13px;">0 (Root)</div>
+      <div style="display:flex; gap:1.5rem;">
+        <div style="display:flex; flex-direction:column; align-items:center;"><div style="font-size:11px; color:var(--ok);">&uarr;</div><div class="tree-node-circle" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">1</div></div>
+        <div style="display:flex; flex-direction:column; align-items:center;"><div style="font-size:11px; color:var(--ok);">&uarr;</div><div class="tree-node-circle" style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px;">2</div></div>
       </div>
     </div>
   </div>

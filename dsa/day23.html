@@ -195,17 +195,17 @@
           <div class="dsa-viz-canvas">
 
 <div class="tree-svg-container">
-  <svg class="dsa-svg" width="340" height="150" viewBox="0 0 340 150">
-    <line x1="170" y1="25" x2="90"  y2="75" class="tree-edge-line" />
-    <line x1="170" y1="25" x2="250" y2="75" class="tree-edge-line" />
-    <line x1="90"  y1="75" x2="50"  y2="125" class="tree-edge-line" />
-    <line x1="90"  y1="75" x2="130" y2="125" class="tree-edge-line" />
-    <line x1="250" y1="75" x2="210" y2="125" class="tree-edge-line" />
-    <line x1="250" y1="75" x2="290" y2="125" class="tree-edge-line" />
+  <svg class="dsa-svg" width="340" height="160" viewBox="0 0 340 160">
+    <path d="M 170 25 Q 125 45 90 75" class="tree-curve-line" />
+    <path d="M 170 25 Q 215 45 250 75" class="tree-curve-line" />
+    <path d="M 90 75 Q 65 95 50 125" class="tree-curve-line" />
+    <path d="M 90 75 Q 115 95 130 125" class="tree-curve-line" />
+    <path d="M 250 75 Q 225 95 210 125" class="tree-curve-line" />
+    <path d="M 250 75 Q 275 95 290 125" class="tree-curve-line" />
 
     <circle cx="170" cy="25" r="16" class="tree-node-circle" />
     <text x="170" y="25" class="tree-node-text">11</text>
-    <text x="170" y="4" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[0..3]</text>
+    <text x="170" y="6" style="font-size:9px; font-family:var(--font-mono); fill:var(--text-muted); text-anchor:middle;">[0..3]</text>
 
     <circle cx="90" cy="75" r="16" class="tree-node-circle" />
     <text x="90" y="75" class="tree-node-text">3</text>
@@ -213,13 +213,13 @@
 
     <circle cx="250" cy="75" r="16" class="tree-node-circle active" style="stroke:var(--ok);" />
     <text x="250" y="75" class="tree-node-text">8</text>
-    <text x="250" y="55" style="font-size:9px; font-family:var(--font-mono); fill:var(--ok); text-anchor:middle; font-weight:700;">[2..3] &check;</text>
+    <text x="250" y="55" style="font-size:9px; font-family:var(--font-mono); fill:var(--ok); text-anchor:middle; font-weight:800;">[2..3] &check;</text>
 
     <circle cx="50" cy="125" r="14" class="tree-node-circle" />
     <text x="50" y="125" class="tree-node-text">2</text>
     <circle cx="130" cy="125" r="14" class="tree-node-circle active" style="stroke:var(--ok);" />
     <text x="130" y="125" class="tree-node-text">1</text>
-    <text x="130" y="145" style="font-size:9px; font-family:var(--font-mono); fill:var(--ok); text-anchor:middle; font-weight:700;">[1..1] &check;</text>
+    <text x="130" y="145" style="font-size:9px; font-family:var(--font-mono); fill:var(--ok); text-anchor:middle; font-weight:800;">[1..1] &check;</text>
 
     <circle cx="210" cy="125" r="14" class="tree-node-circle" />
     <text x="210" y="125" class="tree-node-text">5</text>

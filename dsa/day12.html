@@ -194,25 +194,35 @@
           </div>
           <div class="dsa-viz-canvas">
 
-<div style="display:flex; flex-direction:column; align-items:center; gap:1rem; width:100%;">
-  <div style="display:flex; gap:4px;">
+<div style="display:flex; flex-direction:column; align-items:center; gap:1.2rem; width:100%;">
+  <!-- Original Array -->
+  <div style="display:flex; gap:4px; align-items:center;">
     <div class="array-cell" style="width:38px; height:38px; font-size:0.85rem;">8</div>
     <div class="array-cell" style="width:38px; height:38px; font-size:0.85rem;">3</div>
     <div class="array-cell" style="width:38px; height:38px; font-size:0.85rem;">1</div>
-    <div class="array-cell touched" style="width:38px; height:38px; font-size:0.85rem; border-color:var(--warn); color:var(--warn);">7</div>
+    <div class="array-cell touched" style="width:38px; height:38px; font-size:0.85rem; border-color:var(--warn); color:var(--warn);">7 (P)</div>
     <div class="array-cell" style="width:38px; height:38px; font-size:0.85rem;">0</div>
     <div class="array-cell" style="width:38px; height:38px; font-size:0.85rem;">10</div>
     <div class="array-cell" style="width:38px; height:38px; font-size:0.85rem;">2</div>
   </div>
-  <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--warn);">Pivot = 7</div>
-  <div style="display:flex; gap:2.5rem;">
-    <div style="border:1.5px dashed var(--ok); padding:0.5rem; border-radius:6px; background:var(--bg-card); text-align:center;">
-      <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--ok); margin-bottom:4px;">&lt; Pivot (Left Half)</div>
-      <div style="font-family:var(--font-mono); font-weight:700;">[3, 1, 0, 2]</div>
+
+  <div style="font-size:0.85rem; font-family:var(--font-mono); color:var(--warn); font-weight:800;">
+    &darr; Partition around Pivot = 7 in O(n) &darr;
+  </div>
+
+  <!-- Partitioned Halves -->
+  <div style="display:flex; gap:2rem; flex-wrap:wrap; justify-content:center;">
+    <div style="border:1.5px dashed var(--ok); padding:0.65rem 1rem; border-radius:6px; background:var(--bg-card); text-align:center;">
+      <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--ok); margin-bottom:4px; font-weight:750;">&lt; Pivot [3, 1, 0, 2]</div>
+      <div style="font-family:var(--font-mono); font-weight:700; color:var(--text);">Recurse Left Sub-Slice</div>
     </div>
-    <div style="border:1.5px dashed var(--danger); padding:0.5rem; border-radius:6px; background:var(--bg-card); text-align:center;">
-      <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--danger); margin-bottom:4px;">&gt; Pivot (Right Half)</div>
-      <div style="font-family:var(--font-mono); font-weight:700;">[8, 10]</div>
+    <div style="border:2px solid var(--warn); padding:0.65rem 1rem; border-radius:6px; background:var(--warn-bg); text-align:center;">
+      <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--warn); margin-bottom:4px; font-weight:750;">Pivot = 7</div>
+      <div style="font-family:var(--font-mono); font-weight:800; color:var(--warn);">Fixed In Place</div>
+    </div>
+    <div style="border:1.5px dashed var(--danger); padding:0.65rem 1rem; border-radius:6px; background:var(--bg-card); text-align:center;">
+      <div style="font-size:0.75rem; font-family:var(--font-mono); color:var(--danger); margin-bottom:4px; font-weight:750;">&gt; Pivot [8, 10]</div>
+      <div style="font-family:var(--font-mono); font-weight:700; color:var(--text);">Recurse Right Sub-Slice</div>
     </div>
   </div>
 </div>

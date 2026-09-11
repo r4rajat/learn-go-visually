@@ -195,29 +195,32 @@
           <div class="dsa-viz-canvas">
 
 <div style="display:flex; flex-direction:column; align-items:center; gap:0.8rem; width:100%;">
-  <svg class="dsa-svg" width="340" height="120" viewBox="0 0 340 120">
-    <line x1="40" y1="60" x2="100" y2="60" class="tree-edge-line" />
-    <line x1="100" y1="60" x2="160" y2="60" class="tree-edge-line" />
-    <!-- Loop -->
-    <path d="M 160 60 C 160 10, 260 10, 260 60 C 260 110, 160 110, 160 60" fill="none" stroke="var(--accent)" stroke-width="2.5" />
+  <svg class="dsa-svg" width="360" height="130" viewBox="0 0 360 130">
+    <path d="M 40 65 Q 70 65 100 65" class="tree-curve-line" />
+    <path d="M 100 65 Q 130 65 160 65" class="tree-curve-line" />
+    <!-- Cycle Loop -->
+    <path d="M 160 65 C 160 15, 270 15, 270 65 C 270 115, 160 115, 160 65" fill="none" stroke="var(--accent)" stroke-width="2.8" />
 
-    <circle cx="40" cy="60" r="14" class="tree-node-circle" />
-    <text x="40" y="60" class="tree-node-text">1</text>
+    <circle cx="40" cy="65" r="14" class="tree-node-circle" />
+    <text x="40" y="65" class="tree-node-text">1</text>
 
-    <circle cx="100" cy="60" r="14" class="tree-node-circle" />
-    <text x="100" y="60" class="tree-node-text">2</text>
+    <circle cx="100" cy="65" r="14" class="tree-node-circle" />
+    <text x="100" y="65" class="tree-node-text">2</text>
 
-    <circle cx="160" cy="60" r="16" class="tree-node-circle active" style="stroke:var(--warn);" />
-    <text x="160" y="60" class="tree-node-text">3</text>
-    <text x="160" y="90" style="font-size:9px; font-family:var(--font-mono); fill:var(--warn); text-anchor:middle;">Cycle Entry</text>
+    <circle cx="160" cy="65" r="16" class="tree-node-circle active" style="stroke:var(--warn);" />
+    <text x="160" y="65" class="tree-node-text">3</text>
+    <text x="160" y="95" style="font-size:9px; font-family:var(--font-mono); fill:var(--warn); text-anchor:middle; font-weight:800;">Cycle Entry</text>
 
-    <circle cx="210" cy="25" r="14" class="tree-node-circle" />
-    <text x="210" y="25" class="tree-node-text">4</text>
+    <circle cx="215" cy="30" r="14" class="tree-node-circle" />
+    <text x="215" y="30" class="tree-node-text">4</text>
 
-    <circle cx="260" cy="60" r="16" class="tree-node-circle active" style="stroke:var(--ok);" />
-    <text x="260" y="60" class="tree-node-text">5</text>
-    <text x="260" y="90" style="font-size:9px; font-family:var(--font-mono); fill:var(--ok); text-anchor:middle;">Collision Point</text>
+    <circle cx="270" cy="65" r="16" class="tree-node-circle active" style="stroke:var(--ok);" />
+    <text x="270" y="65" class="tree-node-text">5</text>
+    <text x="270" y="95" style="font-size:9px; font-family:var(--font-mono); fill:var(--ok); text-anchor:middle; font-weight:800;">Collision Point &check;</text>
   </svg>
+  <div style="font-size:0.8rem; font-family:var(--font-mono); color:var(--accent); background:var(--bg-card); padding:0.4rem 0.8rem; border-radius:6px; border:1px solid var(--border);">
+    Mathematical Proof: <code>2k - k = nL &rarr; k = nL</code> (Tortoise and Hare must meet inside loop)
+  </div>
 </div>
 
           </div>

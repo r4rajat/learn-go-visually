@@ -242,6 +242,7 @@
           <button class="btn btn-sm btn-primary" data-role="btn-ll-insert-front" type="button">+ Insert Front</button>
           <button class="btn btn-sm" data-role="btn-ll-insert-end" type="button">+ Insert Tail</button>
           <button class="btn btn-sm btn-secondary" data-role="btn-ll-delete-front" type="button">- Delete Front</button>
+          <button class="btn btn-sm" data-role="btn-ll-search" type="button">&#128269; Search Val</button>
           <button class="btn btn-sm btn-secondary" data-role="btn-ll-reverse" type="button">&#8634; Reverse</button>
           <button class="btn btn-sm btn-secondary" data-role="btn-ll-reset" type="button">Reset</button>
         </div>
@@ -263,12 +264,13 @@
 
         <div style="border:1px solid var(--border); border-radius:var(--radius); padding:1rem; background:var(--bg-sunken); display:flex; justify-content:center;">
           <svg class="dsa-svg tree-svg" width="340" height="190" viewBox="0 0 360 200">
-            <line x1="180" y1="35" x2="90"  y2="95" class="tree-edge-line" />
-            <line x1="180" y1="35" x2="270" y2="95" class="tree-edge-line" />
-            <line x1="90"  y1="95" x2="50"  y2="155" class="tree-edge-line" />
-            <line x1="90"  y1="95" x2="130" y2="155" class="tree-edge-line" />
-            <line x1="270" y1="95" x2="230" y2="155" class="tree-edge-line" />
-            <line x1="270" y1="95" x2="310" y2="155" class="tree-edge-line" />
+            <!-- Curved Edges -->
+            <path d="M 180 35 Q 130 60 90 95" class="tree-curve-line" />
+            <path d="M 180 35 Q 230 60 270 95" class="tree-curve-line" />
+            <path d="M 90 95 Q 65 120 50 155" class="tree-curve-line" />
+            <path d="M 90 95 Q 115 120 130 155" class="tree-curve-line" />
+            <path d="M 270 95 Q 245 120 230 155" class="tree-curve-line" />
+            <path d="M 270 95 Q 295 120 310 155" class="tree-curve-line" />
 
             <circle cx="180" cy="35" r="18" class="tree-node-circle" data-node="50" />
             <text x="180" y="35" class="tree-node-text">50</text>
@@ -292,6 +294,7 @@
           <button class="btn btn-sm btn-primary" data-role="btn-tree-inorder" type="button">In-Order (Sorted)</button>
           <button class="btn btn-sm" data-role="btn-tree-preorder" type="button">Pre-Order</button>
           <button class="btn btn-sm" data-role="btn-tree-postorder" type="button">Post-Order</button>
+          <button class="btn btn-sm" data-role="btn-tree-search" type="button">&#128269; Search 70</button>
           <button class="btn btn-sm btn-secondary" data-role="btn-tree-reset" type="button">Reset</button>
         </div>
       </section>
@@ -343,7 +346,9 @@
         <div data-role="sort-msg" style="margin-top:0.6rem; font-size:0.84rem; font-family:var(--font-mono); min-height:22px; text-align:center;">Click 'Step Forward' to begin sorting</div>
 
         <div class="dsa-viz-controls" style="margin-top:1rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
+          <button class="btn btn-sm btn-secondary" data-role="btn-sort-shuffle" type="button">&#128256; Shuffle</button>
           <button class="btn btn-sm btn-primary" data-role="btn-sort-step" type="button">Step Forward &rarr;</button>
+          <button class="btn btn-sm btn-secondary" data-role="btn-sort-play" type="button">&#9654; Auto-Play</button>
           <button class="btn btn-sm btn-secondary" data-role="btn-sort-reset" type="button">Reset</button>
         </div>
       </section>
@@ -370,8 +375,9 @@
         <div data-role="sw-msg" style="margin-top:0.6rem; font-size:0.84rem; font-family:var(--font-mono); text-align:center;"></div>
 
         <div class="dsa-viz-controls" style="margin-top:1rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
-          <button class="btn btn-sm btn-primary" data-role="btn-sw-expand" type="button">Expand R &rarr;</button>
-          <button class="btn btn-sm" data-role="btn-sw-shrink" type="button">Shrink L &rarr;</button>
+          <button class="btn btn-sm btn-primary" data-role="btn-sw-walkthrough" type="button">&#9889; Walkthrough</button>
+          <button class="btn btn-sm btn-secondary" data-role="btn-sw-expand" type="button">Expand R &rarr;</button>
+          <button class="btn btn-sm btn-secondary" data-role="btn-sw-shrink" type="button">Shrink L &rarr;</button>
           <button class="btn btn-sm btn-secondary" data-role="btn-sw-reset" type="button">Reset</button>
         </div>
       </section>

@@ -188,63 +188,71 @@
           <div class="dsa-viz-header">
             <div class="dsa-viz-title">
               <span aria-hidden="true" style="color:var(--accent); font-size:1.15rem;">⚡</span>
-              <span>Go Memory Architecture: Stack vs. Heap</span>
+              <span>Big-O Time Complexity Spectrum &amp; Go Memory Architecture</span>
             </div>
-            <span class="dsa-viz-badge">Memory Model</span>
+            <span class="dsa-viz-badge">Complexity &amp; Memory</span>
           </div>
           <div class="dsa-viz-canvas">
 
-<div class="go-mem-split">
-  <!-- Goroutine Stack Card -->
-  <div class="go-mem-card stack">
-    <div class="go-mem-card-head">
-      <span style="font-weight:750; color:var(--accent);">Goroutine Stack (2KB)</span>
-      <span class="go-mem-badge">Zero GC Overhead</span>
-    </div>
-    <div class="go-mem-row">
-      <span style="color:var(--text-muted);">0x00C0:</span>
-      <span><code>count = 42</code> (int)</span>
-      <span style="color:var(--ok); font-size:0.75rem;">value</span>
-    </div>
-    <div class="go-mem-row">
-      <span style="color:var(--text-muted);">0x00B8:</span>
-      <span><code>ptr = 0x20A0</code> (*int)</span>
-      <span style="color:var(--accent); font-size:0.75rem;">pointer &rarr;</span>
-    </div>
-    <div class="go-mem-row">
-      <span style="color:var(--text-muted);">0x00B0:</span>
-      <span><code>SliceHeader{0x2000, 3, 4}</code></span>
-      <span style="color:var(--accent); font-size:0.75rem;">24 bytes</span>
-    </div>
+<div style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:680px;">
+  <!-- Big-O Complexity Graph Illustration -->
+  <div class="dsa-viz-img-wrap">
+    <img src="../assets/img/dsa/big-o-graph.png" alt="Big-O Complexity Spectrum" class="dsa-viz-img" />
   </div>
 
-  <!-- Runtime Heap Card -->
-  <div class="go-mem-card heap">
-    <div class="go-mem-card-head">
-      <span style="font-weight:750; color:#8b5cf6;">Go Runtime Heap</span>
-      <span class="go-mem-badge">Managed by GC</span>
+  <!-- Go Memory Model: Goroutine Stack vs Runtime Heap -->
+  <div class="go-mem-split">
+    <!-- Goroutine Stack Card -->
+    <div class="go-mem-card stack">
+      <div class="go-mem-card-head">
+        <span style="font-weight:750; color:var(--accent);">Goroutine Stack (2KB)</span>
+        <span class="go-mem-badge">Zero GC Overhead</span>
+      </div>
+      <div class="go-mem-row">
+        <span style="color:var(--text-muted);">0x00C0:</span>
+        <span><code>count = 42</code> (int)</span>
+        <span style="color:var(--ok); font-size:0.75rem;">value</span>
+      </div>
+      <div class="go-mem-row">
+        <span style="color:var(--text-muted);">0x00B8:</span>
+        <span><code>ptr = 0x20A0</code> (*int)</span>
+        <span style="color:var(--accent); font-size:0.75rem;">pointer &rarr;</span>
+      </div>
+      <div class="go-mem-row">
+        <span style="color:var(--text-muted);">0x00B0:</span>
+        <span><code>SliceHeader{0x2000, 3, 4}</code></span>
+        <span style="color:var(--accent); font-size:0.75rem;">24 bytes</span>
+      </div>
     </div>
-    <div class="go-mem-row">
-      <span style="color:var(--text-muted);">0x20A0:</span>
-      <span><code>100</code> (escaped int)</span>
-      <span style="color:#8b5cf6; font-size:0.75rem;">escaped</span>
-    </div>
-    <div class="go-mem-row">
-      <span style="color:var(--text-muted);">0x2000:</span>
-      <span><code>[10, 20, 30]</code> (backing array)</span>
-      <span style="color:#8b5cf6; font-size:0.75rem;">dynamic</span>
-    </div>
-    <div class="go-mem-row" style="opacity:0.6;">
-      <span style="color:var(--text-muted);">0x2018:</span>
-      <span><code>[unallocated / garbage]</code></span>
-      <span style="color:var(--text-muted); font-size:0.75rem;">freed</span>
+
+    <!-- Runtime Heap Card -->
+    <div class="go-mem-card heap">
+      <div class="go-mem-card-head">
+        <span style="font-weight:750; color:#8b5cf6;">Go Runtime Heap</span>
+        <span class="go-mem-badge">Managed by GC</span>
+      </div>
+      <div class="go-mem-row">
+        <span style="color:var(--text-muted);">0x20A0:</span>
+        <span><code>100</code> (escaped int)</span>
+        <span style="color:#8b5cf6; font-size:0.75rem;">escaped</span>
+      </div>
+      <div class="go-mem-row">
+        <span style="color:var(--text-muted);">0x2000:</span>
+        <span><code>[10, 20, 30]</code> (backing array)</span>
+        <span style="color:#8b5cf6; font-size:0.75rem;">dynamic</span>
+      </div>
+      <div class="go-mem-row" style="opacity:0.6;">
+        <span style="color:var(--text-muted);">0x2018:</span>
+        <span><code>[unallocated / garbage]</code></span>
+        <span style="color:var(--text-muted); font-size:0.75rem;">freed</span>
+      </div>
     </div>
   </div>
 </div>
 
           </div>
           <div class="dsa-viz-caption">
-            <strong>Key Takeaway:</strong> In Go, variables allocate on the 2KB goroutine stack unless escape analysis (<code>go build -gcflags='-m'</code>) detects references surviving beyond function return, which shifts allocation to the garbage-collected heap.
+            <strong>Key Takeaway:</strong> In Go, variables allocate on the lightweight 2KB goroutine stack unless escape analysis (<code>go build -gcflags='-m'</code>) detects references surviving beyond function return, shifting allocation to the garbage-collected heap.
           </div>
         </div>
 
