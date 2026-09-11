@@ -394,8 +394,194 @@ function initInterviewQA(root) {
   });
 }
 
+
+/* ---------- Admission Webhook Simulator ---------- */
+function initWebhookSimulator(root) {
+  const scenarioBtns = root.querySelectorAll('[data-webhook-scenario]');
+  const stageMutate = root.querySelector('[data-stage="mutate"]');
+  const stageSchema = root.querySelector('[data-stage="schema"]');
+  const stageValidate = root.querySelector('[data-stage="validate"]');
+  const stageEtcd = root.querySelector('[data-stage="etcd"]');
+
+  const inputPane = root.querySelector('[data-webhook-pane="input"]');
+  const outputPane = root.querySelector('[data-webhook-pane="output"]');
+  const banner = root.querySelector('[data-webhook-banner]');
+  const caption = root.querySelector('[data-webhook-caption]');
+
+  if (!stageMutate || !stageValidate || !inputPane || !outputPane || !banner) return;
+
+  const scenarios = {
+    "defaulting": {
+      inputYaml: `apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0
+  # region: <OMITTED>
+  # instanceType: <OMITTED>
+  # tags: <OMITTED>`,
+      outputYaml: `apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0
+  region: us-east-1              # ← INJECTED by Mutating Webhook
+  instanceType: t3.micro         # ← INJECTED by Mutating Webhook
+  tags:
+    ManagedBy: Kubernetes-Operator # ← INJECTED
+    Environment: Production        # ← INJECTED`,
+      mutateStatus: "Mutated (+4 fields)",
+      mutateClass: "mutated",
+      schemaStatus: "Valid",
+      schemaClass: "passed",
+      validateStatus: "Approved",
+      validateClass: "passed",
+      etcdStatus: "Saved (201)",
+      etcdClass: "passed",
+      bannerClass: "success",
+      bannerText: "✓ HTTP 201 Created: Mutating Webhook injected default region, instanceType, and org tags. Validated and persisted to etcd!",
+      captionText: "The <strong>Mutating Admission Webhook</strong> intercepted the incoming JSON payload, defaulted missing fields, and injected mandatory compliance tags before etcd persistence."
+    },
+    "immutable": {
+      inputYaml: `# User runs: kubectl apply (Update existing CR)
+apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0
+  instanceType: t3.micro
+  region: eu-central-1 # ← ATTEMPTED CHANGE from us-east-1!`,
+      outputYaml: `Status: 422 Unprocessable Entity
+Kind: Status (API Error)
+Metadata: {}
+Message: "Ec2Instance.compute.cloud.com \\"web-server\\" is invalid: 
+spec.region: Forbidden: region is immutable; recreate the 
+Ec2Instance to deploy in a different region"
+Reason: Invalid
+Details:
+  Causes:
+    - Field: spec.region
+      Message: Forbidden: region is immutable`,
+      mutateStatus: "Passed",
+      mutateClass: "passed",
+      schemaStatus: "Valid",
+      schemaClass: "passed",
+      validateStatus: "Rejected (422)",
+      validateClass: "rejected",
+      etcdStatus: "Blocked",
+      etcdClass: "rejected",
+      bannerClass: "rejected",
+      bannerText: "✕ HTTP 422 Unprocessable Entity: Validating Webhook rejected update! Field 'spec.region' is immutable.",
+      captionText: "The <strong>Validating Admission Webhook</strong> compared <code>oldObj.Spec.Region</code> against <code>newObj.Spec.Region</code>, detected an impossible in-place cloud move, and rejected the write before etcd was touched."
+    },
+    "unsafe-delete": {
+      inputYaml: `# User runs: kubectl delete ec2instance web-server
+Verb: DELETE
+Resource: ec2instances
+Name: web-server
+Namespace: default
+Tags:
+  Environment: Production
+Annotations: {} # Missing compute.cloud.com/safe-to-delete!`,
+      outputYaml: `Status: 403 Forbidden
+Kind: Status (API Error)
+Message: "admission webhook \\"vec2instance.kb.io\\" denied the request: 
+cannot delete production instance without annotation 
+'compute.cloud.com/safe-to-delete: true'"
+Reason: Forbidden`,
+      mutateStatus: "Bypassed (DELETE)",
+      mutateClass: "",
+      schemaStatus: "Bypassed",
+      schemaClass: "",
+      validateStatus: "Denied (403)",
+      validateClass: "rejected",
+      etcdStatus: "Blocked",
+      etcdClass: "rejected",
+      bannerClass: "rejected",
+      bannerText: "✕ HTTP 403 Forbidden: Validating Webhook prevented accidental production VM deletion!",
+      captionText: "The <strong>Validating Admission Webhook</strong> intercepted <code>ValidateDelete</code>, checked the instance environment tag, and prevented accidental downtime because the safety annotation was missing."
+    },
+    "safe-delete": {
+      inputYaml: `# User adds safety override annotation, then deletes:
+metadata:
+  name: web-server
+  annotations:
+    compute.cloud.com/safe-to-delete: "true"
+spec:
+  tags:
+    Environment: Production`,
+      outputYaml: `HTTP/2.0 200 OK
+Response: AdmissionReview
+UID: 705ab7f0-638b-4b18-b223-35368a48b59a
+Allowed: true
+Status:
+  Code: 200
+  Message: "Deletion authorized by safety annotation"
+
+# Kubernetes etcd stamps deletionTimestamp:
+metadata.deletionTimestamp: "2026-09-12T03:45:00Z"`,
+      mutateStatus: "Bypassed (DELETE)",
+      mutateClass: "",
+      schemaStatus: "Bypassed",
+      schemaClass: "",
+      validateStatus: "Approved (200)",
+      validateClass: "passed",
+      etcdStatus: "Deleting",
+      etcdClass: "passed",
+      bannerClass: "success",
+      bannerText: "✓ HTTP 200 OK: Validating Webhook verified safe-to-delete annotation. etcd set deletionTimestamp!",
+      captionText: "Safety check passed: the webhook allowed the deletion request to reach etcd. The custom resource now receives <code>deletionTimestamp</code>, triggering the reconciler finalizer to terminate the AWS VM."
+    }
+  };
+
+  function selectScenario(key) {
+    const s = scenarios[key];
+    if (!s) return;
+
+    scenarioBtns.forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-webhook-scenario") === key);
+    });
+
+    [stageMutate, stageSchema, stageValidate, stageEtcd].forEach(stage => {
+      stage.classList.remove("active", "passed", "mutated", "rejected");
+    });
+
+    stageMutate.querySelector('.webhook-stage-status').textContent = s.mutateStatus;
+    if (s.mutateClass) stageMutate.classList.add(s.mutateClass);
+
+    stageSchema.querySelector('.webhook-stage-status').textContent = s.schemaStatus;
+    if (s.schemaClass) stageSchema.classList.add(s.schemaClass);
+
+    stageValidate.querySelector('.webhook-stage-status').textContent = s.validateStatus;
+    if (s.validateClass) stageValidate.classList.add(s.validateClass);
+
+    stageEtcd.querySelector('.webhook-stage-status').textContent = s.etcdStatus;
+    if (s.etcdClass) stageEtcd.classList.add(s.etcdClass);
+
+    inputPane.textContent = s.inputYaml;
+    outputPane.textContent = s.outputYaml;
+
+    banner.className = `webhook-decision-banner ${s.bannerClass}`;
+    banner.textContent = s.bannerText;
+
+    if (caption) caption.innerHTML = s.captionText;
+  }
+
+  scenarioBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectScenario(btn.getAttribute("data-webhook-scenario"));
+    });
+  });
+
+  selectScenario("defaulting");
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('[data-viz="ec2-reconciler"]').forEach(initEC2Simulator);
+  document.querySelectorAll('[data-viz="webhook-simulator"]').forEach(initWebhookSimulator);
   document.querySelectorAll('[data-viz="recon-loop"]').forEach(initReconVisual);
   document.querySelectorAll('[data-viz="owner-tree"]').forEach(initOwnerTreeVisual);
   document.querySelectorAll('[data-viz="interview-qa"]').forEach(initInterviewQA);

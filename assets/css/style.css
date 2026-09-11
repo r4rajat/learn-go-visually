@@ -2022,6 +2022,122 @@ main {
   line-height: 1.55;
 }
 
+/* Admission Controller Webhooks Visualizer */
+.webhook-pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding: 1.2rem 0.5rem;
+  margin: 1rem 0;
+}
+.webhook-stage {
+  flex: 1;
+  min-width: 140px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.webhook-stage-num {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+.webhook-stage-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+.webhook-stage-icon {
+  font-size: 1.3rem;
+  margin-bottom: 0.3rem;
+}
+.webhook-stage-status {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 0.15em 0.5em;
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  color: var(--text-dim);
+}
+.webhook-stage.active {
+  border-color: var(--go-cyan);
+  box-shadow: 0 0 14px rgba(0, 173, 216, 0.22);
+}
+.webhook-stage.passed {
+  border-color: var(--ok);
+  background: rgba(16, 185, 129, 0.05);
+}
+.webhook-stage.mutated {
+  border-color: #c084fc;
+  background: rgba(168, 85, 247, 0.06);
+}
+.webhook-stage.rejected {
+  border-color: var(--warn);
+  background: rgba(239, 68, 68, 0.08);
+}
+.webhook-arrow {
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.webhook-payload-viewer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.webhook-payload-pane {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.webhook-payload-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+.webhook-decision-banner {
+  padding: 0.85rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.webhook-decision-banner.success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+.webhook-decision-banner.rejected {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+
 /* ---------------------------------------------------------------
    12. Tabs & Questions Panels (Interview Qs, Coding Qs)
    --------------------------------------------------------------- */

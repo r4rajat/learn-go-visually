@@ -42,6 +42,7 @@
         <a class="btn btn-sm" href="#what-is-an-operator">What's an operator</a>
         <a class="btn btn-sm" href="#setup">Project setup</a>
         <a class="btn btn-sm" href="#crd">The EC2 CRD</a>
+        <a class="btn btn-sm" href="#webhooks">Admission Webhooks</a>
         <a class="btn btn-sm" href="#simulator">Interactive simulator</a>
         <a class="btn btn-sm" href="#reconcile">The reconcile loop</a>
         <a class="btn btn-sm" href="#timeline">Reconcile timeline</a>
@@ -285,7 +286,387 @@ $ go get github.com/aws/aws-sdk-go-v2/service/ec2</div>
       <span class="tok-type">jsonPath</span>: .metadata.creationTimestamp</code></pre>
       </div>
 
+      
       <!-- ============================================================ -->
+      <h2 id="webhooks">Admission Controller Webhooks: Mutating &amp; Validating</h2>
+      <p>
+        While Custom Resource Definitions give you basic OpenAPI v3 structural validation (such as regexes 
+        and enums), production operators require advanced control: automatic defaulting of dynamic values, 
+        injecting mandatory enterprise compliance tags, enforcing cross-field logic, and blocking illegal 
+        in-place modifications.
+      </p>
+      <p>
+        Kubernetes achieves this through <strong>Admission Controller Webhooks</strong>: HTTP callbacks 
+        invoked directly by the <code>kube-apiserver</code> <em>before</em> an object is ever stored in etcd.
+      </p>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">The Crucial Distinction: Webhooks vs. Reconcilers</div>
+        <p>
+          Understanding where Webhooks live in the request lifecycle is vital:
+        </p>
+        <ul style="margin-top:0.6rem; line-height:1.9;">
+          <li><strong>Admission Webhooks are SYNCHRONOUS and Pre-Persistence:</strong> They execute inline on the API server path while the client is waiting for <code>kubectl</code> to return. If a Validating Webhook rejects a request, nothing is written to <code>etcd</code>, the change never happened, and the Reconciler is never triggered.</li>
+          <li><strong>Reconciliation is ASYNCHRONOUS and Post-Persistence:</strong> The <code>Reconcile</code> loop runs in the background <em>after</em> state is committed to etcd. A reconciler cannot reject an invalid write &mdash; it can only observe it and attempt to fix it or report an error condition in <code>.status</code>.</li>
+        </ul>
+      </div>
+
+      <h3 style="margin-top:2em;">The Kubernetes API Request Lifecycle</h3>
+      <p>
+        Every write request (<code>create</code>, <code>update</code>, <code>delete</code>) travels through 
+        a strict, sequential pipeline inside the <code>kube-apiserver</code>:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">API Request Pipeline</span></div>
+        <div class="code-output show">kubectl apply / delete
+       │
+       ▼
+┌───────────────────────────────┐
+│ 1. Authentication &amp; RBAC AuthZ │  ← Who are you? Do you have permissions?
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ 2. Mutating Webhooks          │  ← Can modify object (defaults, tag injection, sidecars)
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ 3. OpenAPI v3 Schema Validation│ ← Type checks, required fields, regexes
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ 4. Validating Webhooks        │  ← Semantic checks (cross-field rules, immutability, guards)
+└──────────────┬────────────────┘
+               │
+               ├── (Rejected) ──► Returns HTTP 400/422/403 (Nothing saved)
+               │
+               ▼ (Approved)
+┌───────────────────────────────┐
+│ 5. Persistence in etcd        │  ← Object saved! API server returns HTTP 200/201
+└──────────────┬────────────────┘
+               │
+               ▼ (Watch Event Emitted)
+┌───────────────────────────────┐
+│ 6. Go Reconciler Loop         │  ← Asynchronous: Calls AWS SDK to provision/terminate VM
+└───────────────────────────────┘</div>
+      </div>
+
+      <h3 style="margin-top:2em;">Scaffolding Webhooks with Kubebuilder</h3>
+      <p>
+        Kubebuilder simplifies webhook creation by scaffolding the webhook interfaces, registration logic, 
+        and Kubernetes manifests with a single command:
+      </p>
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
+        <div class="code-output show">$ kubebuilder create webhook \
+    --group compute \
+    --version v1 \
+    --kind Ec2Instance \
+    --defaulting \
+    --programmatic-validation</div>
+      </div>
+      <p>
+        This creates <code>api/v1/ec2instance_webhook.go</code> and wires the webhook server into <code>cmd/main.go</code>.
+      </p>
+
+      <h3 style="margin-top:2em;">1. Mutating Webhook: Smart Defaulting &amp; Tag Injection</h3>
+      <p>
+        Mutating webhooks implement the <code>admission.CustomDefaulter</code> interface. When a user submits 
+        an <code>Ec2Instance</code> omitting non-mandatory fields, our webhook automatically injects 
+        cluster-wide defaults (such as AWS region <code>us-east-1</code> and sizing <code>t3.micro</code>) and 
+        enforces corporate governance by injecting mandatory audit tags:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">api/v1/ec2instance_webhook.go (Mutating Defaulter)</span></div>
+        <pre><code><span class="tok-kw">package</span> v1
+
+<span class="tok-kw">import</span> (
+  <span class="tok-str">"context"</span>
+  <span class="tok-str">"fmt"</span>
+
+  <span class="tok-str">"k8s.io/apimachinery/pkg/runtime"</span>
+  ctrl <span class="tok-str">"sigs.k8s.io/controller-runtime"</span>
+  logf <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/log"</span>
+  <span class="tok-str">"sigs.k8s.io/controller-runtime/pkg/webhook"</span>
+)
+
+<span class="tok-kw">var</span> ec2log = logf.Log.WithName(<span class="tok-str">"ec2instance-resource"</span>)
+
+<span class="tok-kw">func</span> (r *Ec2Instance) SetupWebhookWithManager(mgr ctrl.Manager) <span class="tok-type">error</span> {
+  <span class="tok-kw">return</span> ctrl.NewWebhookManagedBy(mgr).
+    For(r).
+    Complete()
+}
+
+<span class="tok-com">// +kubebuilder:webhook:path=/mutate-compute-cloud-com-v1-ec2instance,mutating=true,failurePolicy=fail,sideEffects=None,groups=compute.cloud.com,resources=ec2instances,verbs=create;update,versions=v1,name=mec2instance.kb.io,admissionReviewVersions=v1</span>
+
+<span class="tok-kw">var</span> _ webhook.Defaulter = &amp;Ec2Instance{}
+
+<span class="tok-com">// Default implements webhook.Defaulter so a webhook will be registered for the type.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) Default() {
+  ec2log.Info(<span class="tok-str">"defaulting Ec2Instance"</span>, <span class="tok-str">"name"</span>, r.Name)
+
+  <span class="tok-com">// 1. Default AWS Region if omitted</span>
+  <span class="tok-kw">if</span> r.Spec.Region == <span class="tok-str">""</span> {
+    r.Spec.Region = <span class="tok-str">"us-east-1"</span>
+  }
+
+  <span class="tok-com">// 2. Default Instance Type</span>
+  <span class="tok-kw">if</span> r.Spec.InstanceType == <span class="tok-str">""</span> {
+    r.Spec.InstanceType = <span class="tok-str">"t3.micro"</span>
+  }
+
+  <span class="tok-com">// 3. Enforce corporate governance &amp; cost tracking tags</span>
+  <span class="tok-kw">if</span> r.Spec.Tags == <span class="tok-kw">nil</span> {
+    r.Spec.Tags = <span class="tok-type">make</span>(<span class="tok-type">map[string]string</span>)
+  }
+  <span class="tok-kw">if</span> _, exists := r.Spec.Tags[<span class="tok-str">"ManagedBy"</span>]; !exists {
+    r.Spec.Tags[<span class="tok-str">"ManagedBy"</span>] = <span class="tok-str">"Kubernetes-Operator"</span>
+  }
+  <span class="tok-kw">if</span> _, exists := r.Spec.Tags[<span class="tok-str">"Environment"</span>]; !exists {
+    r.Spec.Tags[<span class="tok-str">"Environment"</span>] = <span class="tok-str">"Production"</span>
+  }
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top:2em;">2. Validating Webhook: Immutability &amp; Safety Guards</h3>
+      <p>
+        Validating webhooks implement <code>webhook.Validator</code>. Unlike mutating webhooks, validators 
+        cannot alter the object; they can only approve or reject the request. We implement three critical 
+        cloud infrastructure guardrails:
+      </p>
+      <ul style="margin-top:0.6rem; line-height:1.9;">
+        <li><strong>Cross-Field Validation:</strong> e.g., an instance requesting a public IP must not specify an internal-only private subnet.</li>
+        <li><strong>Immutability Enforcement on Updates:</strong> In AWS, an EC2 instance cannot physically migrate across regions or switch its root AMI image in-place. If a developer edits <code>spec.region</code> or <code>spec.amiId</code>, <code>ValidateUpdate</code> rejects the write with <code>field.Forbidden</code>.</li>
+        <li><strong>Deletion Protection:</strong> Accidental <code>kubectl delete</code> on a production instance can be catastrophic. <code>ValidateDelete</code> blocks deletion unless an explicit safety annotation (<code>compute.cloud.com/safe-to-delete: "true"</code>) is present.</li>
+      </ul>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">api/v1/ec2instance_webhook.go (Validating Validator)</span></div>
+        <pre><code><span class="tok-com">// +kubebuilder:webhook:path=/validate-compute-cloud-com-v1-ec2instance,mutating=false,failurePolicy=fail,sideEffects=None,groups=compute.cloud.com,resources=ec2instances,verbs=create;update;delete,versions=v1,name=vec2instance.kb.io,admissionReviewVersions=v1</span>
+
+<span class="tok-kw">var</span> _ webhook.Validator = &amp;Ec2Instance{}
+
+<span class="tok-com">// ValidateCreate validates the object upon creation.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) ValidateCreate() (admission.Warnings, <span class="tok-type">error</span>) {
+  ec2log.Info(<span class="tok-str">"validate create"</span>, <span class="tok-str">"name"</span>, r.Name)
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, r.validateEc2Instance()
+}
+
+<span class="tok-kw">func</span> (r *Ec2Instance) validateEc2Instance() <span class="tok-type">error</span> {
+  <span class="tok-com">// Cross-field checks (e.g. subnet vs public IP)</span>
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>
+}
+
+<span class="tok-com">// ValidateUpdate enforces field immutability when an existing CR is edited.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) ValidateUpdate(old runtime.Object) (admission.Warnings, <span class="tok-type">error</span>) {
+  ec2log.Info(<span class="tok-str">"validate update"</span>, <span class="tok-str">"name"</span>, r.Name)
+  oldInstance, ok := old.(*Ec2Instance)
+  <span class="tok-kw">if</span> !ok {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, apierrors.NewInternalError(fmt.Errorf(<span class="tok-str">"expected an Ec2Instance but got %T"</span>, old))
+  }
+
+  <span class="tok-kw">var</span> allErrs field.ErrorList
+
+  <span class="tok-com">// IMMUTABILITY CHECK: AWS EC2 Region cannot be modified in-place!</span>
+  <span class="tok-kw">if</span> r.Spec.Region != oldInstance.Spec.Region {
+    allErrs = <span class="tok-type">append</span>(allErrs, field.Forbidden(
+      field.NewPath(<span class="tok-str">"spec"</span>).Child(<span class="tok-str">"region"</span>),
+      <span class="tok-str">"region is immutable; recreate the Ec2Instance to deploy in a different AWS region"</span>,
+    ))
+  }
+
+  <span class="tok-com">// IMMUTABILITY CHECK: AMI ID cannot be modified on a running instance</span>
+  <span class="tok-kw">if</span> r.Spec.AMIId != oldInstance.Spec.AMIId {
+    allErrs = <span class="tok-type">append</span>(allErrs, field.Forbidden(
+      field.NewPath(<span class="tok-str">"spec"</span>).Child(<span class="tok-str">"amiId"</span>),
+      <span class="tok-str">"amiId is immutable; re-provision the resource to boot a new base image"</span>,
+    ))
+  }
+
+  <span class="tok-kw">if</span> <span class="tok-type">len</span>(allErrs) == 0 {
+    <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
+  }
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, apierrors.NewInvalid(
+    r.GroupVersionKind().GroupKind(),
+    r.Name,
+    allErrs,
+  )
+}
+
+<span class="tok-com">// ValidateDelete guards against accidental deletion of production instances.</span>
+<span class="tok-kw">func</span> (r *Ec2Instance) ValidateDelete() (admission.Warnings, <span class="tok-type">error</span>) {
+  ec2log.Info(<span class="tok-str">"validate delete"</span>, <span class="tok-str">"name"</span>, r.Name)
+
+  <span class="tok-kw">if</span> r.Spec.Tags[<span class="tok-str">"Environment"</span>] == <span class="tok-str">"Production"</span> {
+    <span class="tok-kw">if</span> r.Annotations == <span class="tok-kw">nil</span> || r.Annotations[<span class="tok-str">"compute.cloud.com/safe-to-delete"</span>] != <span class="tok-str">"true"</span> {
+      <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, apierrors.NewForbidden(
+        schema.GroupResource{Group: <span class="tok-str">"compute.cloud.com"</span>, Resource: <span class="tok-str">"ec2instances"</span>},
+        r.Name,
+        fmt.Errorf(<span class="tok-str">"cannot delete production instance without annotation 'compute.cloud.com/safe-to-delete: true'"</span>),
+      )
+    }
+  }
+  <span class="tok-kw">return</span> <span class="tok-kw">nil</span>, <span class="tok-kw">nil</span>
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top:2em;">Interactive Admission Webhook Simulator</h3>
+      <p>
+        Select a scenario below to visualize how mutating and validating admission webhooks 
+        intercept client requests before they ever reach <code>etcd</code>:
+      </p>
+
+      <div class="viz" data-viz="webhook-simulator">
+        <div class="viz-header">
+          <div class="viz-title">
+            <span class="viz-badge">kube-apiserver &bull; admissionreview</span>
+            <span>Admission Webhook Pipeline Simulator</span>
+          </div>
+          <span class="viz-step-counter">Synchronous Pre-Persistence</span>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0; justify-content:center;">
+          <button class="btn btn-sm active" data-webhook-scenario="defaulting">1. Missing Region &amp; Tags</button>
+          <button class="btn btn-sm" data-webhook-scenario="immutable">2. Illegal Region Update</button>
+          <button class="btn btn-sm" data-webhook-scenario="unsafe-delete">3. Unsafe Production Delete</button>
+          <button class="btn btn-sm" data-webhook-scenario="safe-delete">4. Guarded Delete with Override</button>
+        </div>
+
+        <div class="webhook-pipeline">
+          <div class="webhook-stage passed" data-stage="client">
+            <div class="webhook-stage-num">Step 1</div>
+            <div class="webhook-stage-icon">💻</div>
+            <div class="webhook-stage-title">Client Request</div>
+            <span class="webhook-stage-status">HTTP POST/DELETE</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="mutate">
+            <div class="webhook-stage-num">Step 2</div>
+            <div class="webhook-stage-icon">🪄</div>
+            <div class="webhook-stage-title">Mutating Webhook</div>
+            <span class="webhook-stage-status">Mutated</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="schema">
+            <div class="webhook-stage-num">Step 3</div>
+            <div class="webhook-stage-icon">📋</div>
+            <div class="webhook-stage-title">OpenAPI Schema</div>
+            <span class="webhook-stage-status">Valid</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="validate">
+            <div class="webhook-stage-num">Step 4</div>
+            <div class="webhook-stage-icon">🛡️</div>
+            <div class="webhook-stage-title">Validating Webhook</div>
+            <span class="webhook-stage-status">Approved</span>
+          </div>
+
+          <div class="webhook-arrow">&rarr;</div>
+
+          <div class="webhook-stage" data-stage="etcd">
+            <div class="webhook-stage-num">Step 5</div>
+            <div class="webhook-stage-icon">💾</div>
+            <div class="webhook-stage-title">etcd Storage</div>
+            <span class="webhook-stage-status">Saved (201)</span>
+          </div>
+        </div>
+
+        <div class="webhook-decision-banner success" data-webhook-banner>
+          ✓ HTTP 201 Created: Mutating Webhook injected default region, instanceType, and org tags. Validated and persisted to etcd!
+        </div>
+
+        <div class="webhook-payload-viewer">
+          <div class="webhook-payload-pane">
+            <div class="webhook-payload-title">Incoming Client Payload</div>
+            <pre style="margin:0; background:transparent; border:none; padding:0;"><code data-webhook-pane="input">apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0</code></pre>
+          </div>
+
+          <div class="webhook-payload-pane">
+            <div class="webhook-payload-title">Admission Result / Error Response</div>
+            <pre style="margin:0; background:transparent; border:none; padding:0;"><code data-webhook-pane="output">apiVersion: compute.cloud.com/v1
+kind: Ec2Instance
+metadata:
+  name: web-server
+spec:
+  amiId: ami-0c55b159cbfafe1f0
+  region: us-east-1              # ← INJECTED by Mutating Webhook
+  instanceType: t3.micro         # ← INJECTED by Mutating Webhook
+  tags:
+    ManagedBy: Kubernetes-Operator # ← INJECTED
+    Environment: Production        # ← INJECTED</code></pre>
+          </div>
+        </div>
+
+        <div class="viz-caption" data-webhook-caption>
+          The <strong>Mutating Admission Webhook</strong> intercepted the incoming JSON payload, defaulted missing fields, and injected mandatory compliance tags before etcd persistence.
+        </div>
+      </div>
+
+      <h3 style="margin-top:2em;">TLS Certificates &amp; cert-manager Integration</h3>
+      <p>
+        The Kubernetes API server strictly mandates that all admission webhooks communicate over 
+        <strong>HTTPS (TLS)</strong> &mdash; unencrypted HTTP calls are rejected outright. 
+        In production, <a href="https://cert-manager.io/" target="_blank" rel="noopener">cert-manager</a> 
+        automates provisioning the webhook's TLS certificate and injects the Certificate Authority (CA) 
+        bundle directly into your Kubernetes webhook configuration manifests:
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel-head"><span class="code-panel-title">config/webhook/manifests.yaml (with cert-manager CA injection)</span></div>
+        <pre><code><span class="tok-type">apiVersion</span>: admissionregistration.k8s.io/v1
+<span class="tok-type">kind</span>: ValidatingWebhookConfiguration
+<span class="tok-type">metadata</span>:
+  <span class="tok-type">name</span>: validating-webhook-configuration
+  <span class="tok-type">annotations</span>:
+    <span class="tok-com"># cert-manager injects the CA bundle here automatically:</span>
+    <span class="tok-type">cert-manager.io/inject-ca-from</span>: default/ec2-operator-serving-cert
+<span class="tok-type">webhooks</span>:
+- <span class="tok-type">name</span>: vec2instance.compute.cloud.com
+  <span class="tok-type">admissionReviewVersions</span>: [<span class="tok-str">"v1"</span>]
+  <span class="tok-type">clientConfig</span>:
+    <span class="tok-type">service</span>:
+      <span class="tok-type">name</span>: ec2-operator-webhook-service
+      <span class="tok-type">namespace</span>: default
+      <span class="tok-type">path</span>: /validate-compute-cloud-com-v1-ec2instance
+  <span class="tok-type">failurePolicy</span>: Fail
+  <span class="tok-type">rules</span>:
+  - <span class="tok-type">apiGroups</span>: [<span class="tok-str">"compute.cloud.com"</span>]
+    <span class="tok-type">apiVersions</span>: [<span class="tok-str">"v1"</span>]
+    <span class="tok-type">operations</span>: [<span class="tok-str">"CREATE"</span>, <span class="tok-str">"UPDATE"</span>, <span class="tok-str">"DELETE"</span>]
+    <span class="tok-type">resources</span>: [<span class="tok-str">"ec2instances"</span>]
+  <span class="tok-type">sideEffects</span>: None</code></pre>
+      </div>
+
+      <div class="callout callout-mistake">
+        <div class="callout-title">Production Pitfall: <code>failurePolicy: Fail</code> vs <code>Ignore</code></div>
+        <p>
+          The <code>failurePolicy</code> controls what happens if your webhook pod crashes, runs out of memory, 
+          or becomes network-unreachable:
+        </p>
+        <ul style="margin-top:0.6rem; line-height:1.9;">
+          <li><strong><code>Fail</code> (Default):</strong> The API server blocks all requests matching the webhook rules if the webhook fails to answer. This protects security and immutability, but if your webhook pod goes down, <em>nobody can create or update resources</em>.</li>
+          <li><strong><code>Ignore</code>:</strong> The API server lets requests through unvalidated if the webhook is unreachable. This prioritizes availability, but risks corrupted or un-defaulted state in etcd.</li>
+          <li><strong>Preventing Control Plane Deadlocks:</strong> Always configure a <code>namespaceSelector</code> on your webhook configuration to exclude <code>kube-system</code> and the operator's own namespace. Without this, if your webhook pod is evicted, the scheduler cannot schedule a replacement pod because the dead webhook blocks pod admissions!</li>
+        </ul>
+      </div>
+
+<!-- ============================================================ -->
       <h2 id="simulator">Interactive Architecture Simulator: AWS EC2 Operator</h2>
       <p>
         Use the interactive simulator below to step through how the Kubernetes control plane, 
