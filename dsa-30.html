@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>30 Days of DSA in Go — Learn Go, Visually</title>
+<meta name="description" content="A complete 30-day Data Structures and Algorithms curriculum tailored for Go developers. Interactive visualizers, memory diagrams, Big-O tables, and idiomatic Go implementations.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <span class="brand-badge">Go</span>
+    <span>Learn Go, Visually</span>
+  </a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="basics.html">Basics</a>
+    <a href="core.html">Core</a>
+    <a href="concurrency.html">Concurrency</a>
+    <a href="advanced.html">Advanced</a>
+    <a href="operators.html">Operators</a>
+    <a href="rest-api.html">REST APIs</a>
+    <a href="grpc-api.html">gRPC</a>
+    <a href="coding-interview.html">Coding Qs</a>
+    <a href="dsa-30.html" class="active">30 Days DSA</a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+  </nav>
+</header>
+
+<main>
+  <!-- Ambient background glow mesh -->
+  <div class="hero-glow-layer">
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+    <div class="glow-orb-3"></div>
+  </div>
+
+  <div class="page-wide">
+
+    <!-- ──────────────────────── HERO ──────────────────────── -->
+    <section class="hero-wrapper text-center" style="text-align:center;">
+      <div class="pulse-badge">
+        <span class="pulse-beacon">
+          <span class="ping"></span>
+          <span class="dot"></span>
+        </span>
+        <span>DSA-30 in Go · 30 Days · 30 Topics · 100% Idiomatic Go &amp; Generics</span>
+      </div>
+
+      <h1 class="hero-title">
+        30 Days of <span class="gradient-text">DSA in Go</span>
+      </h1>
+
+      <p class="hero-subhead">
+        A structured, visual journey through fundamental to advanced Data Structures and Algorithms &mdash;
+        engineered specifically for Gophers. Experience slice backing memory, pointer mechanics,
+        standard library <code>container/heap</code>, and concurrent divide-and-conquer firsthand.
+      </p>
+
+      <!-- Stat Strip -->
+      <div class="stat-strip" style="margin: 2.5rem auto 3rem; max-width: 960px;">
+        <div class="stat-card">
+          <div class="stat-number">30</div>
+          <div class="stat-label">Days of Focused DSA</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">8</div>
+          <div class="stat-label">Structured Phases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">O(1) &rarr; O(n!)</div>
+          <div class="stat-label">Time &amp; Space Complexity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">Go 1.26</div>
+          <div class="stat-label">Type Parameters &amp; Generics</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── FEATURED INTERACTIVE SUITE 1 ──────────────────────── -->
+    <section class="viz-panel" data-viz="dsa-array" style="margin-bottom: 3.5rem;">
+      <div class="viz-header">
+        <div>
+          <span class="viz-badge">Day 2 Interactive Visualizer</span>
+          <h2 style="margin:0.25rem 0 0; font-size:1.35rem; color:var(--text);">Array &amp; Slice Memory Layout</h2>
+        </div>
+        <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent);">Contiguous 64-bit Memory Blocks</span>
+      </div>
+
+      <p style="color:var(--text-dim); font-size:0.92rem; margin-bottom:1.5rem; line-height:1.6;">
+        In Go, a slice is a 24-byte header consisting of a pointer to a backing array, a length, and a capacity.
+        Because elements are placed contiguously in memory, accessing <code>s[i]</code> requires only a single pointer addition:
+        <code>address = base + (i &times; elemSize)</code>, giving arrays <strong>O(1)</strong> random access.
+      </p>
+
+      <!-- Interactive Array Visualizer Controls -->
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center; margin-bottom:1.5rem; background:var(--bg-sunken); padding:1rem; border-radius:var(--radius); border:1px solid var(--border);">
+        <input type="number" data-role="input-val" placeholder="Value (e.g. 99)" class="predict-input" style="flex:1 1 140px; padding:0.45rem 0.8rem;">
+        <input type="number" data-role="input-idx" placeholder="Index (e.g. 2)" class="predict-input" style="flex:1 1 120px; padding:0.45rem 0.8rem;">
+        <button class="btn btn-sm btn-primary" data-role="btn-insert">Insert / Append</button>
+        <button class="btn btn-sm btn-secondary" data-role="btn-delete">Delete at Index</button>
+        <button class="btn btn-sm btn-secondary" data-role="btn-search">Search Value</button>
+        <button class="btn btn-sm btn-secondary" data-role="btn-reset">Reset &#8634;</button>
+      </div>
+
+      <!-- Action feedback alert message -->
+      <div data-role="msg" style="display:none; padding:0.75rem 1rem; border-radius:var(--radius-sm); font-size:0.88rem; font-family:var(--font-mono); border:1px solid; margin-bottom:1.5rem;"></div>
+
+      <!-- Slice Header state -->
+      <div data-role="slice-header-stat" style="font-family:var(--font-mono); font-size:0.88rem; color:var(--text); background:var(--bg); border:1px solid var(--border); padding:0.6rem 1rem; border-radius:var(--radius-sm); margin-bottom:1.5rem; display:inline-block;"></div>
+
+      <div style="margin-bottom:1.5rem;">
+        <div style="font-size:0.82rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">Slice Logical View:</div>
+        <div data-role="array-cells" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-start;"></div>
+      </div>
+
+      <div>
+        <div style="font-size:0.82rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem;">Physical Contiguous Memory Layout (Hover cells to inspect formula):</div>
+        <div data-role="mem-cells" style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:flex-start;"></div>
+        <div data-role="formula-box" style="display:none; margin-top:1rem; font-family:var(--font-mono); font-size:0.86rem; color:var(--accent); background:var(--accent-bg); border:1px solid var(--accent-border); padding:0.55rem 0.9rem; border-radius:var(--radius-sm);"></div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── FEATURED INTERACTIVE SUITE 2 ──────────────────────── -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.75rem; margin-bottom: 3.5rem;">
+
+      <!-- Binary Search Stepper (Day 13) -->
+      <section class="viz-panel" data-viz="dsa-binary-search">
+        <div class="viz-header">
+          <div>
+            <span class="viz-badge">Day 13 Algorithm Stepper</span>
+            <h3 style="margin:0.25rem 0 0; font-size:1.25rem; color:var(--text);">Binary Search in Go</h3>
+          </div>
+          <span class="badge-complexity badge-ologn">O(log n) Time</span>
+        </div>
+
+        <p style="color:var(--text-dim); font-size:0.88rem; line-height:1.5; margin-bottom:1rem;">
+          Searching target <strong>23</strong> in a sorted 10-element slice. At each step, binary search compares the target against the middle element, halving the search space.
+        </p>
+
+        <div class="viz-stepper-head" style="margin-bottom:1rem;">
+          <span class="viz-step-counter">Step 1 of 4</span>
+          <div class="viz-step-dots">
+            <span class="step-dot active"></span>
+            <span class="step-dot"></span>
+            <span class="step-dot"></span>
+            <span class="step-dot"></span>
+          </div>
+        </div>
+
+        <div class="viz-progress-track" style="margin-bottom:1.5rem;">
+          <div class="viz-progress-bar" style="width: 25%;"></div>
+        </div>
+
+        <!-- Binary search cells -->
+        <div data-role="bs-cells" style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.5rem; min-height:80px; align-items:flex-end;"></div>
+
+        <!-- Step description -->
+        <div data-role="bs-desc" style="font-size:0.9rem; line-height:1.6; color:var(--text); background:var(--bg-sunken); padding:0.9rem 1.1rem; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:75px; margin-bottom:1.2rem;"></div>
+
+        <div class="viz-stepper-ctrls">
+          <button class="btn btn-sm btn-secondary btn-step-prev" disabled>&larr; Prev</button>
+          <button class="btn btn-sm btn-primary btn-step-next">Next &rarr;</button>
+          <button class="btn btn-sm btn-secondary btn-step-play">Auto &blacktriangleright;</button>
+          <button class="btn btn-sm btn-secondary btn-step-reset">Reset &#8634;</button>
+        </div>
+      </section>
+
+      <!-- Stack & Queue Engine (Day 4) -->
+      <section class="viz-panel" data-viz="dsa-stack-queue">
+        <div class="viz-header">
+          <div>
+            <span class="viz-badge">Day 4 Interactive Engine</span>
+            <h3 style="margin:0.25rem 0 0; font-size:1.25rem; color:var(--text);">Stack (LIFO) &amp; Queue (FIFO)</h3>
+          </div>
+          <span class="badge-complexity badge-o1">O(1) Push / Pop</span>
+        </div>
+
+        <p style="color:var(--text-dim); font-size:0.88rem; line-height:1.5; margin-bottom:1.2rem;">
+          In Go, stacks and queues are commonly implemented on top of dynamic slices. Test pushing/popping and enqueuing/dequeuing to see the data flow in real time.
+        </p>
+
+        <!-- Stack Interactive Box -->
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:1rem; background:var(--bg-sunken); margin-bottom:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <strong style="font-size:0.88rem; color:var(--text);">Stack (Last-In, First-Out)</strong>
+            <div style="display:flex; gap:0.4rem;">
+              <input type="number" data-role="stack-val" placeholder="Val" class="predict-input" style="width:70px; padding:0.35rem 0.6rem; font-size:0.82rem;">
+              <button class="btn btn-sm btn-primary" data-role="btn-push" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Push</button>
+              <button class="btn btn-sm btn-secondary" data-role="btn-pop" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Pop</button>
+            </div>
+          </div>
+          <div data-role="stack-items" style="display:flex; flex-direction:column; gap:0.4rem; min-height:85px;"></div>
+          <div data-role="stack-msg" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;"></div>
+        </div>
+
+        <!-- Queue Interactive Box -->
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:1rem; background:var(--bg-sunken);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <strong style="font-size:0.88rem; color:var(--text);">Queue (First-In, First-Out)</strong>
+            <div style="display:flex; gap:0.4rem;">
+              <input type="number" data-role="queue-val" placeholder="Val" class="predict-input" style="width:70px; padding:0.35rem 0.6rem; font-size:0.82rem;">
+              <button class="btn btn-sm btn-primary" data-role="btn-enq" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Enqueue</button>
+              <button class="btn btn-sm btn-secondary" data-role="btn-deq" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Dequeue</button>
+            </div>
+          </div>
+          <div data-role="queue-items" style="display:flex; gap:0.5rem; align-items:center; min-height:56px; overflow-x:auto;"></div>
+          <div data-role="queue-msg" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ──────────────────────── MASTER BIG-O COMPLEXITY TABLE ──────────────────────── -->
+    <section class="code-panel" style="margin-bottom: 3.5rem;">
+      <div class="code-panel-header">
+        <div class="window-dots">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <span class="file-path">dsa_complexity_cheatsheet.go &mdash; Big-O Master Reference</span>
+      </div>
+
+      <div style="padding: 1.5rem; overflow-x: auto;">
+        <table class="diff-table" style="width:100%; border-collapse: collapse; font-size: 0.88rem;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+              <th style="padding: 0.75rem;">Data Structure</th>
+              <th style="padding: 0.75rem;">Go Type / Construct</th>
+              <th style="padding: 0.75rem;">Access (Avg)</th>
+              <th style="padding: 0.75rem;">Search (Avg)</th>
+              <th style="padding: 0.75rem;">Insert (Avg)</th>
+              <th style="padding: 0.75rem;">Delete (Avg)</th>
+              <th style="padding: 0.75rem;">Space (Worst)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Array (Fixed)</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">[N]T</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">N/A</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">N/A</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Dynamic Slice</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">[]T</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)*</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Singly Linked List</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">*Node[T]</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Doubly Linked List</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">container/list</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Stack / Queue</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">[]T slice wrapper</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Hash Table</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">map[K]V</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">N/A</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(1)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Binary Search Tree</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">*TreeNode[T]</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-ologn">O(log n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-ologn">O(log n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-ologn">O(log n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-ologn">O(log n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 0.75rem; font-weight:700;">Binary Heap / PQ</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">container/heap</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">N/A</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-ologn">O(log n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-ologn">O(log n)</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 0.75rem; font-weight:700;">Disjoint Set (DSU)</td>
+              <td style="padding: 0.75rem; font-family:var(--font-mono); color:var(--accent);">UnionFind struct</td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">N/A</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(&alpha;(n))</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-o1">O(&alpha;(n))</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">N/A</span></td>
+              <td style="padding: 0.75rem;"><span class="badge-complexity badge-on">O(n)</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem; font-family:var(--font-mono);">
+          * O(1) amortized when slice capacity is sufficient; reallocates new backing array on growth. &alpha;(n) is Inverse Ackermann function (&le; 4 for all universe atoms).
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── 30-DAY CURRICULUM SECTION ──────────────────────── -->
+    <section style="margin-bottom: 4rem;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+        <div>
+          <span class="viz-badge">Curriculum Road Map</span>
+          <h2 style="margin:0.25rem 0 0.5rem; font-size:1.6rem; color:var(--text);">The Complete 30-Day Path</h2>
+          <p style="color:var(--text-dim); font-size:0.92rem; margin:0;">
+            Follow the 8-phase progression or jump directly to specific topics and algorithmic patterns.
+          </p>
+        </div>
+
+        <!-- Search bar & visible count -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <input type="text" id="dsa-search-input" placeholder="Search day, topic, or Big-O..." class="predict-input" style="width:260px;">
+          <span id="dsa-visible-count" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); white-space:nowrap;">Showing 30 of 30 Days</span>
+        </div>
+      </div>
+
+      <!-- Phase Filter Pills -->
+      <div class="dsa-phase-filter">
+        <button class="dsa-phase-btn active" data-phase="all">All Days (30)</button>
+        <button class="dsa-phase-btn" data-phase="1">Phase 1: Fundamentals (Days 1-5)</button>
+        <button class="dsa-phase-btn" data-phase="2">Phase 2: Trees &amp; Hashing (Days 6-8)</button>
+        <button class="dsa-phase-btn" data-phase="3">Phase 3: Graphs (Days 9-10)</button>
+        <button class="dsa-phase-btn" data-phase="4">Phase 4: Sorting &amp; Searching (Days 11-13)</button>
+        <button class="dsa-phase-btn" data-phase="5">Phase 5: Algorithmic Patterns (Days 14-17)</button>
+        <button class="dsa-phase-btn" data-phase="6">Phase 6: Specialized Structures (Days 18-23)</button>
+        <button class="dsa-phase-btn" data-phase="7">Phase 7: Interview Techniques (Days 24-27)</button>
+        <button class="dsa-phase-btn" data-phase="8">Phase 8: Synthesis (Days 28-30)</button>
+      </div>
+
+      <!-- 30-Day Grid Cards -->
+      <div class="dsa-grid">
+
+        <!-- Phase 1: Fundamentals -->
+        <div class="dsa-card" data-phase="1">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 01</span>
+              <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
+            </div>
+            <h3 class="dsa-card-title">Introduction to DSA &amp; Go Memory Model</h3>
+            <p class="dsa-card-desc">
+              Understand how Go stores data in RAM: Stack vs. Heap escape analysis, fixed arrays <code>[N]T</code> vs slice headers <code>reflect.SliceHeader</code>, value copying, and cache line locality.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Memory</span>
+              <span class="dsa-tag">Escape Analysis</span>
+              <span class="dsa-tag">Big-O</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(1) Allocation</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="1">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 02</span>
+              <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
+            </div>
+            <h3 class="dsa-card-title">Arrays &amp; Strings in Go</h3>
+            <p class="dsa-card-desc">
+              Go strings as immutable byte slices, <code>rune</code> for UTF-8 decoding, slice resizing mechanics with <code>append()</code>, prefix sums, and running sums for range query acceleration.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">[]byte</span>
+              <span class="dsa-tag">rune</span>
+              <span class="dsa-tag">Prefix Sum</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Two Pointers / Prefix</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="1">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 03</span>
+              <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
+            </div>
+            <h3 class="dsa-card-title">Linked Lists with Go Generics</h3>
+            <p class="dsa-card-desc">
+              Building generic <code>Node[T any]</code> lists in Go. Pointer manipulation, dummy sentinel heads, in-place reversal, and cycle detection using Floyd's Tortoise and Hare algorithm.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">*Node[T]</span>
+              <span class="dsa-tag">Pointers</span>
+              <span class="dsa-tag">Floyd's Cycle</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Fast &amp; Slow Pointers</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="1">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 04</span>
+              <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
+            </div>
+            <h3 class="dsa-card-title">Stacks and Queues</h3>
+            <p class="dsa-card-desc">
+              LIFO and FIFO implementations on top of slices and circular ring buffers. Valid parentheses matching, monotonic stacks for Next Greater Element, and sliding window maximums.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">LIFO</span>
+              <span class="dsa-tag">FIFO</span>
+              <span class="dsa-tag">Monotonic Stack</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Monotonic Stack</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="1">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 05</span>
+              <span class="dsa-phase-tag">Phase 1 · Fundamentals</span>
+            </div>
+            <h3 class="dsa-card-title">Recursion &amp; Call Stacks</h3>
+            <p class="dsa-card-desc">
+              How Go allocates stack frames (starting at 2KB, dynamically doubling). Base cases, recurrence relations, tree recursion, and converting recursive algorithms to iterative form.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Goroutine Stack</span>
+              <span class="dsa-tag">Recursion</span>
+              <span class="dsa-tag">Divide &amp; Conquer</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Recurrence Tree</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <!-- Phase 2: Trees & Hashing -->
+        <div class="dsa-card" data-phase="2">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 06</span>
+              <span class="dsa-phase-tag">Phase 2 · Trees &amp; Hashing</span>
+            </div>
+            <h3 class="dsa-card-title">Binary Trees &amp; BSTs</h3>
+            <p class="dsa-card-desc">
+              Pointer-based <code>TreeNode[T]</code>. Pre-order, In-order, and Post-order DFS traversals, BFS level-order traversal using slice queues, BST insertion, search, and validation.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">DFS / BFS</span>
+              <span class="dsa-tag">BST Validation</span>
+              <span class="dsa-tag">LCA</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Tree Traversal</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="2">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 07</span>
+              <span class="dsa-phase-tag">Phase 2 · Trees &amp; Hashing</span>
+            </div>
+            <h3 class="dsa-card-title">Heaps &amp; Priority Queues</h3>
+            <p class="dsa-card-desc">
+              Mastering Go's standard library <code>container/heap</code> interface: implementing <code>Len()</code>, <code>Less()</code>, <code>Swap()</code>, <code>Push()</code>, and <code>Pop()</code>. Top-K elements and median stream maintenance.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">container/heap</span>
+              <span class="dsa-tag">Min-Heap</span>
+              <span class="dsa-tag">Top-K</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Heapify O(n)</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="2">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 08</span>
+              <span class="dsa-phase-tag">Phase 2 · Trees &amp; Hashing</span>
+            </div>
+            <h3 class="dsa-card-title">Hash Tables &amp; Go Runtime Maps</h3>
+            <p class="dsa-card-desc">
+              Inside Go's runtime <code>hmap</code> and <code>bmap</code>: 8-slot buckets, top-byte hashing (tophash), collision chaining with overflow buckets, and incremental rehashing.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">hmap</span>
+              <span class="dsa-tag">bmap</span>
+              <span class="dsa-tag">Hash Collisions</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(1) Avg Lookup</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+        <!-- Phase 3: Graphs -->
+        <div class="dsa-card" data-phase="3">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 09</span>
+              <span class="dsa-phase-tag">Phase 3 · Graphs</span>
+            </div>
+            <h3 class="dsa-card-title">Graphs Representation in Go</h3>
+            <p class="dsa-card-desc">
+              Representing sparse and dense graphs using <code>map[T][]T</code> adjacency lists and <code>[][]int</code> adjacency matrices. Directed vs. undirected, weighted edges, and degree calculations.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Adjacency List</span>
+              <span class="dsa-tag">Adjacency Matrix</span>
+              <span class="dsa-tag">Bipartite</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Graph Modeling</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="3">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 10</span>
+              <span class="dsa-phase-tag">Phase 3 · Graphs</span>
+            </div>
+            <h3 class="dsa-card-title">Graph Traversals: DFS &amp; BFS</h3>
+            <p class="dsa-card-desc">
+              Depth-First Search using visited maps, Breadth-First Search using queue slices for shortest path in unweighted graphs, connected components, and flood fill algorithms.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">DFS</span>
+              <span class="dsa-tag">BFS</span>
+              <span class="dsa-tag">Shortest Path</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(V + E)</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <!-- Phase 4: Sorting & Searching -->
+        <div class="dsa-card" data-phase="4">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 11</span>
+              <span class="dsa-phase-tag">Phase 4 · Sorting &amp; Searching</span>
+            </div>
+            <h3 class="dsa-card-title">Sorting Algorithms I</h3>
+            <p class="dsa-card-desc">
+              Bubble Sort, Selection Sort, and Insertion Sort. Analyzing inversion counts, stability in sorting, and Go's historical <code>sort.Interface</code> versus modern generic <code>slices.Sort</code>.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Insertion Sort</span>
+              <span class="dsa-tag">slices.Sort</span>
+              <span class="dsa-tag">Stability</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(n&sup2;) Comparison</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="4">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 12</span>
+              <span class="dsa-phase-tag">Phase 4 · Sorting &amp; Searching</span>
+            </div>
+            <h3 class="dsa-card-title">Sorting Algorithms II &amp; pdqsort</h3>
+            <p class="dsa-card-desc">
+              MergeSort, QuickSort with 3-way partitioning, and HeapSort. Deep dive into Go 1.19+'s built-in <code>pdqsort</code> (Pattern-Defeating QuickSort) combining quicksort, heapsort, and insertion sort.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">pdqsort</span>
+              <span class="dsa-tag">MergeSort</span>
+              <span class="dsa-tag">QuickSort</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(n log n) Guaranteed</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="4">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 13</span>
+              <span class="dsa-phase-tag">Phase 4 · Sorting &amp; Searching</span>
+            </div>
+            <h3 class="dsa-card-title">Searching Algorithms &amp; sort.Search</h3>
+            <p class="dsa-card-desc">
+              Linear Search vs. Binary Search. Go's idiomatic <code>sort.Search</code> closure function, lower bound and upper bound, and the powerful "Binary Search on Answer" pattern.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">sort.Search</span>
+              <span class="dsa-tag">Binary Search</span>
+              <span class="dsa-tag">Bisect</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(log n)</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <!-- Phase 5: Algorithmic Patterns -->
+        <div class="dsa-card" data-phase="5">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 14</span>
+              <span class="dsa-phase-tag">Phase 5 · Patterns</span>
+            </div>
+            <h3 class="dsa-card-title">Dynamic Programming</h3>
+            <p class="dsa-card-desc">
+              Overlapping subproblems and optimal substructure. Top-down memoization with Go maps/slices vs. Bottom-up tabulation, space optimization rolling arrays, and 0/1 Knapsack.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Memoization</span>
+              <span class="dsa-tag">Tabulation</span>
+              <span class="dsa-tag">Knapsack</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">State Machine DP</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="5">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 15</span>
+              <span class="dsa-phase-tag">Phase 5 · Patterns</span>
+            </div>
+            <h3 class="dsa-card-title">Greedy Algorithms</h3>
+            <p class="dsa-card-desc">
+              Making locally optimal choices to achieve globally optimal solutions. Interval scheduling, meeting rooms, activity selection, fractional knapsack, and gas station tour proofs.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Intervals</span>
+              <span class="dsa-tag">Greedy Choice</span>
+              <span class="dsa-tag">Sorting</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Greedy Choice Property</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="5">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 16</span>
+              <span class="dsa-phase-tag">Phase 5 · Patterns</span>
+            </div>
+            <h3 class="dsa-card-title">Backtracking</h3>
+            <p class="dsa-card-desc">
+              State-space tree exploration with pruning: choose, explore, un-choose. Permutations, combinations, subsets, N-Queens problem, and Word Search on a 2D grid.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">State-Space Tree</span>
+              <span class="dsa-tag">Pruning</span>
+              <span class="dsa-tag">N-Queens</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Backtracking</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="5">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 17</span>
+              <span class="dsa-phase-tag">Phase 5 · Patterns</span>
+            </div>
+            <h3 class="dsa-card-title">Bit Manipulation</h3>
+            <p class="dsa-card-desc">
+              Bitwise operators in Go (<code>&amp;</code>, <code>|</code>, <code>^</code>, <code>&amp;^</code> bit-clear). Brian Kernighan's algorithm, math/bits package (<code>bits.OnesCount</code>, <code>bits.LeadingZeros</code>), and bitmask DP.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">math/bits</span>
+              <span class="dsa-tag">Bitmask</span>
+              <span class="dsa-tag">&amp;^ bit-clear</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(1) Bitwise Ops</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <!-- Phase 6: Specialized Structures -->
+        <div class="dsa-card" data-phase="6">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 18</span>
+              <span class="dsa-phase-tag">Phase 6 · Specialized</span>
+            </div>
+            <h3 class="dsa-card-title">Tries (Prefix Trees)</h3>
+            <p class="dsa-card-desc">
+              Implementing prefix trees in Go using <code>map[rune]*TrieNode</code> or fixed 26-pointer arrays. Autocomplete, wildcard search, and IP routing longest-prefix match.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Prefix Tree</span>
+              <span class="dsa-tag">Autocomplete</span>
+              <span class="dsa-tag">TrieNode</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(k) String Search</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="6">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 19</span>
+              <span class="dsa-phase-tag">Phase 6 · Specialized</span>
+            </div>
+            <h3 class="dsa-card-title">Segment Trees &amp; Fenwick Trees</h3>
+            <p class="dsa-card-desc">
+              Range queries (sum, minimum, GCD) in O(log n) time. Building 1D array segment trees, point updates, and Binary Indexed Trees (Fenwick Trees) using bitwise low-bit calculations.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Range Query</span>
+              <span class="dsa-tag">Fenwick / BIT</span>
+              <span class="dsa-tag">Lazy Propagation</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(log n) Range Update</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="6">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 20</span>
+              <span class="dsa-phase-tag">Phase 6 · Specialized</span>
+            </div>
+            <h3 class="dsa-card-title">Union-Find (Disjoint Set Union)</h3>
+            <p class="dsa-card-desc">
+              Representing connected sets with path compression and union-by-rank. Achieving near-constant <code>O(&alpha;(n))</code> time complexity for cycle detection and dynamic network connectivity.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">DSU</span>
+              <span class="dsa-tag">Path Compression</span>
+              <span class="dsa-tag">Rank</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(&alpha;(n)) Disjoint Set</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="6">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 21</span>
+              <span class="dsa-phase-tag">Phase 6 · Specialized</span>
+            </div>
+            <h3 class="dsa-card-title">Shortest Paths (Dijkstra &amp; Bellman-Ford)</h3>
+            <p class="dsa-card-desc">
+              Dijkstra's single-source algorithm utilizing Go's <code>container/heap</code>. Bellman-Ford for negative weight cycles, and Floyd-Warshall for all-pairs shortest paths.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Dijkstra</span>
+              <span class="dsa-tag">container/heap</span>
+              <span class="dsa-tag">Bellman-Ford</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O((V + E) log V)</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="6">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 22</span>
+              <span class="dsa-phase-tag">Phase 6 · Specialized</span>
+            </div>
+            <h3 class="dsa-card-title">Minimum Spanning Trees</h3>
+            <p class="dsa-card-desc">
+              Connecting all vertices with minimum total edge weight. Kruskal's algorithm combining edge sorting and DSU vs. Prim's algorithm using priority queues.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Kruskal</span>
+              <span class="dsa-tag">Prim</span>
+              <span class="dsa-tag">MST</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(E log E)</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="6">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 23</span>
+              <span class="dsa-phase-tag">Phase 6 · Specialized</span>
+            </div>
+            <h3 class="dsa-card-title">Topological Sort &amp; DAGs</h3>
+            <p class="dsa-card-desc">
+              Linear ordering of vertices in Directed Acyclic Graphs. Kahn's in-degree BFS algorithm and DFS post-order traversal. Applications in build systems and Go package dependency resolution.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Kahn's Algorithm</span>
+              <span class="dsa-tag">DAG</span>
+              <span class="dsa-tag">Dependency Graph</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(V + E) Topological</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <!-- Phase 7: Interview Techniques -->
+        <div class="dsa-card" data-phase="7">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 24</span>
+              <span class="dsa-phase-tag">Phase 7 · Techniques</span>
+            </div>
+            <h3 class="dsa-card-title">Sliding Window Pattern</h3>
+            <p class="dsa-card-desc">
+              Fixed-size and variable-size sliding windows over slices and strings. Longest substring without repeating characters, minimum size subarray sum, and frequency map tracking.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Sliding Window</span>
+              <span class="dsa-tag">Subarrays</span>
+              <span class="dsa-tag">Frequency Map</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(n) Linear Scan</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="7">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 25</span>
+              <span class="dsa-phase-tag">Phase 7 · Techniques</span>
+            </div>
+            <h3 class="dsa-card-title">Two Pointers Technique</h3>
+            <p class="dsa-card-desc">
+              Opposite-direction two pointers (Two Sum II, 3Sum, Container With Most Water, Trapping Rainwater) and same-direction read/write pointers (in-place duplicates removal).
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Two Pointers</span>
+              <span class="dsa-tag">In-Place</span>
+              <span class="dsa-tag">3Sum</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(n) Two Pointers</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="7">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 26</span>
+              <span class="dsa-phase-tag">Phase 7 · Techniques</span>
+            </div>
+            <h3 class="dsa-card-title">Divide &amp; Conquer with Goroutines</h3>
+            <p class="dsa-card-desc">
+              Dividing problems into independent subproblems. Harnessing Go concurrency: running recursive sub-tasks concurrently in lightweight goroutines and collecting results via channels.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Goroutines</span>
+              <span class="dsa-tag">Parallel Sort</span>
+              <span class="dsa-tag">sync.WaitGroup</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Concurrent D&amp;C</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="7">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 27</span>
+              <span class="dsa-phase-tag">Phase 7 · Techniques</span>
+            </div>
+            <h3 class="dsa-card-title">Advanced String Algorithms</h3>
+            <p class="dsa-card-desc">
+              Knuth-Morris-Pratt (KMP) failure functions, Rabin-Karp rolling hash for multiple pattern search, and Aho-Corasick automaton for dictionary matching in Go network payloads.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">KMP</span>
+              <span class="dsa-tag">Rabin-Karp</span>
+              <span class="dsa-tag">Rolling Hash</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">O(n + m) String Match</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <!-- Phase 8: Synthesis -->
+        <div class="dsa-card" data-phase="8">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 28</span>
+              <span class="dsa-phase-tag">Phase 8 · Synthesis</span>
+            </div>
+            <h3 class="dsa-card-title">DSA in Production Systems</h3>
+            <p class="dsa-card-desc">
+              Building real-world high-throughput infrastructure components: Thread-safe LRU Cache with <code>container/list</code> + <code>sync.RWMutex</code>, Token Bucket Rate Limiter, and Bloom Filters.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">LRU Cache</span>
+              <span class="dsa-tag">Token Bucket</span>
+              <span class="dsa-tag">Bloom Filter</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Production Infra</span>
+            <span class="badge-difficulty diff-hard">Hard</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="8">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 29</span>
+              <span class="dsa-phase-tag">Phase 8 · Synthesis</span>
+            </div>
+            <h3 class="dsa-card-title">Mock Interview &amp; 5-Step Framework</h3>
+            <p class="dsa-card-desc">
+              The FAANG &amp; High-Growth coding interview playbook: Clarifying constraints, establishing brute force, identifying data structure trade-offs, coding idiomatic Go, and probing edge cases.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Rubric</span>
+              <span class="dsa-tag">Communication</span>
+              <span class="dsa-tag">Edge Cases</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">Interview Mastery</span>
+            <span class="badge-difficulty diff-medium">Medium</span>
+          </div>
+        </div>
+
+        <div class="dsa-card" data-phase="8">
+          <div>
+            <div class="dsa-card-header">
+              <span class="dsa-day-pill">Day 30</span>
+              <span class="dsa-phase-tag">Phase 8 · Synthesis</span>
+            </div>
+            <h3 class="dsa-card-title">Victory Lap: Capstone &amp; Cheat Sheet</h3>
+            <p class="dsa-card-desc">
+              Consolidating all 30 days into memory. Quick-reference pattern selection decision tree, Go standard library algorithm cheat sheet, complexity lookup table, and next steps.
+            </p>
+            <div class="dsa-tags">
+              <span class="dsa-tag">Cheat Sheet</span>
+              <span class="dsa-tag">Capstone</span>
+              <span class="dsa-tag">Go 1.26</span>
+            </div>
+          </div>
+          <div class="dsa-card-footer">
+            <span class="dsa-pattern-label">100% Complete</span>
+            <span class="badge-difficulty diff-easy">Easy</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ──────────────────────── CHECKPOINT QUIZ & PREDICTION (DSA-30 STYLE) ──────────────────────── -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.75rem; margin-bottom: 4rem;">
+
+      <!-- Quiz Box -->
+      <div class="quiz-box" data-quiz="dsa-heap-interface" data-correct="1">
+        <div class="quiz-header">
+          <span class="quiz-badge">Checkpoint Quiz · Day 7</span>
+          <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">Standard Library Interfaces</span>
+        </div>
+        <div class="quiz-question">
+          Which set of methods must a Go type implement to satisfy both <code>sort.Interface</code> and <code>heap.Interface</code> in the standard library?
+        </div>
+        <div class="quiz-options">
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">A</span>
+            <span><code>Push(x any)</code> and <code>Pop() any</code> only</span>
+          </button>
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">B</span>
+            <span><code>Len() int</code>, <code>Less(i, j int) bool</code>, <code>Swap(i, j int)</code>, <code>Push(x any)</code>, <code>Pop() any</code></span>
+          </button>
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">C</span>
+            <span><code>Insert(x any)</code>, <code>ExtractMin() any</code>, <code>Peek() any</code></span>
+          </button>
+          <button class="quiz-option" type="button">
+            <span class="quiz-opt-letter">D</span>
+            <span><code>Compare(a, b any) int</code> and <code>Heapify()</code></span>
+          </button>
+        </div>
+        <div style="display:flex; gap:0.6rem;">
+          <button class="btn btn-primary btn-sm" data-role="quiz-check" disabled>Check Answer</button>
+          <button class="btn btn-sm" data-role="quiz-reset" style="display:none;">Try Again</button>
+        </div>
+        <div class="quiz-explanation">
+          <strong>Correct!</strong> In Go, <code>heap.Interface</code> embeds <code>sort.Interface</code> (which defines <code>Len() int</code>, <code>Less(i, j int) bool</code>, and <code>Swap(i, j int)</code>) and adds two more methods: <code>Push(x any)</code> and <code>Pop() any</code>. This allows Go heaps to operate directly on existing slices!
+        </div>
+      </div>
+
+      <!-- Predict Box -->
+      <div class="predict-box" data-predict="slice-cap-growth">
+        <div class="predict-header">
+          <span aria-hidden="true" style="font-size:1.1rem;">🔮</span>
+          <span class="predict-badge">Predict The Output</span>
+        </div>
+        <div class="predict-prompt">
+          What is the capacity of <code>s</code> after executing:
+          <pre style="margin: 0.5rem 0; padding: 0.6rem; border-radius: 6px; background: var(--bg); font-family: var(--font-mono); font-size: 0.84rem; border: 1px solid var(--border);">s := make([]int, 3, 4)
+s = append(s, 10)
+s = append(s, 20)</pre>
+        </div>
+        <div class="predict-input-row">
+          <input type="text" class="predict-input" placeholder="Enter predicted cap (e.g. 8)..." aria-label="your prediction">
+          <button class="btn btn-sm btn-primary" data-role="predict-reveal" type="button">Reveal Answer</button>
+        </div>
+        <div class="predict-user-guess"></div>
+        <div class="predict-reveal-area">
+          <strong>Answer: <code>cap(s) == 8</code>!</strong><br>
+          Initial slice has <code>len=3, cap=4</code>. The first <code>append(s, 10)</code> fills the 4th slot without reallocation (<code>len=4, cap=4</code>). The second <code>append(s, 20)</code> exceeds capacity 4, causing the Go runtime to allocate a new backing array by doubling the capacity to <strong>8</strong> (for slices with &lt; 256 elements).
+          <button class="btn btn-sm" data-role="predict-hide" type="button" style="margin-top:0.6rem; padding:0.2em 0.6em; font-size:0.75rem;">Hide</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ──────────────────────── CALLOUT ──────────────────────── -->
+    <div class="callout callout-tip" style="margin: 3.5rem 0;">
+      <div class="callout-title">Ready to Test Your Practical Coding Skills?</div>
+      <p>
+        Check out the <a href="coding-interview.html">Coding Interview Questions</a> page for full end-to-end
+        implementations of Two Sum, LRU Cache, Concurrency Worker Pools, and Rate Limiters with clickable tabs,
+        unit tests, and complexity explanations.
+      </p>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div style="max-width:700px; margin:0 auto; line-height:1.8;">
+    <div style="margin-bottom:0.75rem; font-weight:700; color:var(--text);">
+      Learn Go, Visually &mdash; Open Source Go Learning Portal
+    </div>
+    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:1rem;">
+      Every code example on this site is compiled and verified against a real Go 1.26 toolchain before publishing,
+      and links out to the official Go Playground so you can run it yourself.
+    </p>
+    <div style="display:flex; justify-content:center; gap:1.2rem; font-size:0.86rem; flex-wrap:wrap;">
+      <a href="https://learn-go.r4rajat.com">learn-go.r4rajat.com</a>
+      <span>&bull;</span>
+      <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
+      <span>&bull;</span>
+      <a href="dsa-30.html">30 Days DSA</a>
+      <span>&bull;</span>
+      <a href="basics.html">Basics</a>
+      <span>&bull;</span>
+      <a href="concurrency.html">Concurrency</a>
+      <span>&bull;</span>
+      <a href="coding-interview.html">Coding Qs</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/dsa.js"></script>
+</body>
+</html>
