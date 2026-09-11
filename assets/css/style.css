@@ -1856,6 +1856,172 @@ main {
 .recon-loop-icon.spin { animation: recon-spin 0.6s linear; color: var(--go-cyan); }
 @keyframes recon-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+/* AWS EC2 Operator Interactive Simulator */
+.ec2-sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+  width: 100%;
+  margin: 1rem 0;
+}
+.ec2-sim-col {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  position: relative;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.ec2-sim-col.active {
+  border-color: var(--go-cyan);
+  box-shadow: 0 0 16px rgba(0, 173, 216, 0.18);
+}
+.ec2-sim-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+.ec2-sim-col-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.ec2-sim-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2em 0.55em;
+  border-radius: var(--radius-sm);
+}
+.ec2-badge-k8s { background: rgba(0, 173, 216, 0.15); color: var(--go-cyan); border: 1px solid rgba(0, 173, 216, 0.3); }
+.ec2-badge-ctrl { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.ec2-badge-aws { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+.ec2-prop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.ec2-prop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.28rem 0.45rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-interactive);
+}
+.ec2-prop-label {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+.ec2-prop-val {
+  color: var(--text);
+  font-weight: 600;
+}
+.ec2-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2em 0.6em;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ec2-status-none { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
+.ec2-status-pending { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+.ec2-status-running { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+.ec2-status-stopped { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+.ec2-status-terminated { background: rgba(100, 116, 139, 0.2); color: #94a3b8; text-decoration: line-through; }
+
+.ec2-finalizer-tag {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: rgba(168, 85, 247, 0.12);
+  color: #d8b4fe;
+  border: 1px dashed rgba(168, 85, 247, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.ec2-finalizer-tag.none {
+  opacity: 0.45;
+  border-style: dotted;
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.ec2-callout-bubble {
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  border-left: 3px solid var(--go-cyan);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+
+.ec2-timeline-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1.5rem 0;
+}
+.ec2-timeline-step {
+  display: flex;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  background: var(--bg);
+  align-items: flex-start;
+}
+.ec2-timeline-badge {
+  flex-shrink: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, var(--go-cyan), var(--go-blue));
+  color: #fff;
+}
+.ec2-timeline-content {
+  flex: 1;
+}
+.ec2-timeline-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.ec2-timeline-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
 /* ---------------------------------------------------------------
    12. Tabs & Questions Panels (Interview Qs, Coding Qs)
    --------------------------------------------------------------- */
