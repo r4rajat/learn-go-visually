@@ -203,6 +203,7 @@
 	<span class="tok-str">"context"</span>
 	<span class="tok-str">"log"</span>
 	<span class="tok-str">"net"</span>
+	<span class="tok-str">"time"</span>
 	<span class="tok-str">"google.golang.org/grpc"</span>
 	pb <span class="tok-str">"github.com/example/todo-grpc/pb"</span>
 )
@@ -274,12 +275,13 @@
 	<span class="tok-str">"context"</span>
 	<span class="tok-str">"log"</span>
 	<span class="tok-str">"google.golang.org/grpc"</span>
+	<span class="tok-str">"google.golang.org/grpc/credentials/insecure"</span>
 	pb <span class="tok-str">"github.com/example/todo-grpc/pb"</span>
 )
 
 <span class="tok-kw">func</span> main() {
 	<span class="tok-com">// Connect to server</span>
-	conn, err := grpc.Dial(<span class="tok-str">":50051"</span>, grpc.WithInsecure())
+	conn, err := grpc.NewClient(<span class="tok-str">"localhost:50051"</span>, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
 		log.Fatalf(<span class="tok-str">"Failed to connect: %v"</span>, err)
 	}

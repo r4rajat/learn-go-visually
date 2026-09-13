@@ -82,21 +82,21 @@
       <div class="callout-title">Running it yourself</div>
       <p>
         With Go installed, save this as <code>hello.go</code> inside any directory and run
-        <code>go run hello.go</code>. The first time you run a Go file outside an existing
-        module, you'll see a compile error ("could not determine module path"). Fix this by
-        creating a module first:
+        <code>go run hello.go</code> directly. However, real-world Go projects use
+        <strong>Go modules</strong> to manage dependencies, packages, and builds. When running
+        package-level commands like <code>go run .</code>, Go requires a module file. Initialize one with:
       </p>
       <div class="code-panel" style="margin-top:0.7rem;">
         <div class="code-panel-head"><span class="code-panel-title">Terminal</span></div>
         <div class="code-output show" style="display:block;">$ go mod init hello
 go: creating new go.mod: module hello
-$ go run hello.go
+$ go run .
 Hello, Go!</div>
       </div>
       <p style="margin-top:0.7rem;">
         <code>go mod init hello</code> creates a <code>go.mod</code> file that marks this
-        directory as a Go module &mdash; a self-contained unit of code. Every Go project
-        starts with <code>go mod init</code>, even if you only have one file. No Go installed
+        directory as a Go module &mdash; a self-contained unit of code. Every production Go project
+        starts with <code>go mod init</code>. No Go installed
         yet? Every "Open in Go Playground" link on this site runs the real Go compiler in
         your browser, no install required.
       </p>
@@ -148,7 +148,7 @@ Monday</div>
 	fmt.println(<span class="tok-str">"hello"</span>) <span class="tok-com">// lowercase p -> not exported!</span>
 }</code></pre>
         <div class="code-output show is-error"># command-line-arguments
-./main.go:6:4: cannot refer to unexported name fmt.println</div>
+./main.go:6:6: undefined: fmt.println (but have Println)</div>
       </div>
       <p style="margin-top:0.7rem;">
         The compiler catches this at compile time &mdash; it's not a runtime error. Every
@@ -409,8 +409,9 @@ second: 2</div>
       <p>
         The fix is straightforward: use <code>=</code> (not <code>:=</code>) when you intend
         to reassign an existing variable. <code>:=</code> always declares something new;
-        <code>=</code> always assigns to something that already exists. Go even provides
-        <code>go vet</code> with a <code>-shadow</code> flag to detect accidental shadowing.
+        <code>=</code> always assigns to something that already exists. The official Go tools
+        also provide the <code>shadow</code> analyzer (via <code>golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow</code>
+        or <code>golangci-lint</code>) to catch accidental variable shadowing automatically.
       </p>
     </div>
 
@@ -652,7 +653,7 @@ byte 1: i</div>
 }
 
 <span class="tok-kw">func</span> main() {
-	for _, v := <span class="tok-kw">range</span> []<span class="tok-type">int</span>{-5, 0, 3, 42} {
+	<span class="tok-kw">for</span> _, v := <span class="tok-kw">range</span> []<span class="tok-type">int</span>{-5, 0, 3, 42} {
 		fmt.Println(v, classify(v))
 	}
 }</code></pre>

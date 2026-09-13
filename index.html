@@ -1,31 +1,53 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Learn Go, Visually — Master Go with Interactive Visualizations</title>
+<title>Learn Go, Visually — Master Go Internals with Interactive Visualizations</title>
 <meta name="description" content="An interactive, visual guide to mastering the Go programming language — memory diagrams, goroutines, channels, and verified Go 1.26 code examples.">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
+<!-- ──────────────────────── TOP TELEMETRY BANNER ──────────────────────── -->
+<div class="top-telemetry-banner">
+  <span><span class="telemetry-pulse"></span><strong>Go 1.26 Verified</strong></span>
+  <span class="bullet">&bull;</span>
+  <span>Zero Build Steps &bull; Pure Native Web Visuals</span>
+  <span class="bullet">&bull;</span>
+  <a href="#curriculum">Explore 8 Interactive Modules &rarr;</a>
+</div>
+
+<!-- ──────────────────────── SITE NAVIGATION ──────────────────────── -->
 <header class="site-header">
-  <a class="brand" href="index.html">
-    <span class="brand-badge">Go</span>
-    <span>Learn Go, Visually</span>
-  </a>
+  <div style="display:flex; align-items:center;">
+    <a class="brand" href="index.html">
+      <span class="brand-badge">LV</span>
+      <span>Learn Go, Visually</span>
+    </a>
+    <span class="nav-verified-badge" title="Compiled and verified against official Go toolchain">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      Go 1.26 Verified
+    </span>
+  </div>
+
   <nav class="nav-links">
-    <a href="index.html" class="active">Home</a>
-    <a href="basics.html">Basics</a>
-    <a href="core.html">Core</a>
-    <a href="concurrency.html">Concurrency</a>
-    <a href="advanced.html">Advanced</a>
-    <a href="operators.html">Operators</a>
-    <a href="rest-api.html">REST APIs</a>
-    <a href="grpc-api.html">gRPC</a>
-    <a href="coding-interview.html">Coding Qs</a>
-    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+    <a href="#curriculum">Curriculum</a>
+    <a href="#runtime-visualizer">Playground / Visualizer</a>
+    <a href="#interactive-diagnostic">Interactive Quizzes</a>
   </nav>
+
+  <div style="display:flex; align-items:center; gap:0.65rem;">
+    <a class="nav-search-btn" href="#curriculum" style="text-decoration:none;">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>Search</span>
+      <kbd class="nav-search-kbd">Ctrl K</kbd>
+    </a>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle color theme"></button>
+    <a class="btn-star" href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">
+      <span>★ Star on GitHub</span>
+    </a>
+  </div>
 </header>
 
 <main>
@@ -36,45 +58,189 @@
     <div class="glow-orb-3"></div>
   </div>
 
-  <div class="page-wide">
+  <div class="page-landing">
 
-    <!-- ──────────────────────── HERO ──────────────────────── -->
-    <section class="hero-wrapper text-center" style="text-align:center;">
-      <div class="pulse-badge">
-        <span class="pulse-beacon">
-          <span class="ping"></span>
-          <span class="dot"></span>
-        </span>
-        <span>Go 1.26 Verified · 100% Visual · Zero Fluff</span>
+    <!-- ──────────────────────── HERO SECTION (SPLIT PREVIEW) ──────────────────────── -->
+    <section class="hero-split-grid">
+      <!-- Left Column: Value Prop & Single Guided CTA -->
+      <div class="hero-left-content">
+        <div class="pulse-badge">
+          <span class="pulse-beacon">
+            <span class="ping"></span>
+            <span class="dot"></span>
+          </span>
+          <span>Go 1.26 Verified · 100% Visual · Zero Fluff</span>
+        </div>
+
+        <h1 class="hero-title">
+          Understand Go by watching <span class="gradient-text">memory &amp; runtime</span> happen.
+        </h1>
+
+        <p class="hero-subhead">
+          Pointers, backing arrays, goroutines, and channel handshakes &mdash; visualized as step-by-step
+          interactive memory layouts and runtime state machines. Designed for complete beginners and
+          systems engineers leveling up.
+        </p>
+
+        <div class="hero-cta-group">
+          <a class="btn-hero-primary" href="basics.html">
+            <span>▶ Start Lesson 1: Basics (5 min)</span>
+            <span class="badge-free">FREE</span>
+          </a>
+          <a class="btn-hero-secondary" href="#curriculum">
+            Select Learning Track
+          </a>
+        </div>
+
+        <a class="hero-quick-link" href="concurrency.html">
+          <span>⚡ Explore Concurrency &rarr;</span>
+        </a>
+
+        <div class="hero-check-bullets">
+          <div class="hero-check-item">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Zero Build Steps (Pure Native Web &mdash; HTML/CSS/JS)</span>
+          </div>
+          <div class="hero-check-item">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Exec on Go 1.26 Specs/ASTs &mdash; 100% Verified Code</span>
+          </div>
+          <div class="hero-check-item">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Interactive Pointer &amp; Memory Layout Inspector</span>
+          </div>
+        </div>
       </div>
 
-      <h1 class="hero-title">
-        Understand Go by <span class="gradient-text">watching it happen.</span>
-      </h1>
+      <!-- Right Column: Interactive Slice Memory Inspector -->
+      <div class="hero-right-content">
+        <div class="hero-inspector-card" data-viz="hero-slice">
+          <div class="hero-inspector-head">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="width:10px; height:10px; border-radius:50%; background:#ff5f56; display:inline-block;"></span>
+              <span style="width:10px; height:10px; border-radius:50%; background:#ffbd2e; display:inline-block;"></span>
+              <span style="width:10px; height:10px; border-radius:50%; background:#27c93f; display:inline-block;"></span>
+            </div>
+            <span class="hero-inspector-title">main.go / SLICE_MUTATION.go</span>
+            <span class="hero-inspector-badge">RUN ONLINE</span>
+          </div>
 
-      <p class="hero-subhead">
-        Pointers, backing arrays, goroutines, and channels &mdash; visualized as interactive
-        memory layouts and runtime state machines. Every single code example is verified against
-        the real Go 1.26 toolchain.
-      </p>
+          <!-- Code Snippet -->
+          <div class="hero-code-box">
+            <div class="code-line" data-line="1">
+              <span class="code-line-num">1</span>
+              <span class="code-line-content"><span class="tok-kw">var</span> a = []<span class="tok-type">int</span>{<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>}</span>
+            </div>
+            <div class="code-line" data-line="2">
+              <span class="code-line-num">2</span>
+              <span class="code-line-content">b := a[:<span class="tok-num">2</span>] <span class="tok-com">// Sub-slice shares memory</span></span>
+            </div>
+            <div class="code-line" data-line="3">
+              <span class="code-line-num">3</span>
+              <span class="code-line-content">b[<span class="tok-num">0</span>] = <span class="tok-num">99</span>  <span class="tok-com">// Mutation happens here</span></span>
+            </div>
+            <div class="code-line" data-line="4">
+              <span class="code-line-num">4</span>
+              <span class="code-line-content"><span class="tok-fn">fmt</span>.<span class="tok-fn">Println</span>(a[<span class="tok-num">0</span>]) <span class="tok-com">// Prints: 99</span></span>
+            </div>
+          </div>
 
-      <div class="hero-actions">
-        <a class="btn btn-primary btn-pill" href="basics.html" style="padding:0.7em 1.6em; font-size:1rem;">
-          Start with the Basics &rarr;
-        </a>
-        <a class="btn btn-pill" href="concurrency.html" style="padding:0.7em 1.5em; font-size:1rem;">
-          Jump to Concurrency ⚡
-        </a>
-        <a class="btn btn-pill" href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener" style="padding:0.7em 1.3em;">
-          GitHub Repository ⭐
-        </a>
-      </div>
+          <!-- Slice Headers (24 bytes each) -->
+          <div class="inspector-section-label">
+            <span>Slice Headers (24 Bytes Each)</span>
+            <span style="color:#38bdf8;">Arch: 64-bit (Ptr 8B, Len 8B, Cap 8B)</span>
+          </div>
 
-      <div class="hero-meta-bar">
-        <span class="hero-meta-item">✔ Pure static site (no build step)</span>
-        <span class="hero-meta-item">✔ Interactive steppers</span>
-        <span class="hero-meta-item">✔ 100% Go Playground verified</span>
-        <span class="hero-meta-item">✔ Free forever</span>
+          <div class="slice-headers-row">
+            <div class="slice-header-box" data-slice="a">
+              <div class="slice-header-tag">
+                <span class="slice-name">Slice a</span>
+                <span class="slice-meta">[]int</span>
+              </div>
+              <div class="slice-header-props">
+                <div class="slice-prop">
+                  <div class="slice-prop-label">Data</div>
+                  <div class="slice-prop-val" style="color:#00f2fe; font-size:0.75rem;">0x104000</div>
+                </div>
+                <div class="slice-prop">
+                  <div class="slice-prop-label">Len</div>
+                  <div class="slice-prop-val">3</div>
+                </div>
+                <div class="slice-prop">
+                  <div class="slice-prop-label">Cap</div>
+                  <div class="slice-prop-val">3</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="slice-header-box" data-slice="b">
+              <div class="slice-header-tag">
+                <span class="slice-name">Slice b</span>
+                <span class="slice-meta">a[:2]</span>
+              </div>
+              <div class="slice-header-props">
+                <div class="slice-prop">
+                  <div class="slice-prop-label">Data</div>
+                  <div class="slice-prop-val" style="color:#00f2fe; font-size:0.75rem;">0x104000</div>
+                </div>
+                <div class="slice-prop">
+                  <div class="slice-prop-label">Len</div>
+                  <div class="slice-prop-val">2</div>
+                </div>
+                <div class="slice-prop">
+                  <div class="slice-prop-label">Cap</div>
+                  <div class="slice-prop-val">3</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slice-header-note">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span><strong>Beginner Mental Model:</strong> A slice is not an array &mdash; it is a 24-byte window (pointer, length, capacity). Both slices point to the exact same buffer at <code>0x104000</code>!</span>
+          </div>
+
+          <!-- Shared Heap Backing Array -->
+          <div class="backing-array-box">
+            <div class="backing-array-header">
+              <span>Shared Heap Backing Array</span>
+              <span style="color:#38bdf8;">base: 0x104000</span>
+            </div>
+            <div class="backing-cells-grid">
+              <div class="backing-cell" data-cell="0">
+                <div class="backing-cell-index">[0]</div>
+                <div class="backing-cell-val">1</div>
+                <div class="backing-cell-addr">+0x00</div>
+              </div>
+              <div class="backing-cell" data-cell="1">
+                <div class="backing-cell-index">[1]</div>
+                <div class="backing-cell-val">2</div>
+                <div class="backing-cell-addr">+0x08</div>
+              </div>
+              <div class="backing-cell" data-cell="2">
+                <div class="backing-cell-index">[2]</div>
+                <div class="backing-cell-val">3</div>
+                <div class="backing-cell-addr">+0x10</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Action Buttons -->
+          <div class="inspector-actions-bar">
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn-inspector-action btn-inspector-mutate" data-role="hero-mutate" type="button">
+                <span>Run Mutation (b[0]=99)</span>
+              </button>
+              <button class="btn-inspector-action btn-inspector-reset" data-role="hero-reset" type="button">
+                <span>Reset (b[0]=1)</span>
+              </button>
+            </div>
+            <button class="btn-inspector-action btn-inspector-share" data-role="hero-share" type="button" title="Share slice memory gotcha">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+              <span>Share Gotcha</span>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -89,7 +255,7 @@
         <div class="stat-label">Interactive Visuals</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number">1.26</div>
+        <div class="stat-number">v1.26</div>
         <div class="stat-label">Verified Go Toolchain</div>
       </div>
       <div class="stat-card">
@@ -98,55 +264,341 @@
       </div>
     </section>
 
-    <!-- ──────────────────────── LIVE INTERACTIVE SHOWCASE ──────────────────────── -->
-    <section style="margin: 3.5rem 0;">
-      <div style="text-align:center; margin-bottom:1.5rem;">
-        <span class="eyebrow">Try It Live</span>
-        <h2 style="margin:0.2em 0 0.4em;">Watch Concurrency in Action</h2>
-        <p style="max-width:640px; margin:0 auto; font-size:1.02rem;">
-          In Go, the <code>go</code> keyword spins up an ultra-lightweight goroutine (~2KB initial stack).
-          Click <strong>Run comparison</strong> to see sequential tasks wait in line while concurrent goroutines finish in parallel.
+    <!-- ──────────────────────── DUAL-TRACK LEARNING PATHWAYS ──────────────────────── -->
+    <section id="curriculum" style="margin: 4.5rem 0 3.5rem;">
+      <div style="text-align:center; margin-bottom: 1.5rem;">
+        <span class="eyebrow">Structured Pathways</span>
+        <h2 style="margin:0.2em 0 0.4em;">Choose Your Tailored Learning Track</h2>
+        <p style="max-width:650px; margin:0 auto; color:var(--text-dim);">
+          Filters above eliminate cognitive overload. Jump directly to what matters for your experience level.
         </p>
       </div>
 
-      <div class="viz" data-viz="goroutines" style="max-width:820px; margin:0 auto;">
-        <div class="viz-header">
-          <div class="viz-title">
-            <span class="viz-badge">Runtime Visualizer</span>
-            <span>Sequential vs. Concurrent Execution</span>
-          </div>
-          <span class="viz-step-counter">3 concurrent tasks</span>
-        </div>
-        <div class="viz-stage">
-          <div style="display:flex; gap:2rem; flex-wrap:wrap;">
-            <div style="flex:1; min-width:260px;">
-              <div style="font-size:0.78rem; font-weight:750; color:var(--text-dim); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.05em; display:flex; justify-content:space-between;">
-                <span>Sequential (1 thread)</span>
-                <span style="font-family:var(--font-mono); color:var(--warn);">T1 + T2 + T3</span>
-              </div>
-              <div data-panel="sequential">
-                <div class="lane-row"><span class="lane-label">worker 1</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
-                <div class="lane-row"><span class="lane-label">worker 2</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
-                <div class="lane-row"><span class="lane-label">worker 3</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
-              </div>
+      <!-- Filter Tabs -->
+      <div class="track-filter-container">
+        <button class="track-tab-btn active" data-track="all" type="button">All Modules (8)</button>
+        <button class="track-tab-btn" data-track="beginner" type="button">🌱 Absolute Beginner</button>
+        <button class="track-tab-btn" data-track="concurrency" type="button">⚡ Concurrency &amp; Internals</button>
+        <button class="track-tab-btn" data-track="cloud-native" type="button">☸️ Cloud Native &amp; Production</button>
+      </div>
+
+      <!-- 8 Module Cards Grid -->
+      <div class="curriculum-grid">
+
+        <!-- Module 1: Basics -->
+        <a class="roadmap-card" href="basics.html" data-track="beginner">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge">Module 01</span>
+              <span class="roadmap-duration-badge">⏱ Est 45 min</span>
             </div>
-            <div style="flex:1; min-width:260px;">
-              <div style="font-size:0.78rem; font-weight:750; color:var(--text-dim); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.05em; display:flex; justify-content:space-between;">
-                <span>Concurrent (goroutines)</span>
-                <span style="font-family:var(--font-mono); color:var(--ok);">max(T1, T2, T3)</span>
-              </div>
-              <div data-panel="concurrent">
-                <div class="lane-row"><span class="lane-label">go worker 1</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
-                <div class="lane-row"><span class="lane-label">go worker 2</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
-                <div class="lane-row"><span class="lane-label">go worker 3</span><div class="lane-track"><div class="lane-fill"></div></div><span class="lane-done-badge">done</span></div>
-              </div>
+            <h3 class="roadmap-card-title">Go Basics</h3>
+            <p class="roadmap-card-desc">
+              From zero syntax to writing idiomatic Go. Zero values, control flow, functions, portable shadowing traps, and the error != nil call stack.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Hello Go</span>
+              <span class="roadmap-pill">Zero Values</span>
+              <span class="roadmap-pill">Control Flow</span>
+              <span class="roadmap-pill">Shadowing</span>
+              <span class="roadmap-pill">Defer LIFO</span>
             </div>
           </div>
+          <div class="roadmap-card-action">Start Module &rarr;</div>
+        </a>
+
+        <!-- Module 2: Core -->
+        <a class="roadmap-card" href="core.html" data-track="beginner">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge">Module 02</span>
+              <span class="roadmap-duration-badge">⏱ Est 1 hr 15m</span>
+            </div>
+            <h3 class="roadmap-card-title">Core Go Concepts</h3>
+            <p class="roadmap-card-desc">
+              Structs &amp; method receivers, slice headers vs backing arrays, map bucket internals, interface dynamic dispatch, and the classic nil interface gotcha.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Struct Receivers</span>
+              <span class="roadmap-pill">Slice Headers</span>
+              <span class="roadmap-pill">Map Buckets</span>
+              <span class="roadmap-pill">Nil Interface</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Explore Core &rarr;</div>
+        </a>
+
+        <!-- Module 3: Concurrency -->
+        <a class="roadmap-card" href="concurrency.html" data-track="concurrency">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge">Module 03</span>
+              <span class="roadmap-duration-badge">⏱ Est 1 hr 45m</span>
+            </div>
+            <h3 class="roadmap-card-title">Concurrency &amp; Channels</h3>
+            <p class="roadmap-card-desc">
+              Master Go's flagship superpower. Operating M:N scheduler, unbuffered rendezvous handshakes, buffered queues, select multiplexers, and worker pools.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">M:N Scheduler</span>
+              <span class="roadmap-pill">Handshakes</span>
+              <span class="roadmap-pill">Ring Buffers</span>
+              <span class="roadmap-pill">Select Ops</span>
+              <span class="roadmap-pill">Worker Pools</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Master Concurrency &rarr;</div>
+        </a>
+
+        <!-- Module 4: Advanced -->
+        <a class="roadmap-card" href="advanced.html" data-track="concurrency">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge" style="background:rgba(129, 140, 248, 0.15); border-color:rgba(129, 140, 248, 0.35); color:#818cf8;">Module 04</span>
+              <span class="roadmap-duration-badge">⏱ Est 2 hr</span>
+            </div>
+            <h3 class="roadmap-card-title">Advanced Runtime</h3>
+            <p class="roadmap-card-desc">
+              Type parameters (generics), val/ptr constraints, Context cancellation propagation tree, table-driven tests, and sub-nanosecond memory benchmarks.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Generics</span>
+              <span class="roadmap-pill">Context Trees</span>
+              <span class="roadmap-pill">Escape Analysis</span>
+              <span class="roadmap-pill">Benchmarks</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action" style="color:#818cf8;">Dive Deep &rarr;</div>
+        </a>
+
+        <!-- Module 5: Operators -->
+        <a class="roadmap-card" href="operators.html" data-track="cloud-native">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge" style="background:rgba(245, 158, 11, 0.15); border-color:rgba(245, 158, 11, 0.35); color:#f59e0b;">Module 05</span>
+              <span class="roadmap-duration-badge">⏱ Est 2 hr 30m</span>
+            </div>
+            <h3 class="roadmap-card-title">Kubernetes Operators</h3>
+            <p class="roadmap-card-desc">
+              Build custom controllers using controller-runtime. Custom Resource Definitions (CRDs), level-triggered reconcile loops, mutators, and leader election.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">CRD Engine</span>
+              <span class="roadmap-pill">Reconcilers</span>
+              <span class="roadmap-pill">Informers</span>
+              <span class="roadmap-pill">Leader Election</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action" style="color:#f59e0b;">Build Operators &rarr;</div>
+        </a>
+
+        <!-- Module 6: REST APIs -->
+        <a class="roadmap-card" href="rest-api.html" data-track="cloud-native">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge">Module 06</span>
+              <span class="roadmap-duration-badge">⏱ Est 1 hr 45m</span>
+            </div>
+            <h3 class="roadmap-card-title">REST APIs with Gin</h3>
+            <p class="roadmap-card-desc">
+              Enterprise web APIs, Radix tree routing, struct tag binding &amp; validation, middleware call-chains, structured JSON logging, and MongoDB client pipelines.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Gin Engine</span>
+              <span class="roadmap-pill">Radix Router</span>
+              <span class="roadmap-pill">Struct Tags</span>
+              <span class="roadmap-pill">Mongo BSON</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Build REST APIs &rarr;</div>
+        </a>
+
+        <!-- Module 7: gRPC -->
+        <a class="roadmap-card" href="grpc-api.html" data-track="cloud-native">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge">Module 07</span>
+              <span class="roadmap-duration-badge">⏱ Est 1 hr 45m</span>
+            </div>
+            <h3 class="roadmap-card-title">gRPC Microservices</h3>
+            <p class="roadmap-card-desc">
+              Ultra-low latency microservices with Protobuf v3. Unary calls, server-streaming, client-streaming, bidirectional multiplexing, and interceptor-chains.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">Protobuf v3</span>
+              <span class="roadmap-pill">gRPC RPC</span>
+              <span class="roadmap-pill">Full Duplex</span>
+              <span class="roadmap-pill">Interceptors</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action">Explore gRPC &rarr;</div>
+        </a>
+
+        <!-- Module 8: Coding Interview -->
+        <a class="roadmap-card" href="coding-interview.html" data-track="concurrency">
+          <div>
+            <div class="roadmap-card-meta">
+              <span class="roadmap-module-badge" style="background:rgba(245, 158, 11, 0.15); border-color:rgba(245, 158, 11, 0.35); color:#f59e0b;">Module 08</span>
+              <span class="roadmap-duration-badge">⏱ Est 2 hr 15m</span>
+            </div>
+            <h3 class="roadmap-card-title">Coding Interviews</h3>
+            <p class="roadmap-card-desc">
+              Top high-frequency systems coding challenges: LRU Cache with Double-Linked Lists, concurrent token bucket rate limiters, and fan-out worker pools.
+            </p>
+            <div class="roadmap-pills">
+              <span class="roadmap-pill">LRU Cache</span>
+              <span class="roadmap-pill">Rate Limiter</span>
+              <span class="roadmap-pill">Worker Pools</span>
+              <span class="roadmap-pill">Mutex vs Chan</span>
+            </div>
+          </div>
+          <div class="roadmap-card-action" style="color:#f59e0b;">Practice Challenges &rarr;</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ──────────────────────── SCAFFOLDING M:N SCHEDULER VISUALIZER ──────────────────────── -->
+    <section id="runtime-visualizer" style="margin: 4.5rem 0 3.5rem;">
+      <div style="text-align:center; margin-bottom:1.5rem;">
+        <span class="eyebrow">Runtime Under Visualizer</span>
+        <h2 style="margin:0.2em 0 0.4em;">Goroutine M:N Runtime Scheduling vs Sequential Thread</h2>
+        <p style="max-width:680px; margin:0 auto; font-size:1.02rem; color:var(--text-dim);">
+          In Go, each <code>go func()</code> allocates a lightweight ~2KB dynamic stack (vs ~2MB OS thread).
+          Step through the timeline to see how the Go runtime multiplexes $N$ goroutines onto $M$ OS threads using $P$ logical processor contexts.
+        </p>
+      </div>
+
+      <div class="scheduler-viz-box" data-viz="scheduler-scrubber">
+        <div class="scheduler-viz-header">
+          <div style="display:flex; align-items:center; gap:0.8rem;">
+            <span class="viz-badge">Runtime State Machine</span>
+            <span class="scheduler-step-status">Step 0 of 3 (Ready &amp; Idle)</span>
+          </div>
+          <div class="scheduler-controls-bar">
+            <button class="btn-sched-ctrl" data-role="sched-prev" type="button" title="Previous Step">◀</button>
+            <button class="btn-sched-ctrl primary" data-role="sched-play" type="button">
+              <span>▶ Play Demo</span>
+            </button>
+            <button class="btn-sched-ctrl" data-role="sched-next" type="button" title="Next Step">▶</button>
+            <button class="btn-sched-ctrl" data-role="sched-reset" type="button" title="Reset Scrubber">🔁</button>
+          </div>
         </div>
-        <div class="viz-controls">
-          <button class="btn btn-primary" data-role="play">Run comparison ▶</button>
+
+        <div class="scheduler-lanes-split">
+          <!-- Sequential Lane -->
+          <div class="scheduler-lane-col" data-panel="sequential">
+            <div class="scheduler-lane-head">
+              <span class="scheduler-lane-title">
+                <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b; display:inline-block;"></span>
+                Sequential (Blocking 1 OS Thread)
+              </span>
+              <span class="scheduler-time-badge" data-role="time-seq" style="color:#fbbf24;">T = 0ms</span>
+            </div>
+
+            <div class="scheduler-task-row" data-task="1">
+              <span>Task 1: Fetch User Profile</span>
+              <span class="scheduler-task-status">Waiting</span>
+            </div>
+            <div class="scheduler-task-row" data-task="2">
+              <span>Task 2: Query Mongo DB (Blocked I/O)</span>
+              <span class="scheduler-task-status">Waiting</span>
+            </div>
+            <div class="scheduler-task-row" data-task="3">
+              <span>Task 3: Send Telemetry Log (Blocked)</span>
+              <span class="scheduler-task-status">Waiting</span>
+            </div>
+
+            <div class="scheduler-footer-note note-warn">
+              ⚠️ <strong>Heavy OS Thread Stack:</strong> 2,048 KB reserved per thread. CPU sits completely idle waiting for I/O sys_calls.
+            </div>
+          </div>
+
+          <!-- Concurrent Lane -->
+          <div class="scheduler-lane-col" data-panel="concurrent">
+            <div class="scheduler-lane-head">
+              <span class="scheduler-lane-title">
+                <span style="width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block;"></span>
+                Concurrent (Go M:N Work Stealing)
+              </span>
+              <span class="scheduler-time-badge" data-role="time-con" style="color:#34d399;">T = 0ms</span>
+            </div>
+
+            <div class="scheduler-task-row" data-task="1">
+              <span>[G1: P0] go FetchUser()</span>
+              <span class="scheduler-task-status">Waiting</span>
+            </div>
+            <div class="scheduler-task-row" data-task="2">
+              <span>[G2: P1] go QueryMongo()</span>
+              <span class="scheduler-task-status">Waiting</span>
+            </div>
+            <div class="scheduler-task-row" data-task="3">
+              <span>[G3: P0] go SendTelemetry()</span>
+              <span class="scheduler-task-status">Waiting</span>
+            </div>
+
+            <div class="scheduler-footer-note note-info">
+              💡 <strong>Ultra-compact Goroutine Stack:</strong> Initial 2 KB live heap allocation. Non-blocking M:N runqueue with work-stealing.
+            </div>
+          </div>
         </div>
-        <div class="viz-caption" data-role="caption">Click &ldquo;Run comparison&rdquo; to benchmark the two execution models in real time.</div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────── INTERACTIVE CHECKPOINT QUIZ (MEMORY INTUITION) ──────────────────────── -->
+    <section id="interactive-diagnostic" style="margin: 4.5rem 0 3.5rem;">
+      <div style="text-align:center; margin-bottom: 1.8rem;">
+        <span class="eyebrow">Interactive Diagnostic</span>
+        <h2 style="margin:0.2em 0 0.4em;">Checkpoint Quiz: Test Your Memory Intuition</h2>
+        <p style="max-width:650px; margin:0 auto; color:var(--text-dim);">
+          Test your mental model. Answer with real-time feedback and dynamic memory breakdown diagram.
+        </p>
+      </div>
+
+      <div class="quiz-intuition-wrapper" data-viz="memory-quiz">
+        <!-- Quiz Category Switcher Tabs -->
+        <div class="quiz-topic-tabs">
+          <button class="quiz-topic-btn active" type="button">01: Slice Mutation</button>
+          <button class="quiz-topic-btn" type="button">02: Interface Trap</button>
+          <button class="quiz-topic-btn" type="button">03: Goroutine Leaks</button>
+        </div>
+
+        <!-- Quiz Interactive Split Container -->
+        <div class="quiz-interactive-split">
+          <!-- Left: Question & Options -->
+          <div class="quiz-card-left">
+            <div class="quiz-meta-tag">MEMORY &amp; SLICES | QUESTION 1 OF 3</div>
+            <div class="quiz-q-title">
+              You create a slice <code>a := []int{1, 2, 3}</code>, then take a sub-slice <code>b := a[:2]</code> and run <code>b[0] = 99</code>. What happens to <code>a[0]</code>?
+            </div>
+
+            <div class="quiz-options-list">
+              <!-- Options populated by JS -->
+            </div>
+
+            <div style="display:flex; gap:0.6rem; align-items:center;">
+              <button class="btn btn-primary btn-sm" data-role="quiz-check-btn" type="button" disabled>Check Answer</button>
+              <button class="btn btn-sm" data-role="quiz-reset-btn" type="button" style="display:none;">Reset Question</button>
+            </div>
+
+            <div class="quiz-feedback-box"></div>
+          </div>
+
+          <!-- Right: Live Runtime Memory Breakdown Diagram -->
+          <div class="quiz-card-right">
+            <div class="quiz-breakdown-head">
+              <span class="quiz-breakdown-title">Runtime Memory Breakdown</span>
+              <span class="quiz-state-badge">Awaiting Answer</span>
+            </div>
+            <div data-role="quiz-diagram-area">
+              <!-- Diagram rendered live by JS -->
+            </div>
+            <div style="margin-top:1.2rem; padding-top:0.8rem; border-top:1px solid #162238; display:flex; justify-content:space-between; font-size:0.75rem;">
+              <span style="color:#64748b;">✔ Go 1.26 Playground Verified</span>
+              <a href="https://go.dev/play/p/ab2JLeWaDyY" target="_blank" rel="noopener" style="color:#38bdf8;">Run in Playground ↗</a>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -155,12 +607,12 @@
       <div style="text-align:center; margin-bottom: 2rem;">
         <span class="eyebrow">Visual Pedagogy</span>
         <h2 style="margin:0.2em 0 0.4em;">Why text explanations aren't enough</h2>
-        <p style="max-width:620px; margin:0 auto;">
+        <p style="max-width:620px; margin:0 auto; color:var(--text-dim);">
           Go is deliberately simple in syntax, but its runtime behavior (memory allocation, slice headers, channel locks, scheduling) is full of subtle gotchas.
         </p>
       </div>
 
-      <div class="features-grid">
+      <div class="features-grid-4">
         <div class="feature-card">
           <div class="feature-icon-box">🧠</div>
           <div class="feature-title">Backing Arrays, Not Abstractions</div>
@@ -171,9 +623,9 @@
 
         <div class="feature-card">
           <div class="feature-icon-box">⚡</div>
-          <div class="feature-title">Lock-Free Concurrency</div>
+          <div class="feature-title">CSP &amp; Channel Internals</div>
           <p class="feature-desc">
-            Understand how unbuffered channel handshakes force synchronized rendezvous between goroutines, and how buffer queues hold items without blocking.
+            Understand how unbuffered channel handshakes force synchronized rendezvous between goroutines via internal <code>hchan.lock</code>, and how buffer queues avoid contention.
           </p>
         </div>
 
@@ -195,264 +647,90 @@
       </div>
     </section>
 
-    <!-- ──────────────────────── CHECKPOINT QUIZ ──────────────────────── -->
-    <section style="margin: 3.5rem 0;">
-      <div class="quiz-box" data-quiz="slice-quiz" data-correct="1" style="max-width:760px; margin:0 auto;">
-        <div class="quiz-header">
-          <span class="quiz-badge">Checkpoint Quiz</span>
-          <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">Test your Go intuition</span>
-        </div>
-        <div class="quiz-question">
-          You create a slice <code>a := []int{1, 2, 3}</code>, then take a sub-slice <code>b := a[:2]</code> and run <code>b[0] = 99</code>. What happens to <code>a[0]</code>?
-        </div>
-        <div class="quiz-options">
-          <button class="quiz-option" type="button">
-            <span class="quiz-opt-letter">A</span>
-            <span><code>a[0]</code> remains <code>1</code> &mdash; sub-slicing copies the underlying elements to avoid mutation.</span>
-          </button>
-          <button class="quiz-option" type="button">
-            <span class="quiz-opt-letter">B</span>
-            <span><code>a[0]</code> becomes <code>99</code> &mdash; slices share the same underlying backing array in memory.</span>
-          </button>
-          <button class="quiz-option" type="button">
-            <span class="quiz-opt-letter">C</span>
-            <span>Go throws a compile error &mdash; sub-slices are read-only views by default.</span>
-          </button>
-          <button class="quiz-option" type="button">
-            <span class="quiz-opt-letter">D</span>
-            <span>A runtime panic occurs because <code>b</code> was sliced with a half-open range.</span>
-          </button>
-        </div>
-        <div style="display:flex; gap:0.6rem;">
-          <button class="btn btn-primary btn-sm" data-role="quiz-check" disabled>Check Answer</button>
-          <button class="btn btn-sm" data-role="quiz-reset" style="display:none;">Try Again</button>
-        </div>
-        <div class="quiz-explanation">
-          <strong>Correct!</strong> In Go, sub-slicing <code>a[:2]</code> creates a new 24-byte <code>SliceHeader</code> struct containing <code>{Data: ptr, Len: 2, Cap: 3}</code>. The pointer points directly into <em>the same backing array</em> as <code>a</code>. Modifying <code>b[0]</code> mutates that shared memory, so <code>a[0]</code> also reads <code>99</code>.
-        </div>
-      </div>
-    </section>
-
-    <!-- ──────────────────────── COMPREHENSIVE ROADMAP ──────────────────────── -->
-    <section style="margin: 4.5rem 0 2rem;">
-      <div style="text-align:center; margin-bottom: 2.2rem;">
-        <span class="eyebrow">Structured Curriculum</span>
-        <h2 style="margin:0.2em 0 0.4em;">Complete Learning Roadmap</h2>
-        <p style="max-width:620px; margin:0 auto;">
-          Follow the step-by-step path from your first variable to distributed systems, Kubernetes operators, and high-frequency interview questions.
-        </p>
-      </div>
-
-      <div class="roadmap-grid">
-
-        <!-- Module 1: Basics -->
-        <a class="roadmap-card" href="basics.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 01</span>
-              <span style="font-size:1.3rem;">🚀</span>
-            </div>
-            <h3 class="roadmap-card-title">Go Basics</h3>
-            <p class="roadmap-card-desc">
-              From zero to writing idiomatic Go. Variables, zero-values, control flow, functions, variable shadowing gotchas, and the defer LIFO stack.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Hello Go</span>
-              <span class="roadmap-pill">Zero Values</span>
-              <span class="roadmap-pill">Control Flow</span>
-              <span class="roadmap-pill">Shadowing</span>
-              <span class="roadmap-pill">Defer Stack</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Start Basics &rarr;</div>
-        </a>
-
-        <!-- Module 2: Core -->
-        <a class="roadmap-card" href="core.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 02</span>
-              <span style="font-size:1.3rem;">🧩</span>
-            </div>
-            <h3 class="roadmap-card-title">Core Go Concepts</h3>
-            <p class="roadmap-card-desc">
-              Structs &amp; method receivers, slices vs backing arrays, map internals, interface dynamic dispatch, and the classic nil interface trap.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Struct Receivers</span>
-              <span class="roadmap-pill">Slice Headers</span>
-              <span class="roadmap-pill">Maps</span>
-              <span class="roadmap-pill">Interfaces</span>
-              <span class="roadmap-pill">Nil Gotcha</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Explore Core &rarr;</div>
-        </a>
-
-        <!-- Module 3: Concurrency -->
-        <a class="roadmap-card" href="concurrency.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 03</span>
-              <span style="font-size:1.3rem;">⚡</span>
-            </div>
-            <h3 class="roadmap-card-title">Concurrency &amp; Channels</h3>
-            <p class="roadmap-card-desc">
-              Master Go's flagship superpower. Goroutines, unbuffered handshakes, buffered queues, channel closing semantics, select multiplexers, and worker pools.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Goroutines</span>
-              <span class="roadmap-pill">Unbuffered Chans</span>
-              <span class="roadmap-pill">Buffers</span>
-              <span class="roadmap-pill">Select</span>
-              <span class="roadmap-pill">Worker Pools</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Master Concurrency &rarr;</div>
-        </a>
-
-        <!-- Module 4: Advanced -->
-        <a class="roadmap-card" href="advanced.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 04</span>
-              <span style="font-size:1.3rem;">🔬</span>
-            </div>
-            <h3 class="roadmap-card-title">Advanced Go</h3>
-            <p class="roadmap-card-desc">
-              Type parameters (generics), type constraints, Context cancellation propagation trees, table-driven tests, and memory benchmarks.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Generics</span>
-              <span class="roadmap-pill">Type Constraints</span>
-              <span class="roadmap-pill">Context Trees</span>
-              <span class="roadmap-pill">Benchmarks</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Go Advanced &rarr;</div>
-        </a>
-
-        <!-- Module 5: Operators -->
-        <a class="roadmap-card" href="operators.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 05</span>
-              <span style="font-size:1.3rem;">☸️</span>
-            </div>
-            <h3 class="roadmap-card-title">Kubernetes Operators</h3>
-            <p class="roadmap-card-desc">
-              Building cloud-native controllers in Go. Reconcile loops, controller-runtime, client-go informers, workqueues, and owner-reference GC cascades.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Reconcile Loop</span>
-              <span class="roadmap-pill">CRDs</span>
-              <span class="roadmap-pill">client-go</span>
-              <span class="roadmap-pill">Workqueues</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Build Operators &rarr;</div>
-        </a>
-
-        <!-- Module 6: REST APIs -->
-        <a class="roadmap-card" href="rest-api.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 06</span>
-              <span style="font-size:1.3rem;">🌐</span>
-            </div>
-            <h3 class="roadmap-card-title">REST APIs with Gin</h3>
-            <p class="roadmap-card-desc">
-              Production HTTP services. Gin routing, request binding &amp; validation, middleware chaining, structured logging, and MongoDB integration.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Gin Engine</span>
-              <span class="roadmap-pill">HTTP Handlers</span>
-              <span class="roadmap-pill">Middleware</span>
-              <span class="roadmap-pill">MongoDB</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Build REST APIs &rarr;</div>
-        </a>
-
-        <!-- Module 7: gRPC -->
-        <a class="roadmap-card" href="grpc-api.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 07</span>
-              <span style="font-size:1.3rem;">📡</span>
-            </div>
-            <h3 class="roadmap-card-title">gRPC Microservices</h3>
-            <p class="roadmap-card-desc">
-              High-throughput RPC communication. Protocol buffers v3, code generation, unary RPCs, server streaming, client streaming, and bidirectional pipes.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Protobuf</span>
-              <span class="roadmap-pill">Unary RPC</span>
-              <span class="roadmap-pill">Streaming</span>
-              <span class="roadmap-pill">Interceptors</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Explore gRPC &rarr;</div>
-        </a>
-
-        <!-- Module 8: Coding Interview -->
-        <a class="roadmap-card" href="coding-interview.html">
-          <div>
-            <div class="roadmap-card-head">
-              <span class="roadmap-module-badge">Module 08</span>
-              <span style="font-size:1.3rem;">💡</span>
-            </div>
-            <h3 class="roadmap-card-title">Coding Interview Qs</h3>
-            <p class="roadmap-card-desc">
-              The high-frequency coding questions asked in Go engineering interviews. Data structures from scratch, concurrency patterns, and idiomatic algorithms.
-            </p>
-            <div class="roadmap-pills">
-              <span class="roadmap-pill">Linked Lists</span>
-              <span class="roadmap-pill">Worker Pools</span>
-              <span class="roadmap-pill">LRU Cache</span>
-              <span class="roadmap-pill">Rate Limiter</span>
-            </div>
-          </div>
-          <div class="roadmap-card-action">Practice Questions &rarr;</div>
-        </a>
-
-      </div>
-    </section>
-
     <!-- ──────────────────────── CALLOUT BANNER ──────────────────────── -->
-    <div class="callout callout-tip" style="margin: 3.5rem 0;">
-      <div class="callout-title">Already know some Go?</div>
-      <p>
-        Skip straight to <a href="concurrency.html">Concurrency</a> &mdash; goroutines and
-        channels are usually the part of Go that intimidates people coming from other
-        languages the most, and the part where an animated timeline genuinely helps more than a
-        paragraph. Total beginners should start with the <a href="basics.html">Basics</a> instead;
-        everything after it assumes you can read the code from the section before.
-      </p>
+    <div class="callout callout-tip" style="margin: 3.5rem 0; background:#080d19; border:1px solid #1e2d4a; padding:1.8rem; border-radius:var(--radius-lg);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.2rem;">
+        <div>
+          <div class="callout-title" style="color:#38bdf8; margin-bottom:0.4rem;">Already know some Go?</div>
+          <h3 style="margin:0 0 0.5rem; font-size:1.35rem; color:#f1f5f9;">Skip straight to Concurrency &amp; Internals</h3>
+          <p style="margin:0; max-width:620px; font-size:0.92rem; color:var(--text-dim);">
+            Goroutines and channels are usually the part of Go that intimidates developers coming from Python, Java, or Rust. An animated timeline genuinely helps more than a chapter of text.
+          </p>
+        </div>
+        <div style="display:flex; gap:0.8rem; align-items:center; flex-wrap:wrap;">
+          <a class="btn btn-primary" href="concurrency.html" style="font-weight:700;">Jump to Concurrency ⚡</a>
+          <a class="btn" href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+        </div>
+      </div>
     </div>
 
   </div>
 </main>
 
-<footer class="site-footer">
-  <div style="max-width:700px; margin:0 auto; line-height:1.8;">
-    <div style="margin-bottom:0.75rem; font-weight:700; color:var(--text);">
-      Learn Go, Visually &mdash; Open Source Go Learning Portal
+<!-- ──────────────────────── TECHNICAL FOOTER ──────────────────────── -->
+<footer class="site-footer" style="background:#050811; border-top:1px solid #162238; padding:3.5rem 1.5rem 3rem;">
+  <div class="page-landing" style="padding:0;">
+    <div class="tech-footer-grid">
+      <!-- Col 1: Brand & Mission -->
+      <div class="tech-footer-col">
+        <div style="font-weight:800; font-size:1.1rem; color:#f1f5f9; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+          <span class="brand-badge" style="width:24px; height:24px; font-size:0.75rem;">LV</span>
+          <span>Learn Go, Visually</span>
+        </div>
+        <p style="font-size:0.85rem; color:#64748b; line-height:1.65; margin-bottom:1rem;">
+          Low-level diagnostics and visual runtime simulation for Go developers, systems engineers, and concurrency practitioners.
+        </p>
+        <div style="font-family:var(--font-mono); font-size:0.72rem; color:#38bdf8;">
+          Domain: learn-go.r4rajat.com
+        </div>
+      </div>
+
+      <!-- Col 2: Curriculum Tracks -->
+      <div class="tech-footer-col">
+        <h4>Curriculum Tracks</h4>
+        <ul>
+          <li><a href="basics.html">Basics &amp; Control Flow</a></li>
+          <li><a href="core.html">Core &amp; Structs</a></li>
+          <li><a href="concurrency.html">Concurrency &amp; Channels</a></li>
+          <li><a href="advanced.html">Advanced Runtime Internals</a></li>
+          <li><a href="operators.html">Operators &amp; K8s Controllers</a></li>
+          <li><a href="rest-api.html">REST API Architecture</a></li>
+          <li><a href="grpc-api.html">gRPC &amp; Protobuf Services</a></li>
+          <li><a href="coding-interview.html">Interview Challenges</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Guarantees & Verification -->
+      <div class="tech-footer-col">
+        <h4>Guarantees &amp; Verification</h4>
+        <ul>
+          <li><span style="color:#22c55e;">✔</span> Pure HTML/CSS/JS (Zero Build Step)</li>
+          <li><span style="color:#22c55e;">✔</span> Official Go Playground Sanctioned AST</li>
+          <li><span style="color:#22c55e;">✔</span> Memory Allocator &amp; Pointer Telemetry</li>
+          <li><span style="color:#22c55e;">✔</span> 100% Free &amp; Open Source</li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Community & Open Source -->
+      <div class="tech-footer-col">
+        <h4>Open Source</h4>
+        <ul>
+          <li><a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub Repository</a></li>
+          <li><a href="https://go.dev/ref/spec" target="_blank" rel="noopener">Go 1.26 Specification</a></li>
+          <li><a href="coding-interview.html">Go Data Challenges</a></li>
+          <li><a href="https://github.com/r4rajat/learn-go-visually/blob/main/LICENSE" target="_blank" rel="noopener">License: Apache 2.0</a></li>
+        </ul>
+      </div>
     </div>
-    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:1rem;">
-      Every code example on this site is compiled and verified against a real Go 1.26 toolchain before publishing,
-      and links out to the official Go Playground so you can run it yourself.
-    </p>
-    <div style="display:flex; justify-content:center; gap:1.2rem; font-size:0.86rem; flex-wrap:wrap;">
-      <a href="https://learn-go.r4rajat.com">learn-go.r4rajat.com</a>
-      <span>&bull;</span>
-      <a href="https://github.com/r4rajat/learn-go-visually" target="_blank" rel="noopener">GitHub</a>
-      <span>&bull;</span>
-      <a href="basics.html">Basics</a>
-      <span>&bull;</span>
-      <a href="concurrency.html">Concurrency</a>
-      <span>&bull;</span>
-      <a href="operators.html">Operators</a>
+
+    <div class="tech-footer-bottom">
+      <div>
+        &copy; 2026 Learn Go, Visually (r4rajat). Licensed under Apache 2.0.
+      </div>
+      <div style="display:flex; align-items:center; gap:0.8rem;">
+        <span style="color:#22c55e;">●</span>
+        <span>SYSTEM: GO 1.26 X86_64</span>
+      </div>
     </div>
   </div>
 </footer>

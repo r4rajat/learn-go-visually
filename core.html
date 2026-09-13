@@ -214,7 +214,7 @@ Sales</div>
 	b, _ := json.Marshal(u)
 	fmt.Println(<span class="tok-type">string</span>(b))
 }</code></pre>
-      <div class="code-output show">{"name":"Alice","email":"a@b.com","age":0}</div>
+      <div class="code-output show">{"name":"Alice","email":"a@b.com"}</div>
     </div>
 
     <div class="callout callout-mistake">
@@ -469,7 +469,8 @@ b: [99 2 3]</div>
 	}
 	fmt.Println(<span class="tok-str">"filtered (odds):"</span>, odds) <span class="tok-com">// reuses s's backing array!</span>
 
-	<span class="tok-com">// Reverse in-place</span>
+	<span class="tok-com">// Reset slice to demonstrate reverse in-place</span>
+	s = []<span class="tok-type">int</span>{1, 2, 3, 4, 5}
 	<span class="tok-kw">for</span> i, j := 0, len(s)-1; i &lt; j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
@@ -639,17 +640,17 @@ cleared len: 0 cap: 5</div>
 <span class="tok-kw">var</span> x <span class="tok-type">interface{}</span> = 42
 
 <span class="tok-kw">func</span> main() {
-	v, ok := x.(<span class="tok-type">int</span>)                 <span class="tok-com">// safe assertion: ok = false if wrong type</span>
+	v, ok := x.(<span class="tok-type">int</span>)                 <span class="tok-com">// safe assertion: succeeds (ok = true)</span>
 	fmt.Println(v, ok)
 
-	w, ok := x.(<span class="tok-type">string</span>)              <span class="tok-com">// fails: x holds int, not string</span>
-	fmt.Println(w, ok)
+	w, ok := x.(<span class="tok-type">string</span>)              <span class="tok-com">// fails: x holds int, not string (w is zero-value "")</span>
+	fmt.Printf(<span class="tok-str">"%q %t\n"</span>, w, ok)
 
 	z := x.(<span class="tok-type">string</span>)                  <span class="tok-com">// unsafe assertion: panics on mismatch!</span>
 	_ = z
 }</code></pre>
       <div class="code-output show is-error">42 true
-0 false
+"" false
 panic: interface conversion: interface {} is int, not string</div>
     </div>
 
@@ -679,10 +680,7 @@ panic: interface conversion: interface {} is int, not string</div>
       </div>
       <pre><code><span class="tok-kw">package</span> main
 
-<span class="tok-kw">import</span> (
-	<span class="tok-str">"fmt"</span>
-	<span class="tok-str">"strconv"</span>
-)
+<span class="tok-kw">import</span> <span class="tok-str">"fmt"</span>
 
 <span class="tok-kw">func</span> describe(v <span class="tok-type">interface{}</span>) {
 	<span class="tok-kw">switch</span> x := v.(<span class="tok-type">type</span>) {

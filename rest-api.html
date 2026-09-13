@@ -262,7 +262,7 @@ $ go get github.com/go-playground/validator/v10</div>
 
 	result, err := todosCollection.InsertOne(ctx, todo)
 	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create todo"})
+		c.JSON(http.StatusInternalServerError, gin.H{<span class="tok-str">"error"</span>: <span class="tok-str">"Failed to create todo"</span>})
 		<span class="tok-kw">return</span>
 	}
 
@@ -276,14 +276,14 @@ $ go get github.com/go-playground/validator/v10</div>
 
 	cursor, err := todosCollection.Find(ctx, bson.M{})
 	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch todos"})
+		c.JSON(http.StatusInternalServerError, gin.H{<span class="tok-str">"error"</span>: <span class="tok-str">"Failed to fetch todos"</span>})
 		<span class="tok-kw">return</span>
 	}
 	<span class="tok-kw">defer</span> cursor.Close(ctx)
 
 	<span class="tok-kw">var</span> todos []Todo
 	<span class="tok-kw">if</span> err = cursor.All(ctx, &amp;todos); err != <span class="tok-kw">nil</span> {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse todos"})
+		c.JSON(http.StatusInternalServerError, gin.H{<span class="tok-str">"error"</span>: <span class="tok-str">"Failed to parse todos"</span>})
 		<span class="tok-kw">return</span>
 	}
 
@@ -340,18 +340,18 @@ $ go get github.com/go-playground/validator/v10</div>
 
 	result, err := todosCollection.UpdateOne(ctx, bson.M{"_id": objID}, update)
 	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> || result.MatchedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		c.JSON(http.StatusNotFound, gin.H{<span class="tok-str">"error"</span>: <span class="tok-str">"Todo not found"</span>})
 		<span class="tok-kw">return</span>
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Todo updated"})
+	c.JSON(http.StatusOK, gin.H{<span class="tok-str">"message"</span>: <span class="tok-str">"Todo updated"</span>})
 }
 
 <span class="tok-kw">func</span> DeleteTodo(c *gin.Context) {
 	id := c.Param(<span class="tok-str">"id"</span>)
 	objID, err := primitive.ObjectIDFromHex(id)
 	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid todo ID"})
+		c.JSON(http.StatusBadRequest, gin.H{<span class="tok-str">"error"</span>: <span class="tok-str">"Invalid todo ID"</span>})
 		<span class="tok-kw">return</span>
 	}
 
@@ -360,11 +360,11 @@ $ go get github.com/go-playground/validator/v10</div>
 
 	result, err := todosCollection.DeleteOne(ctx, bson.M{"_id": objID})
 	<span class="tok-kw">if</span> err != <span class="tok-kw">nil</span> || result.DeletedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		c.JSON(http.StatusNotFound, gin.H{<span class="tok-str">"error"</span>: <span class="tok-str">"Todo not found"</span>})
 		<span class="tok-kw">return</span>
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Todo deleted"})
+	c.JSON(http.StatusOK, gin.H{<span class="tok-str">"message"</span>: <span class="tok-str">"Todo deleted"</span>})
 }</code></pre>
     </div>
 
